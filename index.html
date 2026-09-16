@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FRACTURE PROTOCOL — prototipi</title>
+<meta name="description" content="Tattico a turni su griglia isometrica. Prototipi giocabili nel browser.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#07090B">
+<style>
+/* La tavolozza è quella del gioco: void-black, phosphor amber, la rampa
+   d'acciaio a quattro valori. Non è un vezzo — questa pagina è la prima cosa
+   che qualcuno vede, e deve somigliare a ciò che sta per aprire. */
+:root{
+  --fondo:#07090B; --ambra:#FFB000;
+  --st-lt:#cfd6e2; --st:#8c93a6; --st-dk:#4a4b63; --st-xd:#26243a;
+  --p1:2.05rem; --p2:1.3rem; --p3:1.05rem; --p4:.875rem; --p5:.75rem;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--fondo); color:var(--st);
+  font:400 var(--p4)/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  min-height:100vh;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.foglio{max-width:44rem; margin:0 auto; padding:clamp(1.25rem,5vw,3rem) clamp(1rem,4vw,2rem) 4rem}
+/* Il telaio: due filetti, non una cornice piena — a schermo intero un bordo
+   continuo legge come una finestra di sistema. */
+.telaio{position:relative; padding:clamp(1.1rem,4vw,2rem) 0}
+.telaio::before,.telaio::after{content:""; position:absolute; left:0; right:0; height:1px; background:var(--st-xd)}
+.telaio::before{top:0}
+.telaio::after{bottom:0}
+h1{margin:0; font-size:var(--p1); line-height:1.04; font-weight:700; letter-spacing:.02em; color:var(--st-lt); text-transform:uppercase}
+h1 b{display:block; color:var(--ambra); font-weight:700}
+.sotto{margin:.9rem 0 0; font-size:var(--p4); letter-spacing:.03em; color:var(--st-dk); max-width:32rem}
+h2{margin:2.6rem 0 1rem; font-size:var(--p5); font-weight:400; letter-spacing:.22em; text-transform:uppercase; color:var(--st-dk)}
+/* Le voci sono piastre con l'angolo tagliato e il bordo sinistro illuminato.
+   ⚠ Nessuna chevron: la freccia a destra fa leggere una schermata come un
+     pannello di impostazioni. Al suo posto il numero d'ordine, che in un
+     apparato è un'etichetta di canale. */
+.build{
+  display:block; text-decoration:none; color:inherit; margin:0 0 .6rem;
+  padding:.95rem 1.05rem; background:#0c0f13;
+  border:1px solid var(--st-xd); border-left:2px solid var(--st-dk);
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);
+  transition:border-color .12s,background .12s,transform .12s;
+}
+.build:hover,.build:focus-visible{background:#11151b; border-left-color:var(--ambra); transform:translateX(2px)}
+.build:focus-visible{outline:2px solid var(--ambra); outline-offset:2px}
+.build.ultima{border-left-color:var(--ambra)}
+.riga{display:flex; align-items:baseline; gap:.85rem; flex-wrap:wrap}
+.ord{font-size:var(--p5); letter-spacing:.1em; color:var(--st-dk); flex:0 0 auto}
+.testa{flex:1 1 12rem; min-width:0}
+.data{display:block; font-size:var(--p3); color:var(--st-lt); letter-spacing:.01em}
+.titolo{display:block; font-size:var(--p4); color:var(--ambra); letter-spacing:.02em}
+.meta{font-size:var(--p5); letter-spacing:.06em; color:var(--st-dk); flex:0 0 auto}
+.meta b{color:var(--ambra); font-weight:400}
+.cambia{margin:.85rem 0 0; padding:0 0 0 1.1rem; list-style:none}
+.cambia li{position:relative; font-size:var(--p5); line-height:1.6; color:var(--st)}
+.cambia li::before{content:"\2014"; position:absolute; left:-1.1rem; color:var(--st-xd)}
+.nota{margin:.8rem 0 0; font-size:var(--p5); color:var(--st-dk)}
+.vuoto{color:var(--st-dk)}
+.piede{margin:3rem 0 0; padding-top:1.2rem; border-top:1px solid var(--st-xd); font-size:var(--p5); color:var(--st-dk); letter-spacing:.04em}
+.piede p{margin:.35rem 0}
+kbd{font:inherit; color:var(--st); border:1px solid var(--st-xd); border-radius:2px; padding:0 .3em}
+/* Il vetro davanti: la scanline che il gioco ha sul campo, cucita anche qui.
+   Trasparente al dito, e spenta per chi chiede meno movimento. */
+.vetro{position:fixed; inset:0; pointer-events:none; mix-blend-mode:multiply;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px)}
+@media (prefers-reduced-motion:reduce){
+  .vetro{display:none}
+  .build{transition:none}
+}
+/* Sul telefono il corpo grande scende e la riga dei metadati va a capo: la
+   data e il titolo non devono mai stringersi a due caratteri per riga. */
+@media (max-width:26rem){
+  :root{--p1:1.55rem}
+  .meta{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<div class="foglio">
+  <header class="telaio">
+    <h1>Fracture<b>Protocol</b></h1>
+    <p class="sotto">Tattico a turni su griglia isometrica. Informazione perfetta:
+    ogni conseguenza si vede prima di confermarla. Ogni prototipo qui sotto è un
+    file solo — si apre e si gioca, anche dal telefono.</p>
+  </header>
+
+  <main>
+    <h2>Prototipi</h2>
+      <a class="build ultima" href="builds/v2026-09-16/index.html">
+        <div class="riga">
+          <span class="ord">01</span>
+          <span class="testa">
+            <span class="data">16 settembre 2026</span>
+            <span class="titolo">Primo prototipo pubblicato</span>
+          </span>
+          <span class="meta">0.8.0 &middot; 733 KB &middot; <b>ultima</b></span>
+        </div>
+        <ul class="cambia">
+          <li>Sedici missioni su due settori, otto tipi di obiettivo</li>
+          <li>Terreno interattivo: si vince spingendo i nemici nelle voragini e nell'acqua</li>
+          <li>Ogni conseguenza annunciata prima di confermare, danno collaterale compreso</li>
+          <li>Lazy J fuori dalla griglia: tre interventi e la barra di Risonanza</li>
+          <li>Otto telai riscritti a blocchi, ognuno con asimmetria e usura visibile</li>
+        </ul>
+        <p class="nota">Un file HTML autonomo, senza dipendenze. Si apre con un tap.</p>
+      </a>
+  </main>
+
+  <footer class="piede">
+    <p>Tocca un mech, poi una casella. Zoom con la rotella o due dita;
+    <kbd>+</kbd> <kbd>&minus;</kbd> <kbd>0</kbd> da tastiera.</p>
+    <p>In orizzontale il campo è più grande: il rombo isometrico è vincolato
+    dalla larghezza, non dall'altezza.</p>
+    <p>Prototipi in lavorazione: si gioca, non è finito.</p>
+  </footer>
+</div>
+<div class="vetro" aria-hidden="true"></div>
+</body>
+</html>

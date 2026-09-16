@@ -1,0 +1,13 @@
+{
+  "versione": "0.8.0",
+  "data": "2026-09-16",
+  "titolo": "Primo prototipo pubblicato",
+  "cambia": [
+    "Sedici missioni su due settori, otto tipi di obiettivo",
+    "Terreno interattivo: si vince spingendo i nemici nelle voragini e nell'acqua",
+    "Ogni conseguenza annunciata prima di confermare, danno collaterale compreso",
+    "Lazy J fuori dalla griglia: tre interventi e la barra di Risonanza",
+    "Otto telai riscritti a blocchi, ognuno con asimmetria e usura visibile"
+  ],
+  "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
+}
