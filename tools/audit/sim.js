@@ -11,7 +11,8 @@ const arg = (n, d) => { const i = process.argv.indexOf('--' + n); return i > 0 ?
 const SEEDS = +arg('seeds', 8), JOBS = +arg('jobs', 3), MODE = arg('mode', 'smart'), OUTF = arg('out', null);
 const ONLY = arg('missions', 'all');
 const SEED0 = +arg('seed0', 1);
-const SKILL = arg('skill', 'esperto');   // esperto | medio | novizio
+const SKILL = arg('skill', 'esperto');
+const PROGRESS = arg('progress', 'campagna');   // campagna | inizio
 const AGENT = fs.readFileSync(require('path').join(__dirname, 'agent.js'), 'utf8');
 const WEIGHTS = arg('weights', null);   // JSON per sovrascrivere A.W, es. '{"approach":4}'
 
@@ -43,7 +44,7 @@ const WEIGHTS = arg('weights', null);   // JSON per sovrascrivere A.W, es. '{"ap
       const t = tasks[next++];
       const t1 = Date.now();
       let r;
-      try { r = await page.evaluate(([id, seed, mode]) => AGENT.play(id, { seed, mode }), [t.id, t.seed, MODE]); }
+      try { r = await page.evaluate(([id, seed, mode, progress]) => AGENT.play(id, { seed, mode, progress }), [t.id, t.seed, MODE, PROGRESS]); }
       catch (e) { r = { id: t.id, seed: t.seed, error: 'PLAYWRIGHT ' + e.message.slice(0, 120) }; }
       r.ms = Date.now() - t1; results.push(r);
       if (results.length % 10 === 0) process.stderr.write(`  ${results.length}/${tasks.length} (${Math.round((Date.now() - t0) / 1000)}s)\n`);
@@ -53,7 +54,7 @@ const WEIGHTS = arg('weights', null);   // JSON per sovrascrivere A.W, es. '{"ap
   // ── riassunto per missione ──
   const by = {}; for (const r of results) (by[r.id] = by[r.id] || []).push(r);
   const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
-  console.log(`modo=${MODE} abilita=${SKILL} semi=${SEEDS} build=${C.URL.split('/').slice(-2, -1)[0]}  (${Math.round((Date.now() - t0) / 1000)}s)`);
+  console.log(`modo=${MODE} abilita=${SKILL} progresso=${PROGRESS} semi=${SEEDS} build=${C.URL.split('/').slice(-2, -1)[0]}  (${Math.round((Date.now() - t0) / 1000)}s)`);
   console.log('id  goal         n  vittorie  round   mech persi  hp% resta  nemici  motivi sconfitta                  ms   err');
   for (const id of ids) {
     const rs = by[id] || []; const ok = rs.filter(r => !r.error);

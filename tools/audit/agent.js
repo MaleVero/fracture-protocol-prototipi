@@ -218,6 +218,21 @@
     quiet(); hookDmg(); RITMO = 0; A.causes = {};
     if (typeof opts.seed === 'number') { window.__setSeed(opts.seed); A.seedNoise(opts.seed * 7919 + 17); }
     const m = MISSIONS.find(x => x.id === missionId);
+    /* Stato di campagna. Il generatore dipende da `cleared` (escalation: +1,5 per nodo, budget
+       fino a +10, élite nei pool) e da `currentSector` (il gate del bestiario conta per settore).
+       'inizio'   = come si apre il gioco (solo m1 contenuta): VALE SOLO PER Cassandra.
+       'campagna' = settori precedenti contenuti + antenati del nodo nel suo settore. */
+    window.__campagnaOrig = window.__campagnaOrig || { cleared: new Set(cleared), sector: currentSector };
+    cleared.clear(); window.__campagnaOrig.cleared.forEach(id => cleared.add(id));
+    currentSector = m.sector;
+    if (opts.progress !== 'inizio') {
+      const i = SECTORS.findIndex(s => s.id === m.sector);
+      MISSIONS.filter(x => SECTORS.findIndex(s => s.id === x.sector) < i).forEach(x => cleared.add(x.id));
+      const anc = new Set(), st = [missionId];
+      while (st.length) { const id = st.pop(); EDGES.filter(([a, b]) => b === id).forEach(([a]) => { if (!anc.has(a)) { anc.add(a); st.push(a); } }); }
+      if (m.boss) sectorNodes(m.sector).filter(x => !x.boss).forEach(x => anc.add(x.id));
+      anc.forEach(id => cleared.add(id));
+    }
     activeMission = m; startBattle(m);
     const out = { id: missionId, seed: opts.seed, mode: opts.mode || 'smart', turns: 0, error: null };
     try {

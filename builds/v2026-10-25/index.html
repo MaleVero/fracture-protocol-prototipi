@@ -1781,7 +1781,8 @@ const SPREAD_THRESHOLD=60; // sopra questa soglia un nodo contagia
 /* Riduzione al primo contenimento. Tarati perché giocare bene RALLENTI il
    marciume senza fermarlo: non si può presidiare il settore per sempre, prima
    o poi bisogna andare al Nido. È la scadenza che dà forma alla campagna. */
-const CONTAINMENT={m1:14,m2:20,m3:22,m4:26,m5:60,m6:18,o1:20,o2:24,o3:26,o4:60};
+const CONTAINMENT={m1:14,m2:20,m3:22,m4:26,m5:60,m6:18,o1:20,o2:24,o3:26,o4:60,
+                   t1:22,t2:24,t3:26,t4:26,t5:28,t6:28,t7:60};
 
 /* ═══════════ SETTORI ═══════════
    Il mondo è diviso in settori, ognuno con le sue missioni e il suo guardiano.
@@ -1802,6 +1803,7 @@ const CONTAINMENT={m1:14,m2:20,m3:22,m4:26,m5:60,m6:18,o1:20,o2:24,o3:26,o4:60};
 const SECTORS=[
   {id:"cassandra",nm:"SETTORE CASSANDRA",sub:"quadrante d'ingresso"},
   {id:"orvat",    nm:"SETTORE ORVAT",    sub:"cintura industriale",locked:true},
+  {id:"tarsis",   nm:"SETTORE TARSIS",   sub:"bacino sommerso",locked:true},
 ];
 let currentSector="cassandra";
 const sectorOf=id=>{const m=nodeOf(id);return m?m.sector:null;};
@@ -2540,6 +2542,13 @@ const MISSION_REWARDS={
   o2:{base:260,bonus:[{id:"flawless",label:"Nessun danno ai mech",reward:90}]},
   o3:{base:280,bonus:[{id:"riftKill",label:"Distruggi il pozzo",reward:100}]},
   o4:{base:480,bonus:[{id:"noMechLost",label:"Nessun mech perso",reward:150}]},
+  t1:{base:280,bonus:[{id:"drown",label:"Affoga almeno un Kaucha",reward:60},{id:"noMechLost",label:"Nessun mech perso",reward:80}]},
+  t2:{base:300,bonus:[{id:"flawless",label:"Nessun danno ai mech",reward:100}]},
+  t3:{base:320,bonus:[{id:"riftKill",label:"Distruggi il pozzo",reward:110},{id:"noMechLost",label:"Nessun mech perso",reward:80}]},
+  t4:{base:300,bonus:[{id:"noMechLost",label:"Nessun mech perso",reward:90}]},
+  t5:{base:330,bonus:[{id:"allRelics",label:"Estrai OGNI sito, non solo i tre richiesti",reward:110},{id:"bunkerIntact",label:"Bunker ancora in piedi",reward:60}]},
+  t6:{base:310,bonus:[{id:"noMechLost",label:"Nessun mech perso",reward:90},{id:"drown",label:"Affoga almeno un Kaucha",reward:60}]},
+  t7:{base:560,bonus:[{id:"riftKill",label:"Sigilla il rift delle ondate",reward:120},{id:"noMechLost",label:"Nessun mech perso",reward:160}]},
   m6:{base:210,bonus:[{id:"allRelics",label:"Estrai OGNI sito, non solo i tre richiesti",reward:90},{id:"bunkerIntact",label:"Bunker ancora in piedi",reward:50}]},
 };
 function bonusAchieved(b){
@@ -2731,9 +2740,86 @@ MISSIONS.push(
         terrain:[[1,3,"cisterna"],[6,3,"cisterna"],[3,1,"voragine"],[4,4,"voragine"],[0,2,"roccia"],[7,2,"roccia"]],
         enemies:[{t:"matria",x:5,y:1},{t:"skorr",x:6,y:2},{t:"vrast",x:3,y:1},{t:"trahn",x:2,y:2},{t:"krullelite",x:1,y:1}]}}
 );
+
+/* ═══ SETTORE TARSIS — il bacino sommerso ═══
+   Si apre quando cade il guardiano di Orvat. Il tema e' l'acqua, che nel gioco
+   e' gia' un'arma: qui ce n'e' ovunque, e arriva il NERIS, che la attraversa.
+   ⚠ La domanda non e' «piu' difficile»: e' «dove si butta, adesso, uno che non
+   affonda». Voragine, bordo e collisione restano chiusi alla sua immunita' — e
+   il giocatore ha dodici missioni di abitudini che dicono «acqua = morte».
+   Niente evacuazione: i civili scendono in colonna e l'acqua sbarra la colonna.
+   ⚠ Le quote vanno misurate col banco (tools/audit), non lette a occhio. */
+MISSIONS.push(
+  {id:"t1",sector:"tarsis",corr:40,x:8,y:52,name:"CANALE DI SCOLO",diff:3,dl:"d3",dlabel:"ALTA",locked:true,
+   obj:"Elimina tutti i Kaucha.",
+   twist:"Canali allagati: l'acqua uccide, ma i NERIS la attraversano senza affondare.",reward:"280 frammenti",
+   proc:true,spec:{goal:"eliminate",maxRound:6,rift:false,spawn:false,budget:18,waterRange:[4,6],bunkerRange:[1,2],
+     terrainMix:[["roccia",1,2],["voragine",1,2],["cisterna",1,2],["bosco",0,1]],
+     guarantee:["neris"],
+     pool:["vorn","vorn","krull","neris","grumo"]}},
+  {id:"t2",sector:"tarsis",corr:48,x:26,y:52,name:"CHIUSA DI CALMA",diff:3,dl:"d3",dlabel:"ALTA",locked:true,
+   obj:"Proteggi il RELAY per 6 round.",
+   twist:"Il relay sta sulla riva: i NERIS arrivano dall'acqua, dove non puoi chiuderli fuori.",reward:"300 frammenti",
+   proc:true,spec:{goal:"survive",maxRound:6,relay:true,rift:false,spawn:false,budget:19,waterRange:[4,6],bunkerRange:[1,2],
+     terrainMix:[["roccia",2,3],["voragine",1,2],["cisterna",1,2],["bosco",0,0]],
+     pool:["vorn","krull","krull","neris","grumo"]}},
+  {id:"t3",sector:"tarsis",corr:55,x:46,y:22,name:"POZZO DI RISALITA",diff:4,dl:"d3",dlabel:"ALTA",locked:true,
+   obj:"Chiudi il rift, o elimina tutti i Kaucha.",
+   twist:"Il pozzo scarica nell'acqua: ciò che ne esce non affonda.",reward:"320 frammenti",
+   proc:true,spec:{goal:"closeRift",maxRound:7,rift:true,riftHp:6,spawn:true,budget:21,waterRange:[3,5],bunkerRange:[0,2],
+     terrainMix:[["voragine",2,3],["roccia",2,3],["cisterna",1,2],["bosco",0,1]],
+     guarantee:["neris"],
+     pool:["vorn","krull","sahir","neris","grumo","vrast"]}},
+  {id:"t4",sector:"tarsis",corr:50,x:46,y:80,name:"DISSALATORE SEPOLTO",diff:3,dl:"d3",dlabel:"ALTA",locked:true,
+   obj:"Smaltisci 5 Kaucha usando il terreno.",
+   twist:"L'acqua uccide, ma non i NERIS: per loro servono voragini, cisterne e roccia. I colpi diretti non contano.",
+   reward:"300 framm. + campioni BIO",
+   proc:true,spec:{goal:"terrainKill",maxRound:7,rift:false,spawn:false,budget:22,
+     waterRange:[4,6],bunkerRange:[0,1],terrainGoal:5,
+     terrainMix:[["voragine",2,3],["cisterna",2,3],["roccia",1,2],["bosco",0,0]],
+     guarantee:["neris"],
+     pool:["vorn","neris","neris","neris","krull"]}},
+  {id:"t5",sector:"tarsis",corr:56,x:68,y:22,name:"STAZIONE DI POMPAGGIO",diff:4,dl:"d3",dlabel:"ALTA",locked:true,
+   obj:"Estrai 3 campioni presidiando i siti.",
+   twist:"Impianto sotto tensione: fuori dal raggio del RELAY i telai vanno a batteria. Se il relay cade, la squadra resta senza energia: missione perduta.",
+   reward:"330 framm. + campioni TEC",
+   proc:true,spec:{tether:true,goal:"recover",maxRound:8,relay:true,rift:false,spawn:false,budget:21,
+     waterRange:[3,5],bunkerRange:[0,1],relics:[4,5],relicGoal:3,
+     terrainMix:[["roccia",2,3],["voragine",1,2],["cisterna",1,2],["bosco",0,0]],
+     pool:["vorn","krull","sahir","neris","grumo","trahn"]}},
+  {id:"t6",sector:"tarsis",corr:52,x:68,y:82,name:"CHIUSE ROTTE",diff:4,dl:"d3",dlabel:"ALTA",locked:true,
+   obj:"Abbatti 3 piloni di sostegno.",
+   twist:"Le chiuse tengono il bacino: i piloni sono minerale, non costano corruzione. Dietro c'e' tutta l'acqua che serve — e chi ci cammina dentro.",
+   reward:"310 frammenti",
+   proc:true,spec:{goal:"demolish",maxRound:7,rift:false,spawn:false,budget:20,
+     waterRange:[3,5],bunkerRange:[0,1],pylons:[3,4],pylonGoal:3,
+     terrainMix:[["cisterna",2,3],["voragine",1,2],["roccia",0,1],["bosco",0,0]],
+     pool:["vorn","vorn","krull","sahir","neris","grumo"]}},
+  /* SORGENTE — il terzo Varco, e l'ultimo: qui PALINSESTO finisce (`lastSector`).
+     Due bacini ai lati e un corridoio centrale di tre colonne (3-5): il Varco Madre
+     e' in fondo al corridoio, e i NERIS ai fianchi stanno nei bacini, dove i mech
+     non entrano e loro non annegano. Le ondate dal rift sono NERIS una su due: la
+     stessa promessa di Orvat, rovesciata.
+     ⚠ Due stesure sbagliate, misurate con tools/audit. Lago chiuso: il Varco Madre
+     non era raggiungibile a piedi (73% di timeout, l'esperto vinceva 27% senza
+     perdere un mech perche' restava fuori portata). Guado di una colonna: il tiro
+     in linea del Varco ne copre tre, e quella colonna era la traiettoria — esperto
+     0%, 11 squadre annientate su 40. `raggiungibilita.js` verifica la prima. */
+  {id:"t7",sector:"tarsis",corr:60,x:90,y:52,name:"SORGENTE — TERZO VARCO",diff:9,dl:"dB",dlabel:"GUARDIANO",boss:true,locked:true,
+   obj:"Distruggi il terzo Varco Madre.",twist:"Il guardiano del bacino. I NERIS escono dall'acqua. PALINSESTO finisce qui.",reward:"Bonifica del settore",
+   cfg:{goal:"boss",maxRound:12,rift:{x:4,y:0,hp:8},
+        water:[[1,2],[2,2],[1,3],[2,3],[6,2],[6,3],[7,3]],
+        bunkers:[[2,5],[5,5]],spawnRounds:[2,4,6,8,10],
+        spawnQueue:[["neris"],["vorn"],["neris"],["krull"],["neris"]],
+        terrain:[[0,3,"voragine"],[7,4,"voragine"],[0,2,"cisterna"],[7,2,"cisterna"],[1,1,"roccia"],[7,1,"roccia"]],
+        enemies:[{t:"matria",x:4,y:1},{t:"neris",x:2,y:1},{t:"neris",x:6,y:1},{t:"neris",x:6,y:2},
+                 {t:"vrast",x:3,y:1},{t:"krullelite",x:5,y:2}]}}
+);
+
 const EDGES=[["m1","m2"],["m2","m3"],["m2","m4"],["m3","m6"],["m4","m7"],["m3","m8"],["m4","m5"],
              ["o1","o2"],["o2","o3"],["o2","o5"],["o2","o8"],["o3","o6"],["o5","o7"],
-             ["o6","o4"],["o7","o4"],["o8","o4"]];
+             ["o6","o4"],["o7","o4"],["o8","o4"],
+             ["t1","t2"],["t2","t3"],["t2","t4"],["t3","t5"],["t4","t6"],["t5","t7"],["t6","t7"]];
 const cleared=new Set(["m1"]);
 
 /* Lo stato dei lucchetti si **deriva** da `cleared` e da EDGES, non si salva.
@@ -2747,6 +2833,9 @@ const cleared=new Set(["m1"]);
    esistenti, e un arco dimenticato lo lascia orfano — che è un bug visibile
    subito invece di uno che si manifesta dieci missioni dopo. */
 function applyUnlocks(){
+  /* Il corridoio si deriva, non si salva: un guardiano abbattuto apre il settore
+     seguente anche su un salvataggio scritto prima che quel settore esistesse. */
+  SECTORS.forEach((s,i)=>{ if(i>0&&s.locked&&sectorHeld(SECTORS[i-1].id))s.locked=false; });
   const testa=new Set();
   SECTORS.forEach(s=>{const n=sectorNodes(s.id).find(m=>!m.boss);if(n)testa.add(n.id);});
   MISSIONS.forEach(m=>{
@@ -3300,6 +3389,7 @@ const CODEX=[
   {type:"vrast",g:"VRS",nm:"VRAST",t:"Non ferisce: congela. Il mech colpito salta il turno successivo — e in una squadra di tre, perdere un turno è perdere un terzo della battaglia. Telegrafato come tutto il resto: puoi toglierti di mezzo."},
   {type:"skorr",g:"SKR",nm:"SKORR",t:"Incendia la casella che colpisce, che ci fosse un bosco o no. Non ti uccide col colpo: ti toglie il terreno sotto i piedi per tre round, e il fuoco non distingue fra te e loro."},
   {type:"trahn",g:"TRH",nm:"TRAHN",t:"Non respinge: attrae. Ti strappa dalla posizione che avevi scelto e ti trascina verso di sé — dentro il grumo dei suoi, o dentro la voragine che stavi aggirando. Rompe la formazione, non la corazza."},
+  {type:"neris",g:"NRS",nm:"NERIS",t:"Anfibio. Attraversa l'acqua senza affondare: buttarlo in acqua non lo uccide, lo sposta. Per lui servono la voragine, il bordo, la collisione o il danno diretto. Chi crede che l'acqua sia ovunque un'arma, qui sbaglia."},
   {type:"vornelite",g:"VRN+",nm:"VORN APEX",t:"Caricatore élite. Veloce e letale; il suo impatto RESPINGE il mech colpito — attento ad acqua e bordi."},
   {type:"krullelite",g:"KRL+",nm:"KRULL SIEGE",t:"Artiglieria a frammentazione (gittata 2–4). Colpisce la casella bersaglio e tutte quelle adiacenti. Non ammassare i mech."},
   {type:"matria",g:"MTR",nm:"VARCO MADRE",t:"Entità élite. Scarica dimensionale su una linea di 3 caselle. Non spingibile, altissima resistenza, fonte della corruzione del settore."},
@@ -3464,6 +3554,12 @@ const TX=[
      const t=terrAt(kk.x+dx,kk.y+dy);
      return (t&&(t.t==="voragine"||t.t==="cisterna"))||B.water.has(k(kk.x+dx,kk.y+dy));})),
    text:"Voragine, acqua, cisterna: sono tutte armi già cariche. Vi serve solo qualcuno che ci cada dentro."},
+  {id:"tarsis",who:"COMANDO TARSIS",
+   when:()=>!!(activeMission&&activeMission.sector==="tarsis"&&B.round===1&&B.phase==="player"),
+   text:"Squadra, siete sul bacino. L'acqua che avete usato fin qui come arma è qui ovunque — e qualcuno ha imparato a camminarci dentro."},
+  {id:"neris",who:"ANALISI TATTICA",
+   when:()=>living().some(u=>u.type==="neris"),
+   text:"Quello è un NERIS. L'acqua non lo uccide: lo sposta. Per lui la spinta funziona ancora — voragine, bordo, collisione — ma se lo buttate in un lago gli avete solo accorciato la strada."},
   {id:"intento",who:"COMANDO CASSANDRA",
    when:()=>kauchas().some(u=>u.plan||u.planCells),
    text:"Le caselle bordate sono ciò che faranno il prossimo turno. Non è una minaccia: è una certezza. Spostatevi, o toglieteli di mezzo prima."},
@@ -3866,7 +3962,7 @@ function fabricateKtech(id){
   return true;
 }
 
-const SAMPLE_BIO={vorn:1,krull:1,sahir:2,grumo:2,trahn:2,skorr:2,vrast:2,vornelite:2,krullelite:2,palinsesto:3,matria:5};
+const SAMPLE_BIO={vorn:1,krull:1,sahir:2,grumo:2,trahn:2,skorr:2,vrast:2,vornelite:2,krullelite:2,neris:2,palinsesto:3,matria:5};
 const SAMPLE_TEC_BUNKER=2, SAMPLE_TEC_TERR=1, SAMPLE_TEC_RELIC=3;
 let samples={bio:0,tec:0};
 const researched=new Set();
@@ -4499,6 +4595,14 @@ const KDEF={vorn:{maxHp:3,move:3,dmg:2,rmin:1,rmax:1,atype:"CONTATTO",glyph:"VRN
            /* TRAHN — non ti respinge: ti TIRA. Rompe la tua formazione invece
               di allontanarti, e ti trascina dentro ciò che avevi evitato. */
            trahn:{maxHp:4,move:2,dmg:1,rmin:1,rmax:3,atype:"RICHIAMO MAGNETICO",glyph:"TRH",nm:"TRAHN",pull:2,tier:2},
+           /* NERIS — il Vorn che ha imparato l'acqua. Stessa taglia, stesso morso:
+              cambia una cosa sola, e e' la cosa su cui il giocatore ha costruito
+              dodici missioni. Spingerlo in acqua non lo uccide, lo sposta.
+              ⚠ Costa 3 invece di 2 (vedi ENEMY_COST): `combatPower` pesa `noDrown`
+              20, quindi il generatore lo paga come l'avversario piu' scomodo che e'.
+              ⚠ Non e' `noPush`: la spinta funziona, quindi voragine, bordo e
+              collisione restano strade aperte. Nega UNA meccanica, non il gioco. */
+           neris:{maxHp:3,move:3,dmg:2,rmin:1,rmax:1,atype:"CONTATTO ANFIBIO",glyph:"NRS",nm:"NERIS",noDrown:true,tier:2},
            palinsesto:{maxHp:4,move:3,dmg:2,rmin:1,rmax:1,atype:"ENTITÀ ADATTIVA",glyph:"Ψ",nm:"PALINSESTO",tier:"ADATTIVO"},
            matria:{maxHp:12,move:1,dmg:3,rmin:1,rmax:1,atype:"SCARICA DIMENSIONALE (LINEA 3)",glyph:"MTR",nm:"VARCO MADRE",noPush:true,lineAttack:true,tier:"ÉLITE"}};
 // bonus danno globale dei Kaucha finché un amplificatore è vivo. Legge il
@@ -5176,7 +5280,7 @@ function mkUnit(o){return Object.assign({id:++UID,hp:o.maxHp,moved:false,attacke
    del generatore); una manopola sola, perche' la misura del generatore e il campo
    giocato devono parlare dello stesso relay. */
 const RELAY_PV=2;
-const ENEMY_COST={vorn:2,krull:3,sahir:4,grumo:4,trahn:4,skorr:4,vrast:4,vornelite:4,krullelite:5};
+const ENEMY_COST={vorn:2,krull:3,sahir:4,grumo:4,trahn:4,skorr:4,vrast:4,vornelite:4,krullelite:5,neris:3};
 /* Quanti nodi vanno contenuti prima che un archetipo entri nei generatori.
    Gli scenari fissi (m1, il Nido) elencano i nemici a mano e non passano di
    qui: lì la scelta è deliberata.
@@ -5188,7 +5292,8 @@ const ENEMY_COST={vorn:2,krull:3,sahir:4,grumo:4,trahn:4,skorr:4,vrast:4,vorneli
    poi. Quando i settori moltiplicheranno le missioni queste soglie vanno
    rialzate — e ricontrollate contro il numero di nodi, non a occhio. */
 const UNLOCK_AFTER={vorn:0,krull:0,sahir:1,grumo:2,vornelite:3,krullelite:3,
-                    trahn:3,skorr:3,vrast:3};
+                    trahn:3,skorr:3,vrast:3,
+                    neris:0};     // entra solo dai pool di Tarsis: il gate conta per settore
 /* Presidio: nessuna soglia deve superare i nodi che si possono contenere
    prima dell'ultimo scenario procedurale, o l'archetipo è codice morto. */
 function unlockableTypes(){
@@ -7600,7 +7705,7 @@ renderCodex();
   const SIZE = {
     jaeger:[24,47], behemoth:[39,41], nullangel:[32,45], aegis:[35,41], lancer:[40,53], lancerjet:[54,25],
     varango:[52,33], spola:[24,34], spettro:[21,40],
-    vorn:[59,24], krull:[23,41], sahir:[38,37], grumo:[48,47], trahn:[46,31], skorr:[48,42], vrast:[36,42],
+    vorn:[59,24], neris:[59,38], krull:[23,41], sahir:[38,37], grumo:[48,47], trahn:[46,31], skorr:[48,42], vrast:[36,42],
     vornelite:[80,35], krullelite:[33,51], palinsesto:[52,36], matria:[82,93],
     relay:[29,47], bunker:[42,28], civile:[9,18]
   };
@@ -7609,7 +7714,7 @@ renderCodex();
   const SC = {
     jaeger:.82, behemoth:.92, nullangel:.80, aegis:.84, lancer:.88, lancerjet:.80,
     varango:.90, spola:.76, spettro:.84,
-    vorn:.86, krull:.80, sahir:.85, grumo:.88, trahn:.86, skorr:.84, vrast:.84, vornelite:.98, krullelite:.94,
+    vorn:.86, neris:.86, krull:.80, sahir:.85, grumo:.88, trahn:.86, skorr:.84, vrast:.84, vornelite:.98, krullelite:.94,
     palinsesto:1.06, matria:1.34, relay:.90, bunker:1, civile:.80
   };
   /* Respiro generale rispetto alla tile. ⚠ È LA leva della scala delle pedine:
@@ -10486,7 +10591,19 @@ renderCodex();
     ctx.strokeStyle='rgba(255,90,77,.55)'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.arc(0,-28,24,t*0.5,t*0.5+3.6); ctx.stroke();
   }
-  const K_ART={vorn:kVorn,krull:kKrull,sahir:kSahir,grumo:kGrumo,trahn:kTrahn,skorr:kSkorr,vrast:kVrast,
+  /* NERIS: il Vorn, piu' una pinna dorsale e le branchie. La sagoma deve
+     leggersi a distanza come «quello che sta nell'acqua» — per questo la pinna
+     sporge sopra la cresta invece di stare dentro il profilo. */
+  function kNeris(t,s){
+    kVorn(t,s);
+    const sway=reduceMotion?0:Math.sin(t*2.1+s)*1.4;
+    poly([[-5,-15],[0+sway,-33],[9,-14]],'#1f6f78',2.4,'rgba(0,206,209,.45)');
+    poly([[9,-14],[14+sway*0.6,-26],[17.5,-13]],'#17525a',2.2);
+    ctx.strokeStyle='rgba(0,206,209,.6)'; ctx.lineWidth=1.1; ctx.lineCap='round';
+    for(let i=0;i<3;i++){ ctx.beginPath(); ctx.moveTo(4.5+i*2.5,-12.5); ctx.lineTo(3.4+i*2.5,-7.6); ctx.stroke(); }
+    glow(0,-9,17,'rgba(0,206,209,.16)','rgba(0,206,209,0)',1);
+  }
+  const K_ART={vorn:kVorn,neris:kNeris,krull:kKrull,sahir:kSahir,grumo:kGrumo,trahn:kTrahn,skorr:kSkorr,vrast:kVrast,
                vornelite:kVornelite,krullelite:kKrullelite,
                palinsesto:kPalinsesto,matria:kMatria};
 
