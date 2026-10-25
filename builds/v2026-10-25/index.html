@@ -2637,7 +2637,7 @@ const MISSIONS=[
    twist:"Scendono da soli di una casella a fine round e si fermano se la strada è occupata. Hanno 1 PV e i Kaucha li puntano.",
    reward:"230 framm. + campioni TEC",
    proc:true,spec:{goal:"evacuate",maxRound:8,rift:false,spawn:false,budget:13,
-     waterRange:[0,1],bunkerRange:[0,1],civilians:[4,5],evacGoal:3,
+     waterRange:[0,1],bunkerRange:[0,1],civilians:[5,6],evacGoal:3,
      terrainMix:[["roccia",1,2],["bosco",1,2],["cisterna",1,2],["voragine",1,2]],
      pool:["vorn","vorn","krull","sahir","krullelite"]}},
   {id:"m5",sector:"cassandra",corr:55,x:90,y:54,name:"NIDO — VARCO MADRE",diff:9,dl:"dB",dlabel:"VARCO MADRE",boss:true,locked:true,
@@ -2708,7 +2708,7 @@ MISSIONS.push(
    twist:"Corridoi ostruiti: scendono da soli e si fermano se la strada è occupata. Le cisterne sono sulla via.",
    reward:"300 framm. + campioni TEC",
    proc:true,spec:{goal:"evacuate",maxRound:9,rift:false,spawn:false,budget:19,
-     waterRange:[0,1],bunkerRange:[0,1],civilians:[5,6],evacGoal:4,
+     waterRange:[0,1],bunkerRange:[0,1],civilians:[6,7],evacGoal:4,
      terrainMix:[["roccia",3,4],["cisterna",2,3],["voragine",1,2],["bosco",0,0]],
      pool:["vorn","krull","sahir","grumo","trahn","skorr","vrast","krullelite"]}},
   /* CROLLO CONTROLLATO — l'obiettivo che Orvat ha e Cassandra no, ed è la
@@ -5172,6 +5172,10 @@ function mkUnit(o){return Object.assign({id:++UID,hp:o.maxHp,moved:false,attacke
 /* ===== GENERATORE PROCEDURALE DI SCENARI =====
    Produce una cfg bilanciata da una "spec" a tema. Un budget di minaccia tiene
    costante la difficoltà; la fascia bassa (y>=6) resta libera per lo schieramento. */
+/* Punti vita del relay. Era scritto a mano in tre punti (campo vero e stato finto
+   del generatore); una manopola sola, perche' la misura del generatore e il campo
+   giocato devono parlare dello stesso relay. */
+const RELAY_PV=2;
 const ENEMY_COST={vorn:2,krull:3,sahir:4,grumo:4,trahn:4,skorr:4,vrast:4,vornelite:4,krullelite:5};
 /* Quanti nodi vanno contenuti prima che un archetipo entri nei generatori.
    Gli scenari fissi (m1, il Nido) elencano i nemici a mano e non passano di
@@ -5646,7 +5650,7 @@ function statoFinto(cfg){
       neutral:true,civil:true,x,y,hp:1,maxHp:1,move:0,dmg:0,rmin:0,rmax:0});
   });
   if(cfg.relay) f.units.push({id:"finto-r",type:"relay",name:"R",player:true,structure:true,
-    x:cfg.relay[0],y:cfg.relay[1],hp:2,maxHp:2,move:0,dmg:0,rmin:0,rmax:0});
+    x:cfg.relay[0],y:cfg.relay[1],hp:RELAY_PV,maxHp:RELAY_PV,move:0,dmg:0,rmin:0,rmax:0});
   (cfg.enemies||[]).forEach((e,i)=>{
     const d=KDEF[e.t]; if(!d)return;
     f.units.push(Object.assign({id:"finto-k"+i,type:e.t,name:(d.nm||e.t)+i,player:false,
@@ -5677,11 +5681,79 @@ function opportunitaSpintaGiocata(cfg){
   } finally { B=salva; }
 }
 
+/* ⚠ L'APERTURA DI CHI DEVE PROTEGGERE QUALCOSA, come la vede il giocatore.
+
+   Misurato con l'agente di tools/audit (esperto, 30 semi per missione): l'esito
+   delle missioni con un relay o dei civili da proteggere lo decide il CAMPO, non
+   il modo di giocare.
+     · m8, civili sotto tiro all'apertura: con ≤1 si vince 7 volte su 9, con ≥2
+       2 volte su 21. In o7, 1 volta su 6 con 2 e 2 su 22 con 3 o piu'.
+     · relay con 2 PV: con minaccia ≥3 all'apertura (almeno due attaccanti) si
+       perde quasi sempre — m2 0/4, o6 0/8.
+   I civili muoiono nel PRIMO round, per mano diretta di un Vorn (26 morti su 30
+   partite in m8): il Kaucha li sceglie come prede e li raggiunge nel passo di
+   telegrafia, prima che il giocatore veda il campo.
+
+   È la stessa lacuna di `fasciaBersaglio`, rivolta a cio' che si protegge invece
+   che a cio' che si spinge: il generatore garantiva una proprieta' a un istante
+   che nessuno guarda. Qui si misura DOPO la telegrafia, con la STESSA `decidiMossa`
+   (stato finto, come in `opportunitaSpintaGiocata`) e la stessa regola di intento
+   di `telegraphPhase`. ⚠ Se quella regola cambia, va cambiata anche qui.
+
+   Soglie: sul relay il danno telegrafato non supera i suoi PV; i civili sotto
+   tiro restano UNO IN MENO del margine di perdite (civili − obiettivo): con
+   m8 e o7 (margine 2) e' 1. Non e' un livello di difficolta': e' togliere i
+   campi in cui l'esito e' deciso prima del primo turno. */
+const APERTURA_RELAY_MAX=RELAY_PV;
+function aperturaProtetti(cfg){
+  const nCiv=(cfg.civili||[]).length;
+  if(!cfg.relay&&!nCiv)return null;
+  const salva=B;
+  try{
+    B=statoFinto(cfg);
+    B.evacGoal=cfg.evacGoal||0;
+    const rivendicati=new Map(), colpi=[];
+    for(const u of kauchas()){
+      const tgts=bersagliKaucha();
+      if(!tgts.length)break;
+      const {tgt,cella}=decidiMossa(u,tgts,rivendicati);
+      if(cella){u.x=cella[0];u.y=cella[1];}
+      if(!tgt||u.noAttack)continue;
+      const d=manh(u,tgt),al=(u.x===tgt.x||u.y===tgt.y);
+      if(u.lineAttack){
+        const ddx=tgt.x-u.x,ddy=tgt.y-u.y;let dx=0,dy=0;
+        if(Math.abs(ddx)>=Math.abs(ddy))dx=Math.sign(ddx)||1;else dy=Math.sign(ddy)||1;
+        const celle=[];for(let s=1;s<=3;s++){const x=u.x+dx*s,y=u.y+dy*s;if(inb(x,y))celle.push([x,y,false]);}
+        colpi.push({u,celle});
+      } else if(d>=u.rmin&&d<=u.rmax&&(u.rmax===1?d===1:al)){
+        const celle=[[tgt.x,tgt.y,false]];
+        if(u.splash)ORTH.forEach(([dx,dy])=>celle.push([tgt.x+dx,tgt.y+dy,true]));
+        colpi.push({u,celle});
+      }
+    }
+    const bonus=kauchaDmgBonus();
+    const ry=relay();
+    let danno=0;
+    const civSotto=new Set();
+    for(const {u,celle} of colpi)for(const [x,y,area] of celle){
+      if(ry&&ry.x===x&&ry.y===y)danno+=u.dmg+bonus;
+      const c=civilians().find(v=>v.x===x&&v.y===y);
+      if(c&&!(area&&AREA_CIV<=0))civSotto.add(c.id);
+    }
+    return {relay:ry?danno:0, civili:civSotto.size,
+            capCiv:Math.max(1,nCiv-(cfg.evacGoal||0)-1)};
+  } catch(e){
+    return null;      // se la previsione si rompe non si blocca la generazione
+  } finally { B=salva; }
+}
+
 function valutaCampo(cfg,spec,diff){
   const f=fasciaBersaglio(cfg,spec,diff);
-  if(!f)return {ok:true,val:null};
-  const val=opportunitaSpintaGiocata(cfg);
-  return {ok:val>=f.min&&val<=f.max, val, min:f.min, max:f.max};
+  const val=f?opportunitaSpintaGiocata(cfg):null;
+  const fasciaOk=!f||(val>=f.min&&val<=f.max);
+  const ap=aperturaProtetti(cfg);
+  const eccesso=ap?Math.max(0,ap.relay-APERTURA_RELAY_MAX)+Math.max(0,ap.civili-ap.capCiv):0;
+  return {ok:fasciaOk&&eccesso===0, val, min:f?f.min:null, max:f?f.max:null, apertura:ap, eccesso};
 }
 
 /* Genera finché il campo non cade nella fascia. Se in `TENTATIVI` non ci
@@ -5695,7 +5767,7 @@ function generateMission(spec,diff){
     const cfg=generaCampo(spec,diff);
     const v=valutaCampo(cfg,spec,diff);
     if(v.ok)return cfg;
-    const scarto=v.val==null?0:(v.val<v.min?v.min-v.val:v.val-v.max);
+    const scarto=(v.val==null?0:(v.val<v.min?v.min-v.val:v.val-v.max))+(v.eccesso||0);
     if(scarto<bestScarto){bestScarto=scarto;best=cfg;}
   }
   return best;
@@ -5756,7 +5828,7 @@ function startBattle(mission){
   B.scanReveal=hasTech("bio2")||B.units.some(u=>u.player&&u.scanner);
   const armor=0;
   // relay (se previsto)
-  if(cfg.relay){const r=mkUnit({type:"relay",name:"RELAY",glyph:"RLY",player:true,structure:true,maxHp:2+armor,move:0,dmg:0,rmin:0,rmax:0,atype:"—"});
+  if(cfg.relay){const r=mkUnit({type:"relay",name:"RELAY",glyph:"RLY",player:true,structure:true,maxHp:RELAY_PV+armor,move:0,dmg:0,rmin:0,rmax:0,atype:"—"});
     [r.x,r.y]=cfg.relay;B.units.push(r);}
   // bunker
   (cfg.bunkers||[]).forEach((p,i)=>{const b=mkUnit({type:"bunker",name:"BUNKER-"+(i+1),glyph:"BNK",player:true,structure:true,neutral:true,maxHp:2+armor,move:0,dmg:0,rmin:0,rmax:0,atype:"—"});
