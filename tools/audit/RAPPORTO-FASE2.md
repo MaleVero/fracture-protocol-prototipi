@@ -1,4 +1,9 @@
-# Rapporto fase 2 — bilanciamento (build `v2026-10-25`)
+# Rapporto fase 2 — bilanciamento (build `v2026-10-26`)
+
+> ⚠ **Nota aggiunta in fase 5.** Le percentuali di questo rapporto sono state misurate con **PALINSESTO dormiente**
+> (come il banco ha sempre giocato). Nella campagna vera la nemesi si sveglia dopo la prima missione e accompagna ogni
+> missione di campo: con lei sveglia la vittoria media dell'esperto scende dal 68% al 49–52% (vedi RAPPORTO-FASE5).
+> I confronti prima/dopo restano validi; i valori assoluti sono ottimistici.
 
 ## Come si è misurato
 
@@ -43,7 +48,7 @@ generatore con seme: stessa missione e stesso seme → stessa partita). Tre live
 
 ## Modifiche
 
-Tutte in `builds/v2026-10-25/index.html`.
+Tutte in `builds/v2026-10-26/index.html`.
 
 1. **Apertura giocabile nel generatore** (`aperturaProtetti`, usata da `valutaCampo`). Come `fasciaBersaglio` per
    il terreno, ma rivolta a ciò che si protegge. Dopo la telegrafia dei Kaucha (stessa `decidiMossa`, stato finto)

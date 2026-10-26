@@ -1,0 +1,15 @@
+{
+  "versione": "0.9.0",
+  "data": "2026-10-26",
+  "titolo": "Terzo settore, ripresa della missione e tastiera",
+  "cambia": [
+    "Settore Tarsis: sei missioni sull'acqua e il guardiano finale, dove PALINSESTO finisce",
+    "Nuovo nemico, il NERIS: attraversa l'acqua senza affondare, quindi non basta buttarlo in un lago",
+    "La missione in corso si riprende dopo un ricaricamento, dall'inizio dell'ultimo turno",
+    "Copia di sicurezza dei progressi: si scarica e si ripristina da file",
+    "Si gioca anche da tastiera e con un lettore di schermo: frecce, Invio, M, N, R, E",
+    "Telefoni piccoli e in orizzontale: il campo e i comandi restano sempre visibili",
+    "Evacuazioni e missioni con relay più eque: il generatore scarta i campi condannati in partenza"
+  ],
+  "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
+}

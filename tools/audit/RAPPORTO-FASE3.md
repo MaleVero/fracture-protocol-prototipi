@@ -1,4 +1,9 @@
-# Rapporto fase 3 — contenuto: Settore TARSIS e il NERIS (build `v2026-10-25`)
+# Rapporto fase 3 — contenuto: Settore TARSIS e il NERIS (build `v2026-10-26`)
+
+> ⚠ **Nota aggiunta in fase 5.** Le percentuali di questo rapporto sono state misurate con **PALINSESTO dormiente**
+> (come il banco ha sempre giocato). Nella campagna vera la nemesi si sveglia dopo la prima missione e accompagna ogni
+> missione di campo: con lei sveglia la vittoria media dell'esperto scende dal 68% al 49–52% (vedi RAPPORTO-FASE5).
+> I confronti prima/dopo restano validi; i valori assoluti sono ottimistici.
 
 ## Cosa c'è di nuovo
 

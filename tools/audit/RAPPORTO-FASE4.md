@@ -1,4 +1,4 @@
-# Rapporto fase 4 — esperienza: salvataggio, accessibilità, tutorial, suoni (build `v2026-10-25`)
+# Rapporto fase 4 — esperienza: salvataggio, accessibilità, tutorial, suoni (build `v2026-10-26`)
 
 ## Cosa c'era già (e quindi non ho rifatto)
 

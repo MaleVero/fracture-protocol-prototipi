@@ -1345,7 +1345,7 @@ button{font-size:var(--t-base);letter-spacing:var(--k-base)}
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.4 · GREYBOX</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.9.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -2725,7 +2725,7 @@ MISSIONS.push(
    twist:"Corridoi ostruiti: scendono da soli e si fermano se la strada è occupata. Le cisterne sono sulla via.",
    reward:"300 framm. + campioni TEC",
    proc:true,spec:{goal:"evacuate",maxRound:9,rift:false,spawn:false,budget:19,
-     waterRange:[0,1],bunkerRange:[0,1],civilians:[6,7],evacGoal:4,
+     waterRange:[0,1],bunkerRange:[0,1],civilians:[6,7],evacGoal:4,maxNemici:4,
      terrainMix:[["roccia",3,4],["cisterna",2,3],["voragine",1,2],["bosco",0,0]],
      pool:["vorn","krull","sahir","grumo","trahn","skorr","vrast","krullelite"]}},
   /* CROLLO CONTROLLATO — l'obiettivo che Orvat ha e Cassandra no, ed è la
@@ -5755,7 +5755,12 @@ function generaCampo(spec,diff){
   if(esc>=ELITE_THRESHOLD&&!pool.includes("vornelite")&&schierabile("vornelite"))
     pool.push("vornelite","krullelite");                                    // le élite si infiltrano
   let guard=0;
-  while(budget>=2&&enemies.length<8&&guard++<100){
+  /* ⚠ `maxNemici`: tetto per missione. Il budget NON basta a limitare il numero: il ciclo
+     riempie fino a 8 con le creature piu' economiche, e l'escalation aggiunge fino a +10
+     al budget, quindi abbassare `budget` non toglieva nessuno (misurato su o7: budget 19,
+     15 e 12 danno lo stesso 13-25%). Serve dove il numero di nemici e' il problema. */
+  const tettoNemici=spec.maxNemici||8;
+  while(budget>=2&&enemies.length<tettoNemici&&guard++<100){
     const aff=pool.filter(ty=>ENEMY_COST[ty]<=budget);if(!aff.length)break;
     const c=place(pick(aff));if(!c)break;budget-=c;}
 

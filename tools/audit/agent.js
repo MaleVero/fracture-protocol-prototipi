@@ -40,19 +40,21 @@
 
   // ── silenzio: niente DOM, niente animazioni, niente effetti sulla campagna ─────
   const real = {};
-  function quiet() {
+  function quiet(realFinish) {
     for (const n of ['bRender', 'floatDmg', 'atkBanner', 'toast', 'commitUndo', 'endPlayer', 'finish', 'bDeselect']) {
-      if (!(n in real)) real[n] = window[n];
+      if (!(n in real)) real[n] = window[n];   // `finish` incluso: e' l'originale del gioco
     }
     window.bRender = noop; window.floatDmg = noop; window.atkBanner = noop; window.toast = noop;
     window.commitUndo = noop;
     window.bDeselect = function () { B.selected = null; B.selRange = null; B.inspected = null; B.aimed = null; B.abilityMode = null; };
     // pAttack & co. chiudono il turno da soli quando tutti hanno agito: qui lo decide l'agente
     window.endPlayer = function () { A._endRequested = true; };
-    window.finish = function (victory, reason, retreat) {
+    A._stubFinish = function (victory, reason, retreat) {
       if (B.over) return; B.over = true; B.busy = true;
       B.result = { victory: !!victory, reason: reason || null, retreat: !!retreat };
     };
+    A._realFinish = !!realFinish;
+    if (!realFinish) window.finish = A._stubFinish;
   }
   A.quiet = quiet;
 
@@ -187,6 +189,18 @@
 
   // ── un turno: greedy, la migliore azione fra tutti i mech ancora liberi ───────
   async function planTurn() {
+    // Con il finish VERO le prove ipotetiche accreditavano ricompense e corruzione a ogni vittoria o
+    // sconfitta simulata. Durante la ricerca si usa lo stub; solo l'esito che resta passa dal finish vero.
+    if (A._realFinish) window.finish = A._stubFinish;
+    try { await planTurnInner(); }
+    finally {
+      if (A._realFinish) {
+        window.finish = real.finish;
+        if (B.over && B.result) { const r = B.result; B.over = false; B.result = null; B.busy = false; real.finish(r.victory, r.reason, r.retreat); }
+      }
+    }
+  }
+  async function planTurnInner() {
     const done = new Set();
     for (let iter = 0; iter < 8 && !B.over; iter++) {
       const free = mechs().filter(m => !m.attacked && !done.has(m.id));
@@ -215,13 +229,14 @@
   // ── una missione intera ───────────────────────────────────────────────────────
   A.play = async function (missionId, opts) {
     opts = opts || {};
-    quiet(); hookDmg(); RITMO = 0; A.causes = {};
+    quiet(opts.realFinish); hookDmg(); RITMO = 0; A.causes = {};
     if (typeof opts.seed === 'number') { window.__setSeed(opts.seed); A.seedNoise(opts.seed * 7919 + 17); }
     const m = MISSIONS.find(x => x.id === missionId);
     /* Stato di campagna. Il generatore dipende da `cleared` (escalation: +1,5 per nodo, budget
        fino a +10, élite nei pool) e da `currentSector` (il gate del bestiario conta per settore).
        'inizio'   = come si apre il gioco (solo m1 contenuta): VALE SOLO PER Cassandra.
        'campagna' = settori precedenti contenuti + antenati del nodo nel suo settore. */
+    if (opts.realFinish) { /* campagna vera: non si tocca niente */ } else {
     window.__campagnaOrig = window.__campagnaOrig || { cleared: new Set(cleared), sector: currentSector };
     cleared.clear(); window.__campagnaOrig.cleared.forEach(id => cleared.add(id));
     currentSector = m.sector;
@@ -230,8 +245,17 @@
       MISSIONS.filter(x => SECTORS.findIndex(s => s.id === x.sector) < i).forEach(x => cleared.add(x.id));
       const anc = new Set(), st = [missionId];
       while (st.length) { const id = st.pop(); EDGES.filter(([a, b]) => b === id).forEach(([a]) => { if (!anc.has(a)) { anc.add(a); st.push(a); } }); }
-      if (m.boss) sectorNodes(m.sector).filter(x => !x.boss).forEach(x => anc.add(x.id));
+      // 'ultimo' = il peggiore: l'ultimo nodo di campo prima del guardiano, con tutti gli altri gia' contenuti.
+      if (m.boss || opts.progress === 'ultimo') sectorNodes(m.sector).filter(x => !x.boss && x.id !== missionId).forEach(x => anc.add(x.id));
       anc.forEach(id => cleared.add(id));
+    }
+    }
+    // PALINSESTO: dopo la prima missione si sveglia e accompagna OGNI missione di campo, con un adattamento
+    // in piu' a ogni vittoria. -1 = dormiente (come il banco ha sempre giocato), 0 = sveglia in forma base, N = N evoluzioni.
+    if (opts.nemesi != null && !opts.realFinish) {
+      nemesis.dead = false; nemesis.wounded = false; nemesis.adaptations = []; nemesis.stolen = []; nemesis.level = 0; nemesis.fled = 0;
+      nemesis.awake = opts.nemesi >= 0;
+      for (let i = 0; i < opts.nemesi; i++) evolveNemesis();
     }
     if (opts.noise0) A.W.noise = 0;
     if (opts.resume) {
@@ -250,6 +274,7 @@
         if (opts.stopAtTurn && !opts.resume && out.turns + 1 === opts.stopAtTurn) {
           out.checkpoint = localStorage.getItem(chiaveBattaglia(slotAttivo)); out.stoppedAt = out.turns + 1; return out;
         }
+        if (B.awaitRetreat && opts.realFinish) { orderRetreat(); break; }
         if (B.awaitRetreat) { B.awaitRetreat = false; B.over = true; B.result = { victory: false, reason: 'timeout', retreat: true }; break; }
         out.turns++;
         // al primo turno: cosa è già puntato, PRIMA che il giocatore faccia qualcosa
@@ -284,7 +309,8 @@
         await wait(() => B.over || B.awaitRetreat || (B.phase === 'player' && !B.busy && B.round > 0), 4000);
         await new Promise(r => setTimeout(r, 0));
       }
-      const r = B.result || (B.awaitRetreat ? { victory: false, reason: 'timeout' } : null);
+      let r = B.result || (B.awaitRetreat ? { victory: false, reason: 'timeout' } : null);
+      if (opts.realFinish && B.over) r = { victory: /ZONA CONTENUTA/.test(document.getElementById('ovTitle').textContent), reason: document.getElementById('ovText').textContent.slice(0, 60) };
       out.victory = !!(r && r.victory); out.reason = r ? r.reason : (B.over ? 'unknown' : 'notover');
       out.rounds = B.round; out.mechsLeft = mechs().length; out.hpLeft = sum(mechs(), u => u.hp);
       out.foesLeft = kauchas().length; out.civic = B.mission.civic; out.pushes = B.mission.pushCount;

@@ -1,4 +1,4 @@
-# Rapporto fase 1 — layout e accessibilità (build `v2026-10-25`)
+# Rapporto fase 1 — layout e accessibilità (build `v2026-10-26`)
 
 Lavoro fatto su una copia della build: `builds/v2026-09-16/` (la 0.8.0 pubblicata) è intatta.
 `index.html` della radice non è ancora aggiornato: la pubblicazione è la fase 5.
