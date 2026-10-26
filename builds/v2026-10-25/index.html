@@ -1231,6 +1231,13 @@ button{font-size:var(--t-base);letter-spacing:var(--k-base)}
   .screen.active{ animation:none; }
 }
 
+/* ═══ ACCESSIBILITA' — FASE 4 ═══ */
+.sr-only{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+.node:focus-visible{outline-offset:5px;border-radius:50%;}
+#isoCanvas:focus-visible{outline-offset:-4px;}
+
 /* ═══ MAPPA E BERSAGLI DI TOCCO SU TELEFONO — FASE 1 ═══
    ⚠ Le etichette dei nodi erano larghe 110 px e `nowrap`, su un riquadro di
    ~350 px dove due nodi distano 64 px: «AVAMPOSTO KILO» e «DIGA SVANIR» si
@@ -1317,6 +1324,7 @@ button{font-size:var(--t-base);letter-spacing:var(--k-base)}
 </style>
 </head>
 <body>
+<div id="sr" class="sr-only" role="log" aria-live="polite" aria-relevant="additions" aria-atomic="false"></div>
 
 <!-- IL TELAIO: quattro squadre e due filetti. Sta sopra tutto e non prende
      il dito. Vedi la nota in style.css: senza una cornice il contenuto sta a
@@ -1425,7 +1433,7 @@ button{font-size:var(--t-base);letter-spacing:var(--k-base)}
   </div>
   <div class="objbar" id="objBar">OBIETTIVO</div>
   <div class="phasebar" id="phasebar">…</div>
-  <div id="board"><canvas id="isoCanvas"></canvas><div id="grid"></div><div id="units"></div></div>
+  <div id="board"><canvas id="isoCanvas" tabindex="0" role="application" aria-label="Campo di battaglia, otto per otto. Frecce: muovi il cursore. Invio o spazio: agisci sulla casella. M e N: mech e nemici. R: leggi il campo. E: fine turno. U: annulla. Punto interrogativo: tutti i comandi."></canvas><div id="grid"></div><div id="units"></div></div>
   <!-- Su schermo grande questo blocco diventa la colonna di destra; su
        telefono resta impilato sotto il campo, come prima. -->
   <div class="bfianco">
@@ -2857,7 +2865,7 @@ let selMissionId=null, activeMission=null;
 const MENU=[
   {id:"missioni",ico:"◬",nm:"MISSIONI",ds:"Mappa strategica · obiettivi e ricompense",badge:"3 ATTIVE"},
   {id:"hangar",ico:"⬡",nm:"HANGAR",ds:"Assegna piloti · gestisci i telai"},
-  {id:"codice",ico:"❖",nm:"CODICE KAUCHA",ds:"Intel sulle anomalie · 2/6 svelate"},
+  {id:"codice",ico:"❖",nm:"CODICE KAUCHA",ds:"Intel sulle anomalie"},
   {id:"protocolli",ico:"⊞",nm:"OFFICINA",ds:"Compra moduli · arma e potenzia i telai"},
   {id:"ricerca",ico:"⌬",nm:"RICERCA",ds:"Studia i campioni · sblocca rami di sviluppo"},
   {id:"comando",ico:"◉",nm:"COMANDO",ds:"Profilo, campagna, dossier della nemesi"},
@@ -2868,11 +2876,18 @@ const MENU=[
    dice per primo, perché è la cosa che il giocatore stava facendo. */
 const battagliaAperta=()=>!!(B&&B.units&&B.units.length&&!B.over);
 function buildMenu(){
+  /* Dopo un ricaricamento `B` e' vuoto ma il checkpoint no: si offre di riprendere
+     da lì, e si dice che si riparte dall'inizio del turno. */
+  const cp=battagliaAperta()?null:leggiBattaglia();
   const voci=(battagliaAperta()
     ?[{id:"battle",ico:"▶",nm:"RIPRENDI LA MISSIONE",
        ds:(activeMission?activeMission.name:"in corso")+" · round "+B.round+"/"+B.maxRound,badge:"IN CORSO"}]
-    :[]).concat(MENU);
-  $("menulist").innerHTML=voci.map((m,i)=>`<button class="mitem${m.id==="battle"?" resume":""}" data-go="${m.id}">
+    :cp?[{id:"ripristina",ico:"↺",nm:"RIPRENDI LA MISSIONE",
+       ds:cp.m.name+" · round "+cp.B.round+"/"+cp.B.maxRound+" · dall'inizio del turno",badge:"SALVATA"}]
+    :[]).concat(MENU.map(m=>m.id==="codice"
+        ?Object.assign({},m,{ds:m.ds+" · "+CODEX.filter(e=>e.type[0]!=="_"&&codexSeen.has(e.type)).length+"/"+CODEX.filter(e=>e.type[0]!=="_").length+" svelate"})
+        :m));
+  $("menulist").innerHTML=voci.map((m,i)=>`<button class="mitem${m.id==="battle"||m.id==="ripristina"?" resume":""}" data-go="${m.id}">
     <span class="idx">0${i+1}</span><span class="ico">${m.ico}</span>
     <span class="body"><span class="nm">${m.nm}</span><span class="ds">${m.ds}</span></span>
     ${m.badge?`<span class="badge">${m.badge}</span>`:""}${m.soon?`<span class="soon">PRESTO</span>`:""}
@@ -2886,6 +2901,10 @@ function buildMenu(){
     if(id==="codice")renderCodex();
     if(id==="ricerca")renderResearch();
     if(id==="missioni"){renderCorruptionUI();if(maybeComic("cassandra","missioni"))return;}
+    if(id==="ripristina"){
+      if(!ripristinaBattaglia()){cancellaBattaglia();buildMenu();toast("Salvataggio della missione non leggibile.");}
+      return;
+    }
     if(id==="battle")bRender();
     go(id);
   }));
@@ -3006,6 +3025,11 @@ function buildMap(){
       // pallini di difficoltà: quanti sono, quanto pesa
       (m.boss?"":`<i class="ndiff">${"•".repeat(Math.max(1,Math.min(3,m.diff)))}</i>`);
     n.addEventListener("click",()=>{ if(mapDrag)return; selectMission(m.id); });
+    /* Un nodo e' un pulsante: raggiungibile con Tab, attivabile con Invio o spazio, e
+       con un nome che dice chi e' e in che stato (il glifo e l'anello non si leggono). */
+    n.setAttribute("role","button"); n.tabIndex=0;
+    n.setAttribute("aria-label",m.name+", "+(m.locked?"bloccata":fatto?"contenuta":"disponibile")+", corruzione "+cr+" per cento"+(m.boss?", guardiano":""));
+    n.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); selectMission(m.id); } });
     w.appendChild(n);
     const lab=document.createElement("div");lab.className="nodelabel";
     lab.style.left="clamp(var(--lw,0px),"+m.x+"%,calc(100% - var(--lw,0px)))";lab.style.top=(m.y+8)+"%";
@@ -3561,7 +3585,10 @@ const TX=[
    when:()=>living().some(u=>u.type==="neris"),
    text:"Quello è un NERIS. L'acqua non lo uccide: lo sposta. Per lui la spinta funziona ancora — voragine, bordo, collisione — ma se lo buttate in un lago gli avete solo accorciato la strada."},
   {id:"intento",who:"COMANDO CASSANDRA",
-   when:()=>kauchas().some(u=>u.plan||u.planCells),
+   /* ⚠ Solo nel turno del giocatore. Gli intenti nascono durante la telegrafia, prima
+      che il giocatore veda il campo: senza questa condizione era il PRIMO messaggio
+      di una partita nuova, davanti al benvenuto («apertura»), che aspetta il turno. */
+   when:()=>B.phase==="player"&&kauchas().some(u=>u.plan||u.planCells),
    text:"Le caselle bordate sono ciò che faranno il prossimo turno. Non è una minaccia: è una certezza. Spostatevi, o toglieteli di mezzo prima."},
   {id:"collaterale",who:"CONTROLLO DANNI",
    when:()=>B.selected&&civicInRange(B.selected).length>0,
@@ -3657,12 +3684,175 @@ function showTransmission(t){
   el.innerHTML=`<div class="txwho">▚ ${_who}</div><div class="txtext">${_txt}</div>`+
     `<button class="txok" id="txOk">RICEVUTO</button>`;
   el.style.display="";
+  annuncia(_who+": "+_txt);
   /* ⚠ Su schermi bassi il riquadro nasce sotto la piega, dietro la barra dei
      comandi ancorata: una trasmissione che non si vede e' una che si perde.
      Si porta in vista, e a lettura finita si torna al campo. */
   try{el.scrollIntoView({block:"nearest",behavior:"smooth"});}catch(e){}
   const b=$("txOk"); if(b)b.addEventListener("click",()=>{el.style.display="none";el.innerHTML="";
+    try{const cv=$("isoCanvas");if(cv)cv.focus({preventScroll:true});}catch(e){}
     try{const bt=$("battle"),fi=bt&&bt.querySelector(".bfianco");if(bt)bt.scrollTo({top:0,behavior:"smooth"});if(fi)fi.scrollTo({top:0,behavior:"smooth"});}catch(e){}});
+}
+
+/* ═══════════ ACCESSIBILITA': TASTIERA E LETTORE DI SCHERMO ═══════════
+   ⚠ Il gioco e' a INFORMAZIONE PERFETTA: tutto cio' che serve per decidere e' gia'
+   dichiarato (intenti dei Kaucha, caselle raggiungibili, danni previsti). Quindi
+   non serve un'altra interfaccia: serve poterlo leggere e poter agire senza il
+   dito. Il campo e' un canvas, dove un lettore di schermo non vede niente — qui lo
+   si rende leggibile a parole e giocabile da tastiera.
+
+   Le frecce muovono il cursore sugli ASSI DELLA GRIGLIA, non sullo schermo: sinistra
+   e destra cambiano la colonna (x), su e giu' la riga (y). Le coordinate lette sono
+   le stesse del log («→ 4,5»), e per chi non vede e' quella la geografia.
+   Maiuscolo con le frecce sposta la vista, come prima faceva la freccia da sola.
+
+   Tutto cio' che il log dice viene anche annunciato (`blog` chiama `annuncia`). */
+function annuncia(t){
+  try{
+    const el=document.getElementById("sr"); if(!el)return;
+    const s=String(t).replace(/<[^>]*>/g,"").replace(/\s+/g," ").trim(); if(!s)return;
+    const d=document.createElement("div"); d.textContent=s; el.appendChild(d);
+    while(el.childNodes.length>12)el.removeChild(el.firstChild);
+  }catch(e){}
+}
+let kbCella=null;
+const AIUTO_TASTI="Frecce: muovi il cursore, sinistra e destra la colonna, su e giù la riga. Invio o spazio: agisci sulla casella. M: il tuo mech successivo, maiuscolo M il precedente. N: il nemico successivo. R: leggi tutto il campo. E: fine turno. U: annulla l'ultima azione. Escape: deseleziona. Più, meno e zero: zoom. Maiuscolo con le frecce: sposta la vista. Punto interrogativo: questo aiuto.";
+function descriviCasella(x,y){
+  const p=[x+","+y], u=unitAt(x,y);
+  if(u){
+    const ruolo=u.player?(u.structure?(u.civil?"sfollato":u.type==="relay"?"relay":"bunker"):"tuo mech"):"nemico";
+    let t=`${u.name}, ${ruolo}, ${u.hp} su ${u.maxHp} punti vita`;
+    if(u.player&&!u.structure){ t+=u.attacked?", ha già agito":u.moved?", si è già mosso":", pronto"; if(B.selected===u)t+=", selezionato"; }
+    if(!u.player&&!u.structure){
+      const it=intentTile(u);
+      if(it){ const o=unitAt(it[0],it[1]); t+=`, intende colpire ${it[0]},${it[1]}${o?" dove sta "+o.name:""}`; }
+      else if(u.planCells)t+=", scarica in linea";
+      if(u.noPush)t+=", non si può spingere";
+      if(u.noDrown)t+=", non annega";
+      if(B.selected&&!B.selected.attacked&&inAtk(B.selected,u.x,u.y))t+=", alla portata del mech selezionato";
+    }
+    p.push(t);
+  }
+  const tv=terrAt(x,y); if(tv)p.push(TERR[tv.t].nm.toLowerCase()+(tv.t==="voragine"?", letale":""));
+  if(B.water.has(k(x,y)))p.push("acqua");
+  if(B.corrupt.has(k(x,y)))p.push("corrotta");
+  if(isRift(x,y))p.push("rift "+(B.rift.open?"aperto, integrità "+B.rift.hp:"chiuso"));
+  if(B.relics&&B.relics.has(k(x,y)))p.push("sito di scavo");
+  if(B.pylons&&B.pylons.has(k(x,y)))p.push("pilone");
+  if((B.emersioni||[]).some(e=>e.x===x&&e.y===y))p.push("qui emergerà un Kaucha");
+  if(celleMinacciate().has(k(x,y)))p.push("sotto minaccia nemica");
+  if(B.selRange&&B.selRange.has(k(x,y)))p.push("il mech selezionato può arrivarci");
+  if(p.length===1)p.push("libera");
+  return p.join(". ");
+}
+function riepilogoCampo(){
+  const m=mechs().map(u=>`${u.name} in ${u.x},${u.y}, ${u.hp} su ${u.maxHp}${u.attacked?", ha agito":""}`).join("; ");
+  const f=kauchas().map(u=>{const it=intentTile(u);return `${u.name} in ${u.x},${u.y}, ${u.hp} PV${it?", colpirà "+it[0]+","+it[1]:""}`;}).join("; ");
+  const e=[];
+  if(B.rift&&B.rift.open)e.push(`Rift in ${B.rift.x},${B.rift.y}, integrità ${B.rift.hp}`);
+  const ry=relay(); if(ry)e.push(`Relay in ${ry.x},${ry.y}, ${ry.hp} su ${ry.maxHp}`);
+  if(B.relicGoal)e.push(`Campioni estratti ${B.mission.relics} su ${B.relicGoal}`);
+  if(B.evacGoal)e.push(`Evacuati ${B.mission.evacuated} su ${B.evacGoal}, sfollati rimasti ${civilians().length}`);
+  if(B.terrainGoal)e.push(`Smaltiti col terreno ${B.mission.terrainKills} su ${B.terrainGoal}`);
+  if(B.pylonGoal)e.push(`Piloni abbattuti ${B.mission.pylons} su ${B.pylonGoal}`);
+  return `Round ${B.round} di ${B.maxRound}. ${$("objBar").textContent}. Tuoi mech: ${m||"nessuno"}. Nemici: ${f||"nessuno"}.${e.length?" "+e.join(". ")+".":""}`;
+}
+function spostaCursore(x,y){
+  kbCella=[x,y];
+  if(window.__ISO&&__ISO.setCursor)__ISO.setCursor(kbCella);
+  // come col mouse: il cursore sopra un nemico alla portata ne mostra l'anteprima
+  if(typeof aim==="function"){
+    const sel=B.selected,t=unitAt(x,y);
+    aim(sel&&!sel.attacked&&t&&!t.player&&t.hp>0&&inAtk(sel,t.x,t.y)?t:null);
+  }
+  annuncia(descriviCasella(x,y));
+}
+function dopoTocco(prima){
+  if(B.selected&&B.selected!==prima){
+    const u=B.selected,tutti=kauchas().filter(f=>!u.attacked&&inAtk(u,f.x,f.y)).map(f=>f.name);
+    annuncia(`Selezionato ${u.name}, ${u.hp} su ${u.maxHp} punti vita. ${B.selRange?B.selRange.size+" caselle raggiungibili.":"Non può muoversi."}${tutti.length?" Alla portata da qui: "+tutti.join(", ")+".":""}`);
+  } else if(B.aimed&&B.selected){
+    const D=dannoDi(B.selected,B.aimed);
+    annuncia(`Mira su ${B.aimed.name}, danno previsto ${D.bersaglio}. Invio di nuovo per colpire.`);
+  } else if(!B.selected&&prima)annuncia("Selezione annullata.");
+}
+/* Ritorna true se il tasto e' stato preso. Il motore grafico lo chiama per primo. */
+function gestisciTasto(ev){
+  if(!B||!B.units||B.over)return false;
+  const bt=document.getElementById("battle"); if(!bt||!bt.classList.contains("active"))return false;
+  if(ev.ctrlKey||ev.metaKey||ev.altKey)return false;
+  const ae=document.activeElement, suControllo=!!(ae&&/^(BUTTON|INPUT|SELECT|TEXTAREA|A)$/.test(ae.tagName));
+  const key=ev.key, K=key.length===1?key.toLowerCase():key;
+  if(!kbCella){const m0=mechs()[0];kbCella=m0?[m0.x,m0.y]:[3,3];}
+  const fr={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+  if(fr[key]){
+    if(ev.shiftKey)return false;                         // la vista la sposta il motore
+    spostaCursore(Math.max(0,Math.min(W-1,kbCella[0]+fr[key][0])),Math.max(0,Math.min(H-1,kbCella[1]+fr[key][1])));
+    return true;
+  }
+  if((key==="Enter"||key===" ")&&!suControllo){
+    if(B.phase!=="player"||B.busy){annuncia("Non è il tuo turno.");return true;}
+    const prima=B.selected; onCellTap(kbCella[0],kbCella[1]); dopoTocco(prima);
+    return true;
+  }
+  if(K==="m"||K==="n"){
+    const lista=(K==="m"?mechs():kauchas()).slice().sort((a,b)=>a.id-b.id);
+    if(!lista.length){annuncia(K==="m"?"Nessun mech.":"Nessun nemico.");return true;}
+    let i=lista.findIndex(u=>u.x===kbCella[0]&&u.y===kbCella[1]);
+    i=i<0?(ev.shiftKey?lista.length-1:0):((i+(ev.shiftKey?-1:1))%lista.length+lista.length)%lista.length;
+    spostaCursore(lista[i].x,lista[i].y); return true;
+  }
+  if(K==="r"){annuncia(riepilogoCampo());return true;}
+  if(key==="?"||K==="h"){annuncia(AIUTO_TASTI);return true;}
+  if(K==="e"){
+    if(B.phase!=="player"||B.busy){annuncia("Non è il tuo turno.");return true;}
+    annuncia("Fine turno."); endPlayer(); return true;
+  }
+  if(K==="u"){
+    if(canUndo()){doUndo();annuncia("Ultima azione annullata.");}else annuncia("Niente da annullare.");
+    return true;
+  }
+  if(key==="Escape"){
+    if(B.abilityMode)cancelAbility();else bDeselect();
+    annuncia("Selezione annullata."); return true;
+  }
+  return false;
+}
+/* Nomi per i controlli che hanno solo un simbolo. `title` c'era gia': per un lettore
+   di schermo un glifo come «⌂» non e' un nome. Si ripassa a ogni modifica del DOM,
+   perche' molte schermate si costruiscono a runtime. */
+const NOMI_CONTROLLI={backbtn:"Indietro",mapIn:"Ingrandisci la mappa",mapOut:"Riduci la mappa",mapFit:"Adatta la mappa",
+  undoBtn:"Annulla l'ultima azione",deselBtn:"Deseleziona",menuBtn:"Torna al menu, la missione resta aperta",
+  abortBtn:"Ordina la ritirata",optBtn:"Opzioni"};
+function nomiAccessibili(){
+  document.querySelectorAll("button").forEach(b=>{
+    if(b.getAttribute("aria-label"))return;
+    const t=(b.textContent||"").replace(/\s+/g," ").trim();
+    if(/[A-Za-zÀ-ÿ]{3}/.test(t))return;                 // ha gia' un nome in lettere
+    const testo=s=>(s||"").replace(/\s+/g," ").trim();
+    const baia=b.dataset.bay!==undefined?", baia "+(+b.dataset.bay+1):"";
+    let n=NOMI_CONTROLLI[b.id]||(b.classList.contains("backbtn")?NOMI_CONTROLLI.backbtn:null);
+    // i pulsanti che hanno solo una freccia o un prezzo dicono A COSA si riferiscono
+    if(!n&&b.classList.contains("carr"))n=(b.dataset.d<0?"Telaio precedente":"Telaio successivo")+baia;
+    if(!n&&b.classList.contains("parr"))n=(b.dataset.d<0?"Pilota precedente":"Pilota successivo")+baia;
+    if(!n&&b.classList.contains("firmaup")){const h=b.closest(".firma"),t=h&&h.querySelector(".firmahdr");
+      n="Potenzia la firma"+(t?" "+testo(t.firstChild?t.firstChild.textContent:t.textContent).replace("✦","").trim():"")+", costa "+testo(b.textContent).replace("◈","").trim()+" sigilli";}
+    if(!n&&b.classList.contains("pbuy")){const c=b.closest(".protocard"),t=c&&c.querySelector(".pname");
+      n="Compra"+(t?" "+testo(t.firstChild&&t.childNodes.length>1?[...t.childNodes].filter(x=>x.nodeType===3).map(x=>x.textContent).join(" "):t.textContent):"")+", "+testo(b.textContent).replace("fr","frammenti");}
+    if(!n&&b.classList.contains("cbuy")){const c=chassisById(b.dataset.id);
+      n="Sblocca il telaio"+(c?" "+c.name+", "+c.role:"")+", "+testo(b.textContent).replace("fr","frammenti");}
+    if(!n)n=b.getAttribute("title");
+    if(n)b.setAttribute("aria-label",n);
+  });
+  // i cursori hanno un'etichetta VISIBILE accanto ma non collegata: si collega
+  const cur={optVol:"Volume, da zero a cento",optTesto:"Dimensione del testo, in percentuale"};
+  Object.keys(cur).forEach(id=>{const e=document.getElementById(id);if(e&&!e.getAttribute("aria-label"))e.setAttribute("aria-label",cur[id]);});
+}
+{
+  let q=false;
+  const ripassa=()=>{ if(q)return; q=true; requestAnimationFrame(()=>{q=false;nomiAccessibili();}); };
+  try{ new MutationObserver(ripassa).observe(document.body,{childList:true,subtree:true}); }catch(e){}
+  document.addEventListener("DOMContentLoaded",nomiAccessibili);
 }
 
 /* ═══════════ CAMPIONI E RICERCA ═══════════
@@ -4133,7 +4323,7 @@ function slotInfo(n){
 function scriviSlot(n,azzera){
   const s=leggiSalvataggio()||{v:2,meta:datiMeta(),slot:0,runs:{}};
   if(saveReady){ s.meta=datiMeta(); s.runs=s.runs||{}; s.runs[slotAttivo]=datiRun(); }
-  if(azzera&&s.runs)delete s.runs[n];
+  if(azzera&&s.runs){delete s.runs[n];cancellaBattaglia(n);}
   s.slot=n;
   try{ localStorage.setItem(SAVE_KEY,JSON.stringify(s)); }catch(e){ return false; }
   return true;
@@ -4192,6 +4382,136 @@ function loadState(){
   if(Array.isArray(r.squad)&&r.squad.length)squad=r.squad;
   if(Array.isArray(r.pilotIdx))r.pilotIdx.forEach((v,i)=>{pilotIdx[i]=v;});
   return true;
+}
+
+/* ═══════════ BATTAGLIA IN CORSO — CHECKPOINT A INIZIO TURNO ═══════════
+   ⚠ Su telefono il browser scarta la scheda in background e ricarica la pagina:
+   la battaglia vive in `B`, quindi una missione a metà si perdeva senza che il
+   giocatore avesse fatto niente di sbagliato. Qui si salva lo stato all'INIZIO di
+   ogni turno del giocatore (dopo la telegrafia, quando i Kaucha hanno già mosso e
+   annunciato) e il menu offre di riprenderlo. Si riparte dall'inizio dell'ultimo
+   turno: le azioni già fatte in quel turno non sono nel file, ed è detto nel log.
+
+   ⚠ Chiave SEPARATA da SAVE_KEY, e per slot: `saveState` riscrive l'intera `run` a
+   ogni chiamata e si porterebbe via un campo aggiunto lì dentro.
+
+   ⚠ Perche' funziona: i Kaucha non sorteggiano mai (secondo pilastro) e la
+   generazione e' gia' avvenuta, quindi lo stato di inizio turno determina tutto
+   il resto. `tools/audit/riprendi.js` lo verifica: stessa partita giocata di
+   seguito e con un ricaricamento a meta' danno lo STESSO esito.
+
+   Cosa non e' serializzabile: i Set e le Map (si convertono) e `pilot`, che porta
+   funzioni (si salva come indice in PILOTS). Tutto il resto di `B` e di ogni
+   unita' e' dato semplice. Se un campo nuovo porta funzioni o riferimenti ad altre
+   unita', il test di ripresa fallisce: e' la guardia. */
+const BATTAGLIA_V=1;
+const chiaveBattaglia=n=>SAVE_KEY+"/battaglia/"+n;
+function serializzaBattaglia(){
+  const rep=(kk,v)=>v instanceof Set?{__set:[...v]}:v instanceof Map?{__map:[...v]}:v;
+  const copia=Object.assign({},B,{undo:null,undoUsed:false,selected:null,selRange:null,inspected:null,
+                                 aimed:null,abilityMode:null,busy:false,phase:"player"});
+  copia.units=B.units.map(u=>Object.assign({},u,{pilot:u.pilot?{__pilota:PILOTS.indexOf(u.pilot)}:undefined}));
+  return JSON.stringify({v:BATTAGLIA_V,missione:activeMission.id,settore:currentSector,uid:UID,B:copia},rep);
+}
+function salvaBattaglia(){
+  try{
+    if(!B||B.over||!activeMission||!B.units||!B.units.length)return false;
+    localStorage.setItem(chiaveBattaglia(slotAttivo),serializzaBattaglia());
+    saveState();     // i globali (risonanza, tendenze...) devono coincidere col checkpoint
+    return true;
+  }catch(e){ return false; }
+}
+function cancellaBattaglia(n){ try{ localStorage.removeItem(chiaveBattaglia(n===undefined?slotAttivo:n)); }catch(e){} }
+function leggiBattaglia(){
+  try{
+    const raw=localStorage.getItem(chiaveBattaglia(slotAttivo)); if(!raw)return null;
+    const sv=JSON.parse(raw,(kk,v)=>v&&v.__set?new Set(v.__set):v&&v.__map?new Map(v.__map):v);
+    if(!sv||sv.v!==BATTAGLIA_V||!sv.B||!Array.isArray(sv.B.units))return null;
+    const m=MISSIONS.find(x=>x.id===sv.missione); if(!m)return null;
+    sv.m=m; return sv;
+  }catch(e){ return null; }
+}
+function ripristinaBattaglia(){
+  const sv=leggiBattaglia(); if(!sv)return false;
+  sv.B.units.forEach(u=>{ if(u.pilot&&u.pilot.__pilota!==undefined)u.pilot=PILOTS[u.pilot.__pilota]||null; });
+  activeMission=sv.m; currentSector=sv.settore; UID=sv.uid; B=sv.B;
+  B.over=false; B.busy=false; B.undo=null; B.undoUsed=false;
+  scriviIntestazione(activeMission);
+  $("units").innerHTML="";
+  buildGrid(); setPhase("player"); bRender();
+  blog("↺ Missione ripresa dall'inizio del turno.");
+  go("battle");
+  return true;
+}
+
+/* ═══════════ COPIA DI SICUREZZA ═══════════
+   ⚠ I progressi stanno in `localStorage`, che il browser puo' svuotare: sul
+   telefono succede con lo spazio scarso, con «cancella dati dei siti» e, su
+   Safari, dopo giorni senza aprire la pagina. Un file di copia li mette al sicuro
+   e li porta su un altro dispositivo. Contiene SOLO le chiavi del gioco (prefisso
+   SAVE_KEY): slot, meta e checkpoint di battaglia. Chi importa un file sbagliato
+   non deve perdere la campagna che ha: si valida PRIMA di scrivere. */
+const BACKUP_FORMATO="fracture-protocol-backup", BACKUP_V=1, BACKUP_MAX=4e6;
+function creaBackup(){
+  saveState();
+  const chiavi={};
+  for(let i=0;i<localStorage.length;i++){
+    const kk=localStorage.key(i);
+    if(kk&&kk.indexOf(SAVE_KEY)===0)chiavi[kk]=localStorage.getItem(kk);
+  }
+  return JSON.stringify({formato:BACKUP_FORMATO,v:BACKUP_V,creato:new Date().toISOString(),chiavi});
+}
+/* Ritorna {ok,chiavi} oppure {ok:false,errore}. Non scrive niente. */
+function validaBackup(testo){
+  if(typeof testo!=="string"||!testo.length)return {ok:false,errore:"File vuoto."};
+  if(testo.length>BACKUP_MAX)return {ok:false,errore:"File troppo grande per essere una copia del gioco."};
+  let o; try{ o=JSON.parse(testo); }catch(e){ return {ok:false,errore:"Non è un file di copia: il contenuto non è leggibile."}; }
+  if(!o||o.formato!==BACKUP_FORMATO)return {ok:false,errore:"Non è una copia di Fracture Protocol."};
+  if(o.v!==BACKUP_V)return {ok:false,errore:"Versione della copia non supportata ("+o.v+")."};
+  if(!o.chiavi||typeof o.chiavi!=="object"||Array.isArray(o.chiavi))return {ok:false,errore:"La copia non contiene dati."};
+  const ks=Object.keys(o.chiavi);
+  if(!ks.length)return {ok:false,errore:"La copia non contiene dati."};
+  if(ks.some(kk=>kk.indexOf(SAVE_KEY)!==0||typeof o.chiavi[kk]!=="string"))
+    return {ok:false,errore:"La copia contiene voci che non sono del gioco."};
+  if(!(SAVE_KEY in o.chiavi))return {ok:false,errore:"La copia non contiene il salvataggio principale."};
+  let main; try{ main=JSON.parse(o.chiavi[SAVE_KEY]); }catch(e){ return {ok:false,errore:"Il salvataggio nella copia è corrotto."}; }
+  if(!main||(main.v!==1&&main.v!==2))return {ok:false,errore:"Il salvataggio nella copia ha un formato sconosciuto."};
+  for(const kk of ks){ if(kk===SAVE_KEY)continue; try{ JSON.parse(o.chiavi[kk]); }catch(e){ return {ok:false,errore:"Una voce della copia è corrotta."}; } }
+  return {ok:true,chiavi:o.chiavi,creato:o.creato||""};
+}
+function applicaBackup(chiavi){
+  const vecchie=[];
+  for(let i=0;i<localStorage.length;i++){const kk=localStorage.key(i); if(kk&&kk.indexOf(SAVE_KEY)===0)vecchie.push(kk);}
+  const prima={}; vecchie.forEach(kk=>{prima[kk]=localStorage.getItem(kk);});
+  try{
+    vecchie.forEach(kk=>localStorage.removeItem(kk));
+    Object.keys(chiavi).forEach(kk=>localStorage.setItem(kk,chiavi[kk]));
+    return true;
+  }catch(e){                       // spazio finito a meta': si rimette com'era
+    try{ Object.keys(chiavi).forEach(kk=>localStorage.removeItem(kk)); Object.keys(prima).forEach(kk=>localStorage.setItem(kk,prima[kk])); }catch(e2){}
+    return false;
+  }
+}
+function scaricaBackup(){
+  const testo=creaBackup();
+  const nome="fracture-protocol-"+new Date().toISOString().slice(0,10)+".json";
+  try{
+    const url=URL.createObjectURL(new Blob([testo],{type:"application/json"}));
+    const a=document.createElement("a"); a.href=url; a.download=nome; document.body.appendChild(a); a.click();
+    setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},1500);
+    toast("Copia scaricata: "+nome);
+    return true;
+  }catch(e){ toast("Il browser non permette di scaricare il file."); return false; }
+}
+/* Chiede al browser di NON svuotare l'archivio senza avvisare. Dove non c'e' o
+   viene negato non fa danno: la copia di sicurezza resta la difesa vera. */
+let archivioPersistente=null;
+function richiediArchivioPersistente(){
+  try{
+    if(!(navigator.storage&&navigator.storage.persist))return;
+    navigator.storage.persisted().then(gia=>gia?true:navigator.storage.persist())
+      .then(v=>{archivioPersistente=!!v;}).catch(()=>{});
+  }catch(e){}
 }
 
 /* NUOVA CAMPAGNA: cancella la run, conserva la conoscenza. */
@@ -4469,6 +4789,14 @@ function renderOpzioni(){
     <div class="panel"><h3>CAMPAGNE</h3>
       <div class="muted" style="margin-bottom:9px;line-height:1.7;">Ogni slot è una campagna a sé. Il <b>codice kaucha</b>, la ricerca e gli abbattimenti restano tuoi in tutte: quello che hai imparato non si disimpara ricominciando.</div>
       <div class="slotgrid">${slots.join("")}</div>
+    </div>
+    <div class="panel"><h3>COPIA DI SICUREZZA</h3>
+      <div class="muted" style="margin-bottom:9px;line-height:1.7;">I progressi stanno nella memoria di questo browser, che sul telefono può cancellarla (spazio scarso, pulizia dei dati, giorni senza aprire la pagina). Un file di copia li mette al sicuro e li porta su un altro dispositivo.<br><span id="persistStat">${archivioPersistente===true?"Il browser ha concesso l'archivio persistente.":archivioPersistente===false?"Il browser non garantisce l'archivio: fai una copia ogni tanto.":""}</span></div>
+      <div class="slotgrid">
+        <button class="slotbtn" id="bkExport">SCARICA COPIA</button>
+        <button class="slotbtn" id="bkImport">RIPRISTINA DA FILE</button>
+      </div>
+      <input type="file" id="bkFile" accept="application/json,.json" style="display:none" aria-label="File di copia da ripristinare">
     </div>`;
 
   const vol=$("optVol");
@@ -4485,6 +4813,25 @@ function renderOpzioni(){
   qsa("#optScroll [data-vai]").forEach(b=>b.addEventListener("click",()=>{
     cambiaSlot(+b.dataset.vai);
   }));
+  const bke=$("bkExport"); if(bke)bke.addEventListener("click",scaricaBackup);
+  const bki=$("bkImport"), bkf=$("bkFile");
+  if(bki&&bkf){
+    bki.addEventListener("click",()=>{bkf.value="";bkf.click();});
+    bkf.addEventListener("change",()=>{
+      const f=bkf.files&&bkf.files[0]; if(!f)return;
+      const rd=new FileReader();
+      rd.onload=()=>{
+        const v=validaBackup(String(rd.result||""));
+        if(!v.ok){toast(v.errore);return;}
+        const quando=v.creato?" del "+v.creato.slice(0,10):"";
+        if(!confirm("Sostituire TUTTI i progressi di questo browser con la copia"+quando+"? L'operazione non si annulla."))return;
+        if(!applicaBackup(v.chiavi)){toast("Spazio insufficiente: i progressi attuali sono rimasti dove erano.");return;}
+        ricarica();
+      };
+      rd.onerror=()=>toast("Il file non si può leggere.");
+      rd.readAsText(f);
+    });
+  }
   /* ⚠ Ricominciare è irreversibile e va confermato. Il pulsante chiede due
      volte non per burocrazia: cancella una campagna, ed è l'unica azione del
      gioco che non ha un annulla. */
@@ -4498,7 +4845,7 @@ function renderOpzioni(){
   }));
 }
 function renderComando(){
-  $("campaignStat").innerHTML=`Settore Cassandra · Turno operativo 0447<br>Missioni completate: ${cleared.size} / ${MISSIONS.length}<br>Telai sbloccati: ${CHASSIS.filter(c=>c.unlocked).length} / ${CHASSIS.length}<br>Moduli in armeria: ${ownedModules.length}<br>Frammenti: ${frammenti}<br>Risposta della Spaccatura: <b style="color:${escalationTier()[1]}">${escalationTier()[0]}</b>`;
+  $("campaignStat").innerHTML=`${sectorDef(currentSector).nm.split(" ").map(w=>w[0]+w.slice(1).toLowerCase()).join(" ")} · Turno operativo 0447<br>Missioni completate: ${cleared.size} / ${MISSIONS.length}<br>Telai sbloccati: ${CHASSIS.filter(c=>c.unlocked).length} / ${CHASSIS.length}<br>Moduli in armeria: ${ownedModules.length}<br>Frammenti: ${frammenti}<br>Risposta della Spaccatura: <b style="color:${escalationTier()[1]}">${escalationTier()[0]}</b>`;
   renderNemesisDossier();
   /* Il fascicolo del pilota: chi è, cosa sa fare adesso, e cosa imparerà.
      L'ultima parte è la più importante — un tratto annunciato è un motivo per
@@ -5878,6 +6225,18 @@ function generateMission(spec,diff){
   return best;
 }
 
+/* Nome, round e obiettivo in testata: lo scrivono startBattle e il ripristino. */
+function scriviIntestazione(mission){
+  $("battleMissionName").textContent=mission.name;
+  $("maxRoundNum").textContent=B.maxRound;
+  // la scadenza va detta: un contatore ROUND 3/7 si legge come ritmo, non come
+  // conseguenza, e perdere per una regola mai dichiarata è il pilastro tradito
+  $("objBar").textContent="◆ "+mission.obj+
+    (B.goal==="survive"?"":` · ENTRO ${B.maxRound} ROUND, poi sganciarsi o tenere il campo (+${OVERTIME_CORR} a round)`)+
+    // il cavo rende il relay vitale anche dove non è l'obiettivo: va detto qui,
+    // non scoperto quando cade
+    (B.tether&&B.goal!=="survive"?" · IL RELAY ALIMENTA I TELAI: se cade, missione perduta":"");
+}
 function startBattle(mission){
   // la difficoltà del nodo entra nel generatore: è lei a decidere quanto
   // margine il campo deve offrire sopra la quota (vedi `fasciaBersaglio`)
@@ -5958,15 +6317,7 @@ function startBattle(mission){
       blog("⚠ PALINSESTO si manifesta — adattamenti: "+(nm.adaptList.length?nm.adaptList.join(", "):"forma base")+".");}
   }
 
-  $("battleMissionName").textContent=mission.name;
-  $("maxRoundNum").textContent=B.maxRound;
-  // la scadenza va detta: un contatore ROUND 3/7 si legge come ritmo, non come
-  // conseguenza, e perdere per una regola mai dichiarata è il pilastro tradito
-  $("objBar").textContent="◆ "+mission.obj+
-    (B.goal==="survive"?"":` · ENTRO ${B.maxRound} ROUND, poi sganciarsi o tenere il campo (+${OVERTIME_CORR} a round)`)+
-    // il cavo rende il relay vitale anche dove non è l'obiettivo: va detto qui,
-    // non scoperto quando cade
-    (B.tether&&B.goal!=="survive"?" · IL RELAY ALIMENTA I TELAI: se cade, missione perduta":"");
+  scriviIntestazione(mission);
   $("units").innerHTML="";   // ripulisce le unità della battaglia precedente (evita DOM/handler obsoleti)
   buildGrid();
   bRender();
@@ -6032,7 +6383,7 @@ function moveRange(u){
 }
 const inAtk=(u,x,y)=>{const d=Math.abs(x-u.x)+Math.abs(y-u.y);return d>=u.rmin&&d<=u.rmax;};
 
-const blog=m=>{B.log.unshift(m);if(B.log.length>3)B.log.pop();
+const blog=m=>{annuncia(m);B.log.unshift(m);if(B.log.length>3)B.log.pop();
   $("blog").innerHTML=B.log.map((l,i)=>`<div class="l${i}">› ${l}</div>`).join("");};
 
 function buildGrid(){const g=$("grid");g.innerHTML="";
@@ -6177,7 +6528,7 @@ function bPanel(){const p=$("bpanel");
       <span class="partial">${u.type==="palinsesto"?"ADATTAMENTI: "+(u.adaptList&&u.adaptList.length?u.adaptList.join(" · "):"forma base"):(u.type==="sahir"?"AMPLIFICA I KAUCHA (+1 DANNO) — BERSAGLIO PRIORITARIO":(full?"SCANSIONE COMPLETA — dati anomalia acquisiti":"DATI PARZIALI — SCANNER NON EQUIPAGGIATO"))}</span>`;return;}
   if(!B.selected){const leg=(B.corruptNext||(B.emersioni||[]).length)?`<br><span class="partial">⌁ ≋ corruzione in arrivo · ⇡ emersione (paratici sopra per soffocarla)</span>`:"";
     p.innerHTML=B.phase==="player"
-    ?`<span class="hint">Tocca un mech per agire, un Kaucha per ispezionarlo.${B.rift?" Il <b style='color:var(--anomal-teal)'>rift ◬</b> è attaccabile.":""}</span>${leg}`
+    ?`<span class="hint">Tocca un mech per agire, un Kaucha per ispezionarlo.${(window.matchMedia&&matchMedia("(pointer:fine)").matches)?" <span class=\"tastiera\">Da tastiera: M sceglie un mech, frecce e Invio agiscono, E chiude il turno, ? elenca i comandi.</span>":""}${B.rift?" Il <b style='color:var(--anomal-teal)'>rift ◬</b> è attaccabile.":""}</span>${leg}`
     :`<span class="hint">Osserva il terminale…</span>`;return;}
   const u=B.selected;
   const abil=(u.ability&&!u.attacked)?(B.abilityMode?`<div class="abilmode">▣ ${B.abilityMode.ability.name} — scegli un bersaglio (tocca il mech per annullare)</div>`:`<button class="abilbtn" id="abilBtn">▣ ${u.ability.name}</button><span class="abildesc">${u.ability.desc}</span>`):"";
@@ -6208,6 +6559,7 @@ ${B.tether?`<br><span class="cavo${(u.carica||0)<=2?" basso":""}">⌁ CAVO ${col
     ${aimLine(u)}${civLine}${ass}${abil}${arma}`;
 }
 function setPhase(n,cls){B.phase=n;$("phasebar").textContent=({telegraph:"TELEGRAFIA INTENTI KAUCHA",player:"TURNO PLAYER — DISPIEGA I MECH",kaucha:"ESECUZIONE KAUCHA",env:"FASE AMBIENTE"})[n]||n;
+  if(n==="player")annuncia("Il tuo turno, round "+B.round+" di "+B.maxRound+". R per leggere il campo.");
   $("phasebar").className="phasebar "+(cls||"");}
 
 function intentTile(u){if(!u.plan)return null;const tx=u.x+u.plan.dx*u.plan.range,ty=u.y+u.plan.dy*u.plan.range;return inb(tx,ty)?[tx,ty]:null;}
@@ -6490,6 +6842,7 @@ function renderLazyJ(){
     B.abilityMode={unit:null, lazy:i, ability:{name:i.nome,range:null,target:true}};
     B.selected=null; B.selRange=null;
     blog("◈ "+i.nome+": scegli una casella.");
+    tornaAlCampo();
     bRender();
   }));
 }
@@ -6506,10 +6859,13 @@ function activateAbility(u,ab){
      sono due economie diverse e vanno controllate su due flag diversi. */
   const spesa=A.arma?u.attacked:(u.abilityUsed||u.attacked);
   if(spesa){blog(A.arma?"Attacco già speso questo turno.":"Abilità non disponibile.");return;}
-  if(A.target){B.abilityMode={unit:u,ability:A};B.selRange=null;blog("▣ "+A.name+": scegli un bersaglio.");bRender();}
+  if(A.target){B.abilityMode={unit:u,ability:A};B.selRange=null;blog("▣ "+A.name+": scegli un bersaglio.");bRender();tornaAlCampo();}
   else resolveAbility(u,null,A);
 }
 function cancelAbility(){B.abilityMode=null;bRender();}
+/* Attivare un'abilita' col pulsante lascia il focus sul pulsante: da tastiera Invio la
+   riattiverebbe invece di agire sulla casella scelta. Il focus torna al campo. */
+function tornaAlCampo(){ try{ const c=document.getElementById("isoCanvas"); if(c)c.focus({preventScroll:true}); }catch(e){} }
 function handleAbilityTarget(x,y){
   const m=B.abilityMode;if(!m)return;
   /* ⚠ L intervento di Lazy J passa da QUI e non da una seconda via: la mira e
@@ -7096,7 +7452,8 @@ async function telegraphPhase(){setPhase("telegraph","kaucha");B.busy=true;
   const left=B.maxRound-B.round+1;
   if(B.goal!=="survive"&&left<=2)
     blog(`⏳ ${left===1?"Ultimo round":"Restano "+left+" round"}: allo scadere la squadra si ritira senza aver concluso.`);
-  bRender();}
+  bRender();
+  salvaBattaglia();}
 
 function endPlayer(){if(B.phase!=="player"||B.busy)return;bDeselect();execPhase();}
 async function execPhase(){setPhase("kaucha","kaucha");B.busy=true;bRender();await sleep(420);
@@ -7321,6 +7678,7 @@ function checkEnd(){
 
 function finish(victory,reason,retreat){
   if(B.over)return;B.over=true;B.busy=true;
+  cancellaBattaglia();
   const m=activeMission;
   const firstClear=victory&&!cleared.has(m.id);
   const corrBefore=Math.round(sectorCorruption);
@@ -7345,6 +7703,7 @@ function finish(victory,reason,retreat){
   $("ovText").textContent=victory
     ?"Obiettivo raggiunto: "+m.obj.toLowerCase()
     :(texts[reason]||"Missione fallita.");
+  annuncia($("ovTitle").textContent+". "+$("ovText").textContent);
 
   /* I piloti imparano anche da una missione andata storta — a pieno se
      contenuta, in parte se ci si è dovuti sganciare. Su una disfatta vera
@@ -7601,6 +7960,7 @@ $("abortBtn").addEventListener("click",()=>{
 /* ================= BOOT ================= */
 loadState();          // prima di ogni altra cosa: go() salva, e salvare prima
                       // di aver caricato cancellerebbe la progressione
+richiediArchivioPersistente();
 buildMenu();
 buildMap();
 selectMission("m3");
@@ -7742,7 +8102,7 @@ renderCodex();
   let originX=180, originY=60;
   let layoutOK=false, lastRectW=0, lastRectH=0;
   let running=false, rafId=null, lastT=0, timeMS=0;
-  let shake=0, hoverCell=null, drawOrder=null;
+  let shake=0, hoverCell=null, kbCell=null, drawOrder=null;
   const fx=[];
   let reduceMotion=false;
   try{ reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
@@ -8342,6 +8702,10 @@ renderCodex();
         overlay(p,'rgba(0,206,209,.26)',`rgba(0,206,209,${0.4+pulse*0.3})`,1.3);
       if(hoverCell&&hoverCell[0]===gx&&hoverCell[1]===gy)
         overlay(p,'rgba(255,255,255,.055)','rgba(255,255,255,.3)',1.1);
+      /* Il cursore da tastiera: molto piu' netto del passaggio del mouse, perche' chi
+         lo usa non ha altro modo di sapere dove sta agendo. Bianco pieno, spesso. */
+      if(kbCell&&kbCell[0]===gx&&kbCell[1]===gy)
+        overlay(p,'rgba(255,255,255,.16)',`rgba(255,255,255,${0.85+pulse*0.15})`,2.6);
     }
   }
 
@@ -12144,6 +12508,13 @@ renderCodex();
       startAmbient();
     }catch(e){ actx=null; }
   }
+  /* Scheda in background: l'ambiente continuava a suonare (e a consumare batteria) con
+     la pagina nascosta. Si sospende il contesto audio e si riprende al ritorno, a meno
+     che l'utente abbia spento il suono. */
+  document.addEventListener('visibilitychange',()=>{
+    if(!actx)return;
+    try{ if(document.hidden)actx.suspend(); else if(!muted)actx.resume(); }catch(e){}
+  });
   const T=()=>actx.currentTime;
   function osc(freq,type,a,d,peak,glideTo){
     if(!actx||muted) return;
@@ -12421,7 +12792,7 @@ renderCodex();
       }
       downPt=[x,y];                            // delta incrementale
     } else {
-      hoverCell=null;
+      hoverCell=null; kbCell=null;
       let [gx,gy]=invIso(x,y); gx=Math.round(gx); gy=Math.round(gy);
       if(gx>=0&&gx<W&&gy>=0&&gy<H) hoverCell=[gx,gy];
       /* Col mouse la mira segue il puntatore: l'anteprima appare passandoci
@@ -12454,14 +12825,16 @@ renderCodex();
   }
   function onKey(ev){
     const bt=$id('battle'); if(!bt||!bt.classList.contains('active')) return;
+    // prima la logica di gioco: cursore, azioni, annunci (le frecce NON spostano piu' la vista)
+    if(typeof window.gestisciTasto==='function'&&window.gestisciTasto(ev)){ ev.preventDefault(); return; }
     const step=TW*0.6;
     if(ev.key==='+'||ev.key==='='){ setZoom(zoom*1.15); sfx('zoom'); }
     else if(ev.key==='-'||ev.key==='_'){ setZoom(zoom/1.15); sfx('zoom'); }
     else if(ev.key==='0'){ fitView(); sfx('zoom'); }
-    else if(ev.key==='ArrowLeft'){ panX+=step; clampPan(); }
-    else if(ev.key==='ArrowRight'){ panX-=step; clampPan(); }
-    else if(ev.key==='ArrowUp'){ panY+=step; clampPan(); }
-    else if(ev.key==='ArrowDown'){ panY-=step; clampPan(); }
+    else if(ev.shiftKey&&ev.key==='ArrowLeft'){ panX+=step; clampPan(); }
+    else if(ev.shiftKey&&ev.key==='ArrowRight'){ panX-=step; clampPan(); }
+    else if(ev.shiftKey&&ev.key==='ArrowUp'){ panY+=step; clampPan(); }
+    else if(ev.shiftKey&&ev.key==='ArrowDown'){ panY-=step; clampPan(); }
     else return;
     ev.preventDefault();
   }
@@ -13141,6 +13514,7 @@ renderCodex();
   };
 
   window.__ISO={ iso, invIso, hitCell, setZoom, fitView, measure,
+                 setCursor:(c)=>{ kbCell=c; },
                  get zoom(){return zoom;}, get TW(){return TW;},
                  setPan:(x,y)=>{panX=x;panY=y;clampPan();},
                  fxCount:()=>fx.length, detect:detectDeltas,

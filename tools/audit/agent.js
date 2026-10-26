@@ -233,7 +233,12 @@
       if (m.boss) sectorNodes(m.sector).filter(x => !x.boss).forEach(x => anc.add(x.id));
       anc.forEach(id => cleared.add(id));
     }
-    activeMission = m; startBattle(m);
+    if (opts.noise0) A.W.noise = 0;
+    if (opts.resume) {
+      // riprende da un checkpoint salvato dal gioco (stringa JSON): niente startBattle
+      localStorage.setItem(chiaveBattaglia(slotAttivo), opts.resume);
+      if (!ripristinaBattaglia()) return { id: missionId, error: 'ripristino fallito' };
+    } else { activeMission = m; startBattle(m); }
     const out = { id: missionId, seed: opts.seed, mode: opts.mode || 'smart', turns: 0, error: null };
     try {
       out.mechs0 = mechs().length; out.hp0 = sum(mechs(), u => u.hp); out.foes0 = kauchas().length; out.foeHp0 = sum(kauchas(), u => u.hp);
@@ -242,6 +247,9 @@
       while (!B.over && guard++ < 40) {
         if (!(await wait(() => B.over || B.awaitRetreat || (B.phase === 'player' && !B.busy), 4000))) { out.error = 'stuck phase=' + B.phase; break; }
         if (B.over) break;
+        if (opts.stopAtTurn && !opts.resume && out.turns + 1 === opts.stopAtTurn) {
+          out.checkpoint = localStorage.getItem(chiaveBattaglia(slotAttivo)); out.stoppedAt = out.turns + 1; return out;
+        }
         if (B.awaitRetreat) { B.awaitRetreat = false; B.over = true; B.result = { victory: false, reason: 'timeout', retreat: true }; break; }
         out.turns++;
         // al primo turno: cosa è già puntato, PRIMA che il giocatore faccia qualcosa
