@@ -60,6 +60,7 @@ h2{margin:2.6rem 0 1rem; font-size:var(--p5); font-weight:400; letter-spacing:.2
 .cambia li{position:relative; font-size:var(--p5); line-height:1.6; color:var(--st)}
 .cambia li::before{content:"\2014"; position:absolute; left:-1.1rem; color:var(--st-xd)}
 .nota{margin:.8rem 0 0; font-size:var(--p5); color:var(--st-dk)}
+.piede a,.nota a{color:var(--ambra)}
 .vuoto{color:var(--st-dk)}
 .piede{margin:3rem 0 0; padding-top:1.2rem; border-top:1px solid var(--st-xd); font-size:var(--p5); color:var(--st-dk); letter-spacing:.04em}
 .piede p{margin:.35rem 0}
@@ -90,6 +91,8 @@ kbd{font:inherit; color:var(--st); border:1px solid var(--st-xd); border-radius:
   </header>
 
   <main>
+    <p class="nota"><a href="provare.html">Vuoi provarlo e dirmi com'è andata? Leggi come fare &rarr;</a></p>
+
     <h2>Prototipi</h2>
       <a class="build ultima" href="builds/v2026-10-26/index.html">
         <div class="riga">
@@ -98,7 +101,7 @@ kbd{font:inherit; color:var(--st); border:1px solid var(--st-xd); border-radius:
             <span class="data">26 ottobre 2026</span>
             <span class="titolo">Terzo settore, ripresa della missione e tastiera</span>
           </span>
-          <span class="meta">0.9.0 &middot; 763 KB &middot; <b>ultima</b></span>
+          <span class="meta">0.9.0 &middot; 773 KB &middot; <b>ultima</b></span>
         </div>
         <ul class="cambia">
           <li>Settore Tarsis: sei missioni sull'acqua e il guardiano finale, dove PALINSESTO finisce</li>
@@ -109,6 +112,7 @@ kbd{font:inherit; color:var(--st); border:1px solid var(--st-xd); border-radius:
           <li>Telefoni piccoli e in orizzontale: il campo e i comandi restano sempre visibili</li>
           <li>Evacuazioni e missioni con relay più eque: il generatore scarta i campi condannati in partenza</li>
           <li>PALINSESTO non va più abbattuta per vincere eliminazioni, sopravvivenze e chiusure del rift (respingerla resta possibile e le impedisce di crescere) e occupa un posto nel tetto dei nemici</li>
+          <li>Prova e segnalazioni: a fine missione un tocco (facile, giusta, dura) e in Opzioni un rapporto da copiare o aprire come segnalazione; il gioco non invia nulla da solo</li>
         </ul>
         <p class="nota">Un file HTML autonomo, senza dipendenze. Si apre con un tap.</p>
       </a>
@@ -139,7 +143,7 @@ kbd{font:inherit; color:var(--st); border:1px solid var(--st-xd); border-radius:
     <kbd>Invio</kbd> agisce, <kbd>E</kbd> chiude il turno, <kbd>?</kbd> elenca i comandi.</p>
     <p>In orizzontale il campo è più grande: il rombo isometrico è vincolato
     dalla larghezza, non dall'altezza.</p>
-    <p>Prototipi in lavorazione: si gioca, non è finito.</p>
+    <p>Prototipi in lavorazione: si gioca, non è finito. <a href="provare.html">Come provarlo e segnalare</a>.</p>
   </footer>
 </div>
 <div class="vetro" aria-hidden="true"></div>

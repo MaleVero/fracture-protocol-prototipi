@@ -8,7 +8,7 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 ## Rapporti
 `RAPPORTO-FASE0.md` audit · `FASE1` layout e accessibilità su schermi piccoli · `FASE2` bilanciamento ·
 `FASE3` Tarsis e NERIS · `FASE4` checkpoint, copia di sicurezza, tastiera · `FASE5` rilascio e **limite della nemesi** ·
-`BLOCCHI-1-2` abilità e Lazy J nell'agente, calibrazione di PALINSESTO.
+`BLOCCHI-1-2` abilità e Lazy J nell'agente, calibrazione di PALINSESTO · `BLOCCO-4` prova con altre persone.
 
 ## Verifiche (devono finire con «tutti i controlli passati» / «ok»)
 | Script | Cosa controlla |
@@ -23,9 +23,10 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 | `backup.js` | copia di sicurezza: esporta, svuota, ripristina, rifiuta file sbagliati |
 | `a11y.js [shots]` | nomi dei controlli, tastiera, annunci, m1 vinta con la sola tastiera |
 | `migrazione.js` | salvataggi fra build diverse, avanti e indietro |
-| `rilascio.js` | l'indice e `build.json` coincidono, ogni link si apre, nessuna rete |
+| `rilascio.js` | l'indice e `build.json` coincidono, ogni link si apre, nessuna rete; `provare.html` raggiungibile, leggibile a 320 px, coerente col gioco |
 | `campagna.js` | campagna intera col flusso vero (diagnostica: l'esito dipende dall'agente) |
 | `nemesi.js` | PALINSESTO fuori dalle condizioni di vittoria, tetto dei nemici, guardiano invariato |
+| `prova.js [shots]` | diario, giudizio a fine missione, rapporto (nessun dato personale), copia/scarica, link GitHub, backup, pulsanti su 3 formati |
 
 ## Bilanciamento
 `agent.js` è l'agente (prova ogni mossa su una copia dello stato). `sim.js` lo lancia in parallelo:

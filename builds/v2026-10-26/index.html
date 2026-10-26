@@ -1231,6 +1231,17 @@ button{font-size:var(--t-base);letter-spacing:var(--k-base)}
   .screen.active{ animation:none; }
 }
 
+/* ═══ PROVA E SEGNALAZIONI — BLOCCO 4 ═══ */
+.ovval{margin:10px 0 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ovval>span{font-size:var(--t-mini);letter-spacing:var(--k-mini);color:var(--bone-dim);flex:1 1 100%}
+.ovval button{flex:1 1 0;width:auto;min-width:0;margin:0;padding:0 4px;min-height:44px;background:transparent;border:1px solid var(--bone-dim);color:var(--bone);
+  font-family:inherit;font-size:var(--t-mini);letter-spacing:var(--k-mini);cursor:pointer}
+.ovval button.on{border-color:var(--amber);color:var(--amber);background:rgba(255,176,0,.1)}
+.ovval .ovgrazie{flex:1 1 100%;font-size:var(--t-mini);color:var(--anomal-teal);min-height:1.2em}
+.rapporto{max-height:240px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:var(--t-micro);
+  line-height:1.5;color:var(--bone-dim);background:rgba(0,0,0,.35);border:1px solid var(--gunmetal-hi);padding:8px;margin:8px 0 0}
+a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border-box}
+
 /* ═══ ACCESSIBILITA' — FASE 4 ═══ */
 .sr-only{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
   clip:rect(0 0 0 0);white-space:nowrap;border:0;}
@@ -1475,6 +1486,13 @@ button{font-size:var(--t-base);letter-spacing:var(--k-base)}
     <p id="ovText"></p>
     <div class="rewardline" id="ovReward"></div>
     <div id="ovCorruption"></div>
+    <div class="ovval" id="ovVal" style="display:none" role="group" aria-label="Valutazione della difficoltà di questa missione">
+      <span>COM'ERA QUESTA MISSIONE? (resta sul tuo dispositivo)</span>
+      <button type="button" data-v="facile">FACILE</button>
+      <button type="button" data-v="giusta">GIUSTA</button>
+      <button type="button" data-v="dura">DURA</button>
+      <div class="ovgrazie" id="ovGrazie" role="status"></div>
+    </div>
     <button id="ovBtn">RITORNA ALLA MAPPA</button>
     <button id="ovCodexBtn" class="secondary">▤ ARCHIVIO ANOMALIE</button>
   </div>
@@ -4514,6 +4532,99 @@ function richiediArchivioPersistente(){
   }catch(e){}
 }
 
+/* ═══════════ DIARIO DI PROVA E RAPPORTO ═══════════
+   ⚠ Chi prova il gioco deve poter dire com'e' andata senza che nessun dato parta da solo.
+   Il gioco non manda NIENTE in rete: tiene sul dispositivo un diario (una riga per missione
+   giocata, con la valutazione facile / giusta / dura se la da') e, a richiesta, compone un
+   RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
+   sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
+   indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
+const BUILD_VER="0.9.0";
+const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
+const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
+const erroriRecenti=[];
+try{
+  const reg=m=>{erroriRecenti.push(String(m).slice(0,200));while(erroriRecenti.length>5)erroriRecenti.shift();};
+  window.addEventListener("error",e=>reg((e&&e.message)||"errore"));
+  window.addEventListener("unhandledrejection",e=>reg("promessa rifiutata: "+((e&&e.reason&&e.reason.message)||e.reason||"")));
+}catch(e){}
+function leggiDiario(){
+  try{ const a=JSON.parse(localStorage.getItem(DIARIO_KEY)||"[]"); return Array.isArray(a)?a:[]; }catch(e){ return []; }
+}
+function scriviDiario(a){ try{ localStorage.setItem(DIARIO_KEY,JSON.stringify(a.slice(-DIARIO_MAX))); return true; }catch(e){ return false; } }
+function registraDiario(victory,reason,retreat){
+  try{
+    const m=activeMission; if(!m)return;
+    const a=leggiDiario();
+    a.push({t:new Date().toISOString(),id:m.id,nm:m.name,sec:m.sector||null,
+      esito:victory?"vittoria":retreat?"ritirata":"sconfitta",motivo:reason||null,
+      round:B.round,max:B.maxRound,mech:[mechs().length,B.mission.startMechCount||0],
+      nemLv:nemesis.awake?nemesis.level:-1,esc:Math.round(escalationLevel()*10)/10,
+      ris:Math.round(risonanza),glob:Math.round(globalCorruption),sq:(squad||[]).join("+"),val:null});
+    scriviDiario(a);
+  }catch(e){}
+}
+function valutaUltima(v){
+  const a=leggiDiario(); if(!a.length)return false;
+  a[a.length-1].val=v; return scriviDiario(a);
+}
+function riepilogoDiario(n){
+  const a=leggiDiario().slice(-(n||30));
+  return a.map(r=>`${(r.t||"").slice(0,16).replace("T"," ")} · ${r.id} ${r.nm} · ${r.esito}${r.motivo?" ("+r.motivo+")":""} · round ${r.round}/${r.max} · mech ${r.mech?r.mech[0]+"/"+r.mech[1]:"?"} · nemesi ${r.nemLv<0?"dormiente":"liv "+r.nemLv} · escalation ${r.esc}${r.val?" · giudizio: "+r.val.toUpperCase():""}`).join("\n")||"(nessuna missione giocata)";
+}
+function creaRapporto(){
+  const L=[];
+  const tocco=(()=>{try{return matchMedia("(pointer:coarse)").matches?"touch":"mouse/tastiera";}catch(e){return "?";}})();
+  L.push("FRACTURE PROTOCOL — RAPPORTO DI PROVA");
+  L.push("build: "+BUILD_VER+" · "+new Date().toISOString());
+  L.push("dispositivo: "+(navigator.userAgent||"?"));
+  L.push("schermo: "+innerWidth+"×"+innerHeight+" @"+(window.devicePixelRatio||1)+" · "+tocco+" · lingua "+(navigator.language||"?"));
+  L.push("impostazioni: testo "+OPZ.testo+"% · suono "+(OPZ.audio?"sì":"no")+" volume "+OPZ.volume+" · animazioni "+(OPZ.moto?"sì":"no"));
+  L.push("campagna: slot "+(slotAttivo+1)+" · "+sectorDef(currentSector).nm+" · nodi contenuti "+cleared.size+"/"+MISSIONS.length+" · frammenti "+frammenti+" · risonanza "+Math.round(risonanza)+" · nemesi "+(nemesis.awake?"sveglia, livello "+nemesis.level:"dormiente")+" · escalation "+(Math.round(escalationLevel()*10)/10));
+  if(battagliaAperta()){
+    L.push("");
+    L.push("MISSIONE IN CORSO: "+(activeMission?activeMission.name:"?"));
+    try{L.push(riepilogoCampo());}catch(e){}
+    L.push("log: "+(B.log||[]).join(" | "));
+  }
+  if(erroriRecenti.length){L.push("");L.push("ERRORI RECENTI: "+erroriRecenti.join(" | "));}
+  L.push("");L.push("DIARIO (ultime 30 missioni):");L.push(riepilogoDiario(30));
+  L.push("");L.push("COSA È SUCCESSO / COSA TI ASPETTAVI:");L.push("");
+  return L.join("\n");
+}
+function copiaRapporto(){
+  const t=creaRapporto();
+  const fallback=()=>{
+    try{
+      const ta=document.createElement("textarea"); ta.value=t; ta.setAttribute("readonly","");
+      ta.style.cssText="position:fixed;opacity:0;top:0;left:0"; document.body.appendChild(ta); ta.select();
+      const ok=document.execCommand&&document.execCommand("copy"); ta.remove(); return !!ok;
+    }catch(e){ return false; }
+  };
+  const fine=ok=>toast(ok?"Rapporto copiato. Incollalo dove vuoi mandarlo.":"Copia non riuscita: usa «scarica rapporto».");
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>fine(true),()=>fine(fallback()));
+    else fine(fallback());
+  }catch(e){ fine(fallback()); }
+}
+function scaricaRapporto(){
+  const t=creaRapporto(), nome="fracture-protocol-rapporto-"+new Date().toISOString().slice(0,10)+".txt";
+  try{
+    const url=URL.createObjectURL(new Blob([t],{type:"text/plain;charset=utf-8"}));
+    const a=document.createElement("a"); a.href=url; a.download=nome; document.body.appendChild(a); a.click();
+    setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},1500);
+    toast("Rapporto scaricato: "+nome);
+  }catch(e){ toast("Il browser non permette di scaricare il file."); }
+}
+/* Segnalazione pubblica su GitHub: precompilata con l'essenziale (il rapporto intero non
+   entra in un indirizzo). Chi la apre vede e modifica tutto prima di inviare. */
+function urlSegnalazione(){
+  const corpo="Build "+BUILD_VER+" · "+innerWidth+"×"+innerHeight+"\n"+(navigator.userAgent||"")+"\n\n"+
+    "Cosa è successo / cosa ti aspettavi:\n\n\nUltime missioni:\n"+riepilogoDiario(8).slice(0,1800)+
+    "\n\n(Se vuoi, incolla qui anche il rapporto completo: Opzioni → Prova e segnalazioni → Copia rapporto.)";
+  return URL_SEGNALAZIONI+"?title="+encodeURIComponent("[prova "+BUILD_VER+"] ")+"&body="+encodeURIComponent(corpo);
+}
+
 /* NUOVA CAMPAGNA: cancella la run, conserva la conoscenza. */
 function resetCampaign(){
   /* ⚠ Deve elencare TUTTO ciò che `saveState` mette in `meta`, o ricominciare
@@ -4797,7 +4908,20 @@ function renderOpzioni(){
         <button class="slotbtn" id="bkImport">RIPRISTINA DA FILE</button>
       </div>
       <input type="file" id="bkFile" accept="application/json,.json" style="display:none" aria-label="File di copia da ripristinare">
+    </div>
+    <div class="panel"><h3>PROVA E SEGNALAZIONI</h3>
+      <div class="muted" style="margin-bottom:9px;line-height:1.7;">Questo gioco è in prova. <b>Non manda niente in rete</b>: tiene sul tuo dispositivo un diario delle missioni (e il tuo giudizio «facile / giusta / dura», se lo dai a fine missione). Se vuoi dirci com'è andata, componi un rapporto, leggilo qui sotto e mandalo tu a chi ti ha dato il link.<br>Diario: <b>${leggiDiario().length}</b> mission${leggiDiario().length===1?"e":"i"} registrat${leggiDiario().length===1?"a":"e"} · build ${BUILD_VER}.</div>
+      <div class="slotgrid">
+        <button class="slotbtn" id="rpCopia">COPIA RAPPORTO</button>
+        <button class="slotbtn" id="rpScarica">SCARICA RAPPORTO</button>
+        <a class="slotbtn" id="rpGithub" href="${urlSegnalazione()}" target="_blank" rel="noopener">SEGNALA SU GITHUB</a>
+      </div>
+      <details style="margin-top:10px"><summary style="cursor:pointer;color:var(--bone-dim);font-size:var(--t-mini);letter-spacing:var(--k-mini)">COSA CONTIENE IL RAPPORTO</summary>
+        <pre class="rapporto" id="rpAnteprima" tabindex="0" aria-label="Anteprima del rapporto"></pre></details>
     </div>`;
+  { const an=$("rpAnteprima"); if(an)an.textContent=creaRapporto(); }
+  { const c=$("rpCopia"); if(c)c.addEventListener("click",copiaRapporto);
+    const d=$("rpScarica"); if(d)d.addEventListener("click",scaricaRapporto); }
 
   const vol=$("optVol");
   if(vol)vol.addEventListener("input",()=>{
@@ -7881,9 +8005,17 @@ function finish(victory,reason,retreat){
   // il codex si legge PRIMA di chiudere: le schede scansionate nell'ultima
   // missione erano irraggiungibili, e con il reload andavano perdute
   const ac=$("ovCodexBtn");if(ac)ac.style.display=codexSeen.size?"":"none";
+  registraDiario(victory,reason,retreat);
+  { const v=$("ovVal"); if(v){ v.style.display=""; qsa("#ovVal button").forEach(b=>b.classList.remove("on")); $("ovGrazie").textContent=""; } }
   saveState();
   go("outcome");
 }
+qsa("#ovVal button").forEach(b=>b.addEventListener("click",()=>{
+  if(!valutaUltima(b.dataset.v))return;
+  qsa("#ovVal button").forEach(x=>x.classList.toggle("on",x===b));
+  $("ovGrazie").textContent="Registrato: "+b.dataset.v.toUpperCase()+". Resta sul tuo dispositivo; lo trovi nel rapporto.";
+  annuncia("Valutazione registrata: "+b.dataset.v);
+}));
 $("ovBtn").addEventListener("click",()=>{
   if(campaignOver){resetCampaign();location.reload();return;}
   buildMap();if(selMissionId)selectMission(selMissionId);renderCorruptionUI();
@@ -7977,6 +8109,7 @@ $("abortBtn").addEventListener("click",()=>{
 loadState();          // prima di ogni altra cosa: go() salva, e salvare prima
                       // di aver caricato cancellerebbe la progressione
 richiediArchivioPersistente();
+{ const ft=document.querySelector("#menu .footer span"); if(ft)ft.textContent="BUILD "+BUILD_VER+" · PROTOTIPO"; }
 buildMenu();
 buildMap();
 selectMission("m3");

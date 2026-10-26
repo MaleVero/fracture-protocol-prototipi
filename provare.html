@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FRACTURE PROTOCOL — come provarlo</title>
+<meta name="description" content="Come provare il prototipo di FRACTURE PROTOCOL e come segnalare cosa non va.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#07090B">
+<style>
+/* La tavolozza è quella del gioco: void-black, phosphor amber, la rampa
+   d'acciaio a quattro valori. Non è un vezzo — questa pagina è la prima cosa
+   che qualcuno vede, e deve somigliare a ciò che sta per aprire. */
+:root{
+  --fondo:#07090B; --ambra:#FFB000;
+  --st-lt:#cfd6e2; --st:#8c93a6; --st-dk:#4a4b63; --st-xd:#26243a;
+  --p1:2.05rem; --p2:1.3rem; --p3:1.05rem; --p4:.875rem; --p5:.75rem;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--fondo); color:var(--st);
+  font:400 var(--p4)/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  min-height:100vh;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.foglio{max-width:44rem; margin:0 auto; padding:clamp(1.25rem,5vw,3rem) clamp(1rem,4vw,2rem) 4rem}
+/* Il telaio: due filetti, non una cornice piena — a schermo intero un bordo
+   continuo legge come una finestra di sistema. */
+.telaio{position:relative; padding:clamp(1.1rem,4vw,2rem) 0}
+.telaio::before,.telaio::after{content:""; position:absolute; left:0; right:0; height:1px; background:var(--st-xd)}
+.telaio::before{top:0}
+.telaio::after{bottom:0}
+h1{margin:0; font-size:var(--p1); line-height:1.04; font-weight:700; letter-spacing:.02em; color:var(--st-lt); text-transform:uppercase}
+h1 b{display:block; color:var(--ambra); font-weight:700}
+.sotto{margin:.9rem 0 0; font-size:var(--p4); letter-spacing:.03em; color:var(--st-dk); max-width:32rem}
+h2{margin:2.6rem 0 1rem; font-size:var(--p5); font-weight:400; letter-spacing:.22em; text-transform:uppercase; color:var(--st-dk)}
+/* Le voci sono piastre con l'angolo tagliato e il bordo sinistro illuminato.
+   ⚠ Nessuna chevron: la freccia a destra fa leggere una schermata come un
+     pannello di impostazioni. Al suo posto il numero d'ordine, che in un
+     apparato è un'etichetta di canale. */
+.build{
+  display:block; text-decoration:none; color:inherit; margin:0 0 .6rem;
+  padding:.95rem 1.05rem; background:#0c0f13;
+  border:1px solid var(--st-xd); border-left:2px solid var(--st-dk);
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);
+  transition:border-color .12s,background .12s,transform .12s;
+}
+.build:hover,.build:focus-visible{background:#11151b; border-left-color:var(--ambra); transform:translateX(2px)}
+.build:focus-visible{outline:2px solid var(--ambra); outline-offset:2px}
+.build.ultima{border-left-color:var(--ambra)}
+.riga{display:flex; align-items:baseline; gap:.85rem; flex-wrap:wrap}
+.ord{font-size:var(--p5); letter-spacing:.1em; color:var(--st-dk); flex:0 0 auto}
+.testa{flex:1 1 12rem; min-width:0}
+.data{display:block; font-size:var(--p3); color:var(--st-lt); letter-spacing:.01em}
+.titolo{display:block; font-size:var(--p4); color:var(--ambra); letter-spacing:.02em}
+.meta{font-size:var(--p5); letter-spacing:.06em; color:var(--st-dk); flex:0 0 auto}
+.meta b{color:var(--ambra); font-weight:400}
+.cambia{margin:.85rem 0 0; padding:0 0 0 1.1rem; list-style:none}
+.cambia li{position:relative; font-size:var(--p5); line-height:1.6; color:var(--st)}
+.cambia li::before{content:"\2014"; position:absolute; left:-1.1rem; color:var(--st-xd)}
+.nota{margin:.8rem 0 0; font-size:var(--p5); color:var(--st-dk)}
+.vuoto{color:var(--st-dk)}
+.piede{margin:3rem 0 0; padding-top:1.2rem; border-top:1px solid var(--st-xd); font-size:var(--p5); color:var(--st-dk); letter-spacing:.04em}
+.piede p{margin:.35rem 0}
+kbd{font:inherit; color:var(--st); border:1px solid var(--st-xd); border-radius:2px; padding:0 .3em}
+/* Il vetro davanti: la scanline che il gioco ha sul campo, cucita anche qui.
+   Trasparente al dito, e spenta per chi chiede meno movimento. */
+.vetro{position:fixed; inset:0; pointer-events:none; mix-blend-mode:multiply;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px)}
+@media (prefers-reduced-motion:reduce){
+  .vetro{display:none}
+  .build{transition:none}
+}
+/* Sul telefono il corpo grande scende e la riga dei metadati va a capo: la
+   data e il titolo non devono mai stringersi a due caratteri per riga. */
+@media (max-width:26rem){
+  :root{--p1:1.55rem}
+  .meta{flex-basis:100%}
+}
+
+/* pagina «come provarlo»: stessa tavolozza, solo elenchi e un pulsante grande */
+.passi{margin:0 0 1rem; padding:0; list-style:none; counter-reset:p}
+.passi li{position:relative; margin:0 0 .7rem; padding:0 0 0 2rem; color:var(--st); counter-increment:p}
+.passi li::before{content:counter(p); position:absolute; left:0; top:0; width:1.4rem; text-align:right; color:var(--ambra)}
+.lista{margin:0 0 1rem; padding:0 0 0 1.1rem; list-style:none}
+.lista li{position:relative; margin:0 0 .5rem; color:var(--st)}
+.lista li::before{content:"\2014"; position:absolute; left:-1.1rem; color:var(--st-xd)}
+.lista b,.passi b{color:var(--st-lt); font-weight:400}
+.vai{display:flex; align-items:center; justify-content:center; min-height:48px; margin:1.4rem 0 .4rem; padding:.7rem 1rem;
+  background:#0c0f13; border:1px solid var(--ambra); color:var(--ambra); text-decoration:none; letter-spacing:.12em; text-transform:uppercase;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)}
+.vai:hover,.vai:focus-visible{background:#11151b}
+.vai:focus-visible{outline:2px solid var(--ambra); outline-offset:2px}
+a{color:var(--ambra)}
+.avviso{margin:1rem 0; padding:.8rem 1rem; border:1px solid var(--st-xd); border-left:2px solid var(--st-dk); color:var(--st)}
+</style>
+</head>
+<body>
+<div class="foglio">
+  <header class="telaio">
+    <h1>Come<b>provarlo</b></h1>
+    <p class="sotto">Una partita, o anche solo una missione, e due righe su com'è andata.
+    Basta un telefono: niente da installare, niente account.</p>
+  </header>
+
+  <main>
+    <a class="vai" href="builds/v2026-10-26/index.html">Apri il gioco (0.9.0)</a>
+
+    <h2>In breve</h2>
+    <ol class="passi">
+      <li><b>Apri il gioco</b> dal pulsante qui sopra, tocca <b>MISSIONI</b> e scegli un nodo sulla mappa. La prima partita ti accompagna con brevi trasmissioni.</li>
+      <li><b>Gioca almeno due o tre missioni.</b> Puoi chiudere la pagina: la missione si riprende dall'inizio dell'ultimo turno.</li>
+      <li><b>A fine missione tocca FACILE, GIUSTA o DURA.</b> È la cosa più utile che puoi fare, e ti costa un tocco.</li>
+      <li><b>Se qualcosa non torna</b> apri <b>OPZIONI &rarr; PROVA E SEGNALAZIONI</b>: copia il rapporto, o aprilo come segnalazione, e scrivi cosa è successo.</li>
+    </ol>
+
+    <h2>Come si gioca</h2>
+    <ul class="lista">
+      <li>Tocca un mech, poi una casella: muove o attacca. Prima di confermare vedi sempre cosa succederà, compreso il danno ai tuoi.</li>
+      <li>I nemici dichiarano il loro bersaglio prima di agire. Spingerli in una voragine o in acqua li elimina.</li>
+      <li>Zoom con due dita (o rotella). Da tastiera: <kbd>M</kbd> sceglie un mech, le frecce muovono il cursore, <kbd>Invio</kbd> agisce, <kbd>E</kbd> chiude il turno, <kbd>?</kbd> elenca i comandi.</li>
+    </ul>
+
+    <h2>Cosa mi serve sapere</h2>
+    <p>Le cose su cui il gioco non è ancora tarato e dove un parere vale di più:</p>
+    <ul class="lista">
+      <li><b>Missioni con un relay da difendere</b> (la seconda di ogni settore): troppo facili? troppo dure?</li>
+      <li><b>Evacuazioni</b> (Orvat): l'obiettivo è chiaro? si perde per colpa del campo o per un tuo errore?</li>
+      <li><b>PALINSESTO</b>, la nemesi che ti studia dopo la prima missione: si capisce cosa fa? la sua risposta sembra giusta?</li>
+      <li><b>Lazy J</b> (gli interventi fuori griglia): li usi? sai perché costano risonanza?</li>
+      <li><b>Qualunque punto in cui non hai capito cosa fare</b>, anche se alla fine l'hai capito.</li>
+    </ul>
+
+    <h2>Cosa viene registrato</h2>
+    <p>Niente viene inviato da nessuna parte: il gioco non fa richieste di rete.
+    Resta sul tuo dispositivo, in questo browser, un diario delle ultime missioni
+    (quale, esito, round, mech persi, il tuo giudizio) e gli ultimi errori del gioco.
+    Il rapporto lo costruisci tu, lo leggi prima in anteprima e decidi se condividerlo:
+    non contiene nome, indirizzo email né altro che ti identifichi.</p>
+
+    <h2>Compatibilità</h2>
+    <div class="avviso">Provato con Chromium su telefoni piccoli (320 px), grandi e in orizzontale, e da tastiera.
+    <b>Non ho potuto provarlo con Safari e iPhone</b>: richiede Safari/iOS 15 o successivi. Se lo apri lì e qualcosa non va,
+    dimmelo: è proprio il tipo di segnalazione che mi manca.</div>
+    <p>Il salvataggio sta nel browser (<code>localStorage</code>): non passa da un dispositivo all'altro e una
+    navigazione privata lo perde alla chiusura. In <b>OPZIONI</b> trovi la copia di sicurezza da scaricare.</p>
+
+    <h2>Segnalare</h2>
+    <p>Il modo più comodo è <b>OPZIONI &rarr; PROVA E SEGNALAZIONI &rarr; SEGNALA SU GITHUB</b>, che apre una segnalazione già
+    compilata (serve un account GitHub). Altrimenti <b>COPIA RAPPORTO</b> e incollalo dove ti scrivo.</p>
+    <a class="vai" href="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new" rel="noopener">Nuova segnalazione su GitHub</a>
+  </main>
+
+  <footer class="piede">
+    <p><a href="index.html">&larr; tutte le build</a></p>
+    <p>Prototipo in lavorazione: si gioca, non è finito.</p>
+  </footer>
+</div>
+<div class="vetro" aria-hidden="true"></div>
+</body>
+</html>

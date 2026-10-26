@@ -10,7 +10,8 @@
     "Si gioca anche da tastiera e con un lettore di schermo: frecce, Invio, M, N, R, E",
     "Telefoni piccoli e in orizzontale: il campo e i comandi restano sempre visibili",
     "Evacuazioni e missioni con relay più eque: il generatore scarta i campi condannati in partenza",
-    "PALINSESTO non va più abbattuta per vincere eliminazioni, sopravvivenze e chiusure del rift (respingerla resta possibile e le impedisce di crescere) e occupa un posto nel tetto dei nemici"
+    "PALINSESTO non va più abbattuta per vincere eliminazioni, sopravvivenze e chiusure del rift (respingerla resta possibile e le impedisce di crescere) e occupa un posto nel tetto dei nemici",
+    "Prova e segnalazioni: a fine missione un tocco (facile, giusta, dura) e in Opzioni un rapporto da copiare o aprire come segnalazione; il gioco non invia nulla da solo"
   ],
   "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
 }
