@@ -20,6 +20,8 @@
     pylonDist: 2, pylonDone: 80, pylonHp: 10, terrKill: 70, evac: 80, civAlive: 30, civExpose: 90,
     riftHp: 90, riftDist: 6, bossHp: 12, relayExpose: 90, relayHp: 20, bunkerExpose: 30,
     killBonus: 0, noise: 0.5,
+    abilita: 0, lazyj: 0,          // abilita' dei telai e interventi di Lazy J: i livelli di abilita' li accendono
+    abCosto: 8, risPrezzo: 1.2, maxLJ: 2,   // un'abilita' vale solo se rende piu' di un attacco; la risonanza costa (alza la nemesi)
   };
   // Livelli di abilità: stessa ricerca, ma con una percezione più povera.
   //  esperto  — vede tutte le minacce e sceglie quasi sempre la mossa migliore
@@ -28,8 +30,8 @@
   // Non pretendono di essere «un giocatore»: bracketano il giudizio. Se una missione
   // si vince solo da esperto, è dura; se la vince anche il novizio, è facile.
   A.SKILL = {
-    esperto: {},
-    medio: { exposeKill: 55, exposeHp: 6, noise: 30 },
+    esperto: { abilita: 1, lazyj: 1 },
+    medio: { exposeKill: 55, exposeHp: 6, noise: 30, abilita: 1 },
     novizio: { exposeKill: 0, exposeHp: 0, noise: 70, approach: 4 },
   };
   A.setSkill = function (name) {
@@ -83,12 +85,14 @@
     const s = snapshot();
     s.round = B.round; s.over = B.over; s.busy = B.busy; s.phase = B.phase; s.awaitRetreat = B.awaitRetreat;
     s.maxRound = B.maxRound; s.uid = UID; s.result = B.result || null;
+    s.ris = risonanza; s.risUsata = risonanzaUsata;
     return s;
   }
   function rest2(s) {
     restoreSnapshot(s);
     B.round = s.round; B.over = s.over; B.busy = s.busy; B.phase = s.phase; B.awaitRetreat = s.awaitRetreat;
     B.maxRound = s.maxRound; UID = s.uid; B.result = s.result; A._endRequested = false;
+    risonanza = s.ris; risonanzaUsata = s.risUsata;
   }
   const unit = id => B.units.find(u => u.id === id);
 
@@ -117,9 +121,11 @@
     s -= W.foeHp * sum(F, f => f.hp) + W.foeCount * F.length;
     s += W.mechHp * sum(M, m => m.hp) + W.mechAlive * M.length;
     s -= W.civic * B.mission.civic;
+    s -= W.abCosto * M.filter(m => m.abilityUsed).length;
+    s -= W.risPrezzo * Math.max(0, risonanza - (A._ris0 || 0));
     const thr = threatMap();
     for (const m of M) {
-      const d = (thr.get(k(m.x, m.y)) || 0) - (m.guard || 0);
+      const d = m._guscio ? 0 : (thr.get(k(m.x, m.y)) || 0) - (m.guard || 0);   // il guscio annulla il prossimo colpo
       if (d > 0) s -= (d >= m.hp + (m.scudoInt > 0 ? 1 : 0)) ? W.exposeKill : W.exposeHp * d;
     }
     // avvicinarsi: sempre un po', altrimenti nessuno si muove finché i nemici non arrivano
@@ -174,6 +180,22 @@
         if (terrTargetable(x, y) && inR(x, y)) acts.push({ cell: c, t: { kind: 'terr', x, y } });
       }
     }
+    if (A.W.abilita && m.ability && !m.abilityUsed && !m.attacked && !dark) {
+      const ab = m.ability, r = ab.range || [1, 3];
+      for (const c of cells) {
+        if (!ab.target) { acts.push({ cell: c, t: { kind: 'ab' } }); continue; }
+        for (let x = 0; x < W; x++) for (let y = 0; y < H; y++) {
+          const d = Math.abs(c[0] - x) + Math.abs(c[1] - y);
+          if (d < r[0] || d > r[1] || (x === c[0] && y === c[1])) continue;
+          const occ = unitAt(x, y), vicino = foes.some(f => Math.abs(f.x - x) + Math.abs(f.y - y) <= 1);
+          if (ab.needEnemy && !(occ && !occ.player && !occ.structure)) continue;
+          if (ab.needAlly && !(occ && occ.player && !occ.structure && occ.id !== m.id)) continue;
+          if (ab.needFree && !(cellaLibera(x, y) && vicino)) continue;
+          if (!ab.needEnemy && !ab.needAlly && !ab.needFree && !vicino) continue;    // bombardamento: dove c'e' un nemico o accanto
+          acts.push({ cell: c, t: { kind: 'abT', x, y } });
+        }
+      }
+    }
     return acts;
   }
   async function apply(id, a) {
@@ -182,6 +204,8 @@
     m.moved = true;
     if (!a.t) { m.attacked = true; return; }   // «ho finito»: niente attacco
     if (a.t.kind === 'unit') { const f = unit(a.t.id); if (f && f.hp > 0) await pAttack(m, f); else m.attacked = true; }
+    else if (a.t.kind === 'ab') await resolveAbility(m, null, m.ability);
+    else if (a.t.kind === 'abT') await resolveAbility(m, [a.t.x, a.t.y], m.ability);
     else if (a.t.kind === 'rift') await pRift(m);
     else await pAttackTerr(m, a.t.x, a.t.y);
     B.busy = false;
@@ -192,21 +216,44 @@
     // Con il finish VERO le prove ipotetiche accreditavano ricompense e corruzione a ogni vittoria o
     // sconfitta simulata. Durante la ricerca si usa lo stub; solo l'esito che resta passa dal finish vero.
     if (A._realFinish) window.finish = A._stubFinish;
+    const _save = window.saveState; window.saveState = () => false;
     try { await planTurnInner(); }
     finally {
+      window.saveState = _save;
       if (A._realFinish) {
         window.finish = real.finish;
         if (B.over && B.result) { const r = B.result; B.over = false; B.result = null; B.busy = false; real.finish(r.victory, r.reason, r.retreat); }
       }
     }
   }
+  // ── Lazy J: interventi globali (SCOSSA, GUSCIO, STRAPPO), che costano risonanza ───────────
+  function azioniLJ() {
+    if (!A.W.lazyj) return [];
+    const acts = [];
+    for (const i of INTERVENTI) {
+      if (!interventoPronto(i)) continue;
+      if (i.key === 'scossa') kauchas().filter(f => !f.noPush).forEach(f => acts.push({ lj: i.key, x: f.x, y: f.y }));
+      else if (i.key === 'guscio') mechs().filter(m => !m._guscio).forEach(m => acts.push({ lj: i.key, x: m.x, y: m.y }));
+      else if (i.key === 'strappo') kauchas().filter(f => f.noPush || f.noDrown || f.corrImmune || f.splash || f.type === 'palinsesto').forEach(f => acts.push({ lj: i.key, x: f.x, y: f.y }));
+    }
+    return acts;
+  }
   async function planTurnInner() {
-    const done = new Set();
-    for (let iter = 0; iter < 8 && !B.over; iter++) {
+    const done = new Set(); let usiLJ = 0;
+    A._ris0 = risonanza;
+    for (let iter = 0; iter < 10 && !B.over; iter++) {
       const free = mechs().filter(m => !m.attacked && !done.has(m.id));
-      if (!free.length) break;
+      const lj = usiLJ < A.W.maxLJ ? azioniLJ() : [];
+      if (!free.length && !lj.length) break;
       const base = snap2();
       let best = null;
+      for (const a of lj) {
+        await usaIntervento(a.lj, { x: a.x, y: a.y, dx: 0, dy: 1 });
+        const sc = score();
+        if (!best || sc > best.sc) best = { lj: a, sc };
+        rest2(base);
+      }
+      if (!free.length && (!best || best.sc <= score() + 1)) break;
       for (const m0 of free) {
         const id = m0.id;
         // dopo ogni ripristino le unità sono oggetti nuovi: si rilegge per id
@@ -218,8 +265,10 @@
         }
       }
       if (!best) break;
+      if (best.lj) { await usaIntervento(best.lj.lj, { x: best.lj.x, y: best.lj.y, dx: 0, dy: 1 }); usiLJ++; A.stats.lj = (A.stats.lj || 0) + 1; continue; }
       await apply(best.id, best.a);
       done.add(best.id);
+      if (best.a.t && (best.a.t.kind === 'ab' || best.a.t.kind === 'abT')) A.stats.ab = (A.stats.ab || 0) + 1;
       A.stats.actions = (A.stats.actions || 0) + 1;
     }
   }
@@ -257,6 +306,9 @@
       nemesis.awake = opts.nemesi >= 0;
       for (let i = 0; i < opts.nemesi; i++) evolveNemesis();
     }
+    // la barra di risonanza e' UNA per tutta la campagna (cap 100, -6 a missione se non la tocchi): `risIniziale` fissa quanto
+    // margine resta per gli interventi in questa missione (100 - risIniziale). Default 0 = tutto disponibile (ottimistico).
+    risonanza = opts.risIniziale != null ? opts.risIniziale : 0; risonanzaUsata = false; A.stats = {};
     if (opts.noise0) A.W.noise = 0;
     if (opts.resume) {
       // riprende da un checkpoint salvato dal gioco (stringa JSON): niente startBattle
@@ -316,7 +368,7 @@
       out.foesLeft = kauchas().length; out.civic = B.mission.civic; out.pushes = B.mission.pushCount;
       out.terrainKills = B.mission.terrainKills; out.drowned = B.mission.drowned; out.evacuated = B.mission.evacuated;
       out.relics = B.mission.relics; out.pylons = B.mission.pylons;
-      out.causes = A.causes;
+      out.causes = A.causes; out.ab = A.stats.ab || 0; out.lj = A.stats.lj || 0; out.ris = Math.round(risonanza);
     } catch (e) { out.error = 'EXC ' + e.message + ' @ ' + ((e.stack || '').split('\n')[1] || ''); }
     return out;
   };

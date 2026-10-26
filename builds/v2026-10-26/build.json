@@ -9,7 +9,8 @@
     "Copia di sicurezza dei progressi: si scarica e si ripristina da file",
     "Si gioca anche da tastiera e con un lettore di schermo: frecce, Invio, M, N, R, E",
     "Telefoni piccoli e in orizzontale: il campo e i comandi restano sempre visibili",
-    "Evacuazioni e missioni con relay più eque: il generatore scarta i campi condannati in partenza"
+    "Evacuazioni e missioni con relay più eque: il generatore scarta i campi condannati in partenza",
+    "PALINSESTO non va più abbattuta per vincere eliminazioni, sopravvivenze e chiusure del rift (respingerla resta possibile e le impedisce di crescere) e occupa un posto nel tetto dei nemici"
   ],
   "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
 }

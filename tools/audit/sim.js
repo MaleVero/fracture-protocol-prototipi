@@ -12,6 +12,8 @@ const SEEDS = +arg('seeds', 8), JOBS = +arg('jobs', 3), MODE = arg('mode', 'smar
 const ONLY = arg('missions', 'all');
 const SEED0 = +arg('seed0', 1);
 const SKILL = arg('skill', 'esperto');
+const INIT = arg('init', null);   // codice JS eseguito nella pagina prima delle partite (varianti senza modificare la build)
+const RIS = arg('ris', null);   // risonanza iniziale: margine per Lazy J = 100 - RIS (default: barra vuota, ottimistico)
 const NEMESI = arg('nemesi', null);   // -1 dormiente (default storico) | 0 sveglia | N evoluzioni
 const PROGRESS = arg('progress', 'campagna');   // campagna | ultimo | inizio  (ultimo = tutti gli altri nodi del settore gia' contenuti: il caso peggiore)
 const AGENT = fs.readFileSync(require('path').join(__dirname, 'agent.js'), 'utf8');
@@ -31,8 +33,10 @@ const WEIGHTS = arg('weights', null);   // JSON per sovrascrivere A.W, es. '{"ap
     page.on('pageerror', e => { page._errs = (page._errs || []); page._errs.push(e.message); });
     await page.goto(C.URL); await page.waitForTimeout(500);
     await page.evaluate(AGENT);
-    if (WEIGHTS) await page.evaluate(w => Object.assign(AGENT.W, JSON.parse(w)), WEIGHTS);
     await page.evaluate(s => AGENT.setSkill(s), SKILL);
+    if (INIT) await page.evaluate(new Function('return (async()=>{' + INIT + '})()'));
+    // i pesi da riga di comando si applicano DOPO il livello di abilita' (che altrimenti li sovrascrive)
+    if (WEIGHTS) await page.evaluate(w => Object.assign(AGENT.W, JSON.parse(w)), WEIGHTS);
     // --guard off: spegne il controllo d'apertura del generatore, per misurare i campi «grezzi»
     if (arg('guard', 'on') === 'off') await page.evaluate(() => { window.aperturaProtetti = () => null; });
     pages.push(page);
@@ -45,7 +49,7 @@ const WEIGHTS = arg('weights', null);   // JSON per sovrascrivere A.W, es. '{"ap
       const t = tasks[next++];
       const t1 = Date.now();
       let r;
-      try { r = await page.evaluate(([id, seed, mode, progress, nemesi]) => AGENT.play(id, { seed, mode, progress, nemesi }), [t.id, t.seed, MODE, PROGRESS, NEMESI === null ? null : +NEMESI]); }
+      try { r = await page.evaluate(([id, seed, mode, progress, nemesi, ris]) => AGENT.play(id, { seed, mode, progress, nemesi, risIniziale: ris }), [t.id, t.seed, MODE, PROGRESS, NEMESI === null ? null : +NEMESI, RIS === null ? null : +RIS]); }
       catch (e) { r = { id: t.id, seed: t.seed, error: 'PLAYWRIGHT ' + e.message.slice(0, 120) }; }
       r.ms = Date.now() - t1; results.push(r);
       if (results.length % 10 === 0) process.stderr.write(`  ${results.length}/${tasks.length} (${Math.round((Date.now() - t0) / 1000)}s)\n`);
@@ -56,7 +60,7 @@ const WEIGHTS = arg('weights', null);   // JSON per sovrascrivere A.W, es. '{"ap
   const by = {}; for (const r of results) (by[r.id] = by[r.id] || []).push(r);
   const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
   console.log(`modo=${MODE} abilita=${SKILL} progresso=${PROGRESS} nemesi=${NEMESI === null ? 'dormiente' : NEMESI} semi=${SEEDS} build=${C.URL.split('/').slice(-2, -1)[0]}  (${Math.round((Date.now() - t0) / 1000)}s)`);
-  console.log('id  goal         n  vittorie  round   mech persi  hp% resta  nemici  motivi sconfitta                  ms   err');
+  console.log('id  goal         n  vittorie  round   mech persi  hp% resta  nemici  motivi sconfitta                  ab/lj    ms   err');
   for (const id of ids) {
     const rs = by[id] || []; const ok = rs.filter(r => !r.error);
     const win = ok.filter(r => r.victory).length;
@@ -68,7 +72,7 @@ const WEIGHTS = arg('weights', null);   // JSON per sovrascrivere A.W, es. '{"ap
       (avg(ok.map(r => r.rounds)).toFixed(1) + '/' + (ok[0] ? ok[0].maxRound : '?')).padStart(8),
       avg(lost).toFixed(2).padStart(10), (Math.round(100 * avg(hpp)) + '%').padStart(10),
       avg(ok.map(r => r.foesLeft)).toFixed(1).padStart(7),
-      JSON.stringify(reasons).padEnd(32), String(Math.round(avg(rs.map(r => r.ms)))).padStart(6),
+      JSON.stringify(reasons).padEnd(32), (avg(ok.map(r => r.ab || 0)).toFixed(1) + '/' + avg(ok.map(r => r.lj || 0)).toFixed(1)).padStart(8), String(Math.round(avg(rs.map(r => r.ms)))).padStart(6),
       rs.filter(r => r.error).length ? rs.filter(r => r.error).map(r => r.error).slice(0, 1) : ''].join(' '));
   }
   const errs = results.filter(r => r.error); if (errs.length) console.log('\nERRORI', errs.length, JSON.stringify(errs.slice(0, 3)));

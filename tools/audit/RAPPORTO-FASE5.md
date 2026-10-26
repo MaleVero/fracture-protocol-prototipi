@@ -1,5 +1,7 @@
 # Rapporto fase 5 — rilascio 0.9.0 (`builds/v2026-10-26`)
 
+> **Aggiornamento:** i numeri sulla nemesi qui sotto sono stati rimisurati con un agente che usa abilità e Lazy J e poi dopo due modifiche a PALINSESTO: vedi `RAPPORTO-BLOCCHI-1-2.md`. Media dell'esperto con nemesi sveglia: 52% (agente di prima) → 55–70% (con strumenti) → 57–60% dopo le modifiche.
+
 ## Cosa è stato pubblicato (nel branch)
 
 | | |

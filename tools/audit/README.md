@@ -7,7 +7,8 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 
 ## Rapporti
 `RAPPORTO-FASE0.md` audit · `FASE1` layout e accessibilità su schermi piccoli · `FASE2` bilanciamento ·
-`FASE3` Tarsis e NERIS · `FASE4` checkpoint, copia di sicurezza, tastiera · `FASE5` rilascio e **limite della nemesi**.
+`FASE3` Tarsis e NERIS · `FASE4` checkpoint, copia di sicurezza, tastiera · `FASE5` rilascio e **limite della nemesi** ·
+`BLOCCHI-1-2` abilità e Lazy J nell'agente, calibrazione di PALINSESTO.
 
 ## Verifiche (devono finire con «tutti i controlli passati» / «ok»)
 | Script | Cosa controlla |
@@ -24,12 +25,15 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 | `migrazione.js` | salvataggi fra build diverse, avanti e indietro |
 | `rilascio.js` | l'indice e `build.json` coincidono, ogni link si apre, nessuna rete |
 | `campagna.js` | campagna intera col flusso vero (diagnostica: l'esito dipende dall'agente) |
+| `nemesi.js` | PALINSESTO fuori dalle condizioni di vittoria, tetto dei nemici, guardiano invariato |
 
 ## Bilanciamento
 `agent.js` è l'agente (prova ogni mossa su una copia dello stato). `sim.js` lo lancia in parallelo:
 `node sim.js --seeds 30 --jobs 4 --skill esperto|medio|novizio --progress inizio|campagna|ultimo --nemesi -1|0..N --out out/x.json`.
 
-⚠ **Per cifre vicine al gioco vero usare `--progress ultimo --nemesi 2`**: il default storico (`--progress campagna`,
+⚠ **Per cifre vicine al gioco vero usare `--progress ultimo --nemesi 2 --ris 92`** (`--ris` = risonanza di partenza: margine per Lazy J = 100 – N; senza, la barra riparte da vuoto a ogni missione ed e' ottimistico). L'agente «esperto» usa ora anche abilità e Lazy J (`--weights '{"abilita":0,"lazyj":0}'` per il comportamento di prima). Variante senza toccare la build: `--init "codice js"`.
+
+⚠ Vecchia indicazione, ancora valida come limite: `--progress ultimo --nemesi 2`: il default storico (`--progress campagna`,
 nemesi dormiente) è ottimistico (media 68% contro ~50%). `inspect.js` spiega perché si vince o si perde,
 `confronto.js` mette a tabella due serie di file, `probe*.js` e `primapartita.js` sono sonde.
 L'agente non usa abilità né Lazy J e non spende frammenti: i numeri servono a confrontare, non a prevedere un giocatore.

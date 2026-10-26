@@ -5759,7 +5759,10 @@ function generaCampo(spec,diff){
      riempie fino a 8 con le creature piu' economiche, e l'escalation aggiunge fino a +10
      al budget, quindi abbassare `budget` non toglieva nessuno (misurato su o7: budget 19,
      15 e 12 danno lo stesso 13-25%). Serve dove il numero di nemici e' il problema. */
-  const tettoNemici=spec.maxNemici||8;
+  /* La nemesi sveglia occupa UN posto nel tetto, non si somma a otto nemici: e' una creatura che
+     pesa come un'avversaria vera (4 PV, adattamenti, tecnologia assimilata), e lasciarle spazio
+     tiene il campo alla stessa densita' con o senza di lei. */
+  const tettoNemici=(spec.maxNemici||8)-((typeof nemesis!=="undefined"&&nemesis.awake&&!nemesis.dead)?1:0);
   while(budget>=2&&enemies.length<tettoNemici&&guard++<100){
     const aff=pool.filter(ty=>ENEMY_COST[ty]<=budget);if(!aff.length)break;
     const c=place(pick(aff));if(!c)break;budget-=c;}
@@ -7652,7 +7655,15 @@ function checkEnd(){
   if((B.goal==="survive"||B.tether)&&!relay())return finish(false,"relay");
   if(mechs().length===0)return finish(false,"wipe");
 
-  const noKaucha=kauchas().length===0;
+  /* ⚠ PALINSESTO non conta fra i Kaucha da abbattere. Il gioco stesso dice che «ucciderla, non
+     qui»: ridurla a zero la RESPINGE, non la elimina, e sul campo e' un'entita' che si adatta a
+     chi la combatte (non spingibile, non annega, +3 PV...). Tenerla fra i nemici obbligatori
+     faceva di «elimina tutti i Kaucha» «respingi anche la nemesi» — misurato: l'eliminazione
+     scendeva da 80-100% a 33-47% appena la nemesi si sveglia. Respingerla resta possibile e
+     conviene (se la respingi non cresce: vedi `finish`), ma non e' piu' una condizione di
+     vittoria. Vale per eliminazione, sopravvivenza e chiusura del rift, che dipendono da
+     «nessun Kaucha»; il guardiano si vince abbattendo il Varco Madre e non cambia. */
+  const noKaucha=kauchas().every(u=>u.type==="palinsesto");
   // Eliminati tutti i Kaucha: il rift perde le ancore e si richiude da solo
   if(noKaucha&&B.rift&&B.rift.open){B.rift.open=false;blog("◬ Privo di ancore, il rift si richiude.");}
   const riftClosed=!B.rift||!B.rift.open;
