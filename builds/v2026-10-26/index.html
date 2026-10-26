@@ -462,7 +462,7 @@
     font-size:calc(10px * var(--ts,1));letter-spacing:.18em;color:var(--bone-dim);}
   .comichead button,.comicfoot button{background:transparent;border:1px solid var(--bone-dim);
     color:var(--bone-dim);font-family:inherit;font-size:calc(10px * var(--ts,1));letter-spacing:.14em;
-    padding:7px 12px;cursor:pointer;}
+    padding:7px 12px;cursor:pointer;min-height:44px;}   /* bersaglio di tocco minimo: prima 37 px, trovato dal blocco 3 */
   .comicfoot button{border-color:var(--amber);color:var(--amber);font-size:calc(11px * var(--ts,1));padding:11px 20px;}
   /* Il canvas è SOLO disegno. La didascalia sta fuori, nel DOM: dentro il
      canvas copriva due terzi della vignetta e il soggetto ci finiva dietro.
@@ -1356,7 +1356,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.9.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.10.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -2795,7 +2795,7 @@ MISSIONS.push(
    proc:true,spec:{goal:"closeRift",maxRound:7,rift:true,riftHp:6,spawn:true,budget:21,waterRange:[3,5],bunkerRange:[0,2],
      terrainMix:[["voragine",2,3],["roccia",2,3],["cisterna",1,2],["bosco",0,1]],
      guarantee:["neris"],
-     pool:["vorn","krull","sahir","neris","grumo","vrast"]}},
+     pool:["vorn","krull","sahir","neris","grumo","risacca"]}},
   {id:"t4",sector:"tarsis",corr:50,x:46,y:80,name:"DISSALATORE SEPOLTO",diff:3,dl:"d3",dlabel:"ALTA",locked:true,
    obj:"Smaltisci 5 Kaucha usando il terreno.",
    twist:"L'acqua uccide, ma non i NERIS: per loro servono voragini, cisterne e roccia. I colpi diretti non contano.",
@@ -2812,7 +2812,7 @@ MISSIONS.push(
    proc:true,spec:{tether:true,goal:"recover",maxRound:8,relay:true,rift:false,spawn:false,budget:21,
      waterRange:[3,5],bunkerRange:[0,1],relics:[4,5],relicGoal:3,
      terrainMix:[["roccia",2,3],["voragine",1,2],["cisterna",1,2],["bosco",0,0]],
-     pool:["vorn","krull","sahir","neris","grumo","trahn"]}},
+     pool:["vorn","krull","sahir","neris","grumo","risacca"]}},
   {id:"t6",sector:"tarsis",corr:52,x:68,y:82,name:"CHIUSE ROTTE",diff:4,dl:"d3",dlabel:"ALTA",locked:true,
    obj:"Abbatti 3 piloni di sostegno.",
    twist:"Le chiuse tengono il bacino: i piloni sono minerale, non costano corruzione. Dietro c'e' tutta l'acqua che serve — e chi ci cammina dentro.",
@@ -2820,7 +2820,7 @@ MISSIONS.push(
    proc:true,spec:{goal:"demolish",maxRound:7,rift:false,spawn:false,budget:20,
      waterRange:[3,5],bunkerRange:[0,1],pylons:[3,4],pylonGoal:3,
      terrainMix:[["cisterna",2,3],["voragine",1,2],["roccia",0,1],["bosco",0,0]],
-     pool:["vorn","vorn","krull","sahir","neris","grumo"]}},
+     pool:["vorn","vorn","krull","risacca","neris","grumo"]}},
   /* SORGENTE — il terzo Varco, e l'ultimo: qui PALINSESTO finisce (`lastSector`).
      Due bacini ai lati e un corridoio centrale di tre colonne (3-5): il Varco Madre
      e' in fondo al corridoio, e i NERIS ai fianchi stanno nei bacini, dove i mech
@@ -2946,6 +2946,7 @@ function buildSectorTabs(){
     currentSector=id; recomputeSector(); selMissionId=null;
     buildSectorTabs(); buildMap(); renderCorruptionUI();
     $("briefing").innerHTML=`<div class="muted">Seleziona un nodo per il briefing.</div>`;
+    maybeComic(id,"missioni");          // la scheda di un settore nuovo: una tavola, una volta
   }));
   const nm=$("sectorName"); if(nm)nm.textContent=sectorDef(currentSector).nm;
 }
@@ -3432,6 +3433,7 @@ const CODEX=[
   {type:"skorr",g:"SKR",nm:"SKORR",t:"Incendia la casella che colpisce, che ci fosse un bosco o no. Non ti uccide col colpo: ti toglie il terreno sotto i piedi per tre round, e il fuoco non distingue fra te e loro."},
   {type:"trahn",g:"TRH",nm:"TRAHN",t:"Non respinge: attrae. Ti strappa dalla posizione che avevi scelto e ti trascina verso di sé — dentro il grumo dei suoi, o dentro la voragine che stavi aggirando. Rompe la formazione, non la corazza."},
   {type:"neris",g:"NRS",nm:"NERIS",t:"Anfibio. Attraversa l'acqua senza affondare: buttarlo in acqua non lo uccide, lo sposta. Per lui servono la voragine, il bordo, la collisione o il danno diretto. Chi crede che l'acqua sia ovunque un'arma, qui sbaglia."},
+  {type:"risacca",g:"RSC",nm:"RISACCA",t:"Non ferisce: spinge. Il suo colpo respinge di DUE caselle, e a Tarsis ogni casella d'acqua dietro di te è un mech perduto. È telegrafata come tutto il resto: la risposta è guardare cosa c'è alle tue spalle, o toglierla di mezzo prima. I GIROSCOPI D'ASSETTO sono nati per lei."},
   {type:"vornelite",g:"VRN+",nm:"VORN APEX",t:"Caricatore élite. Veloce e letale; il suo impatto RESPINGE il mech colpito — attento ad acqua e bordi."},
   {type:"krullelite",g:"KRL+",nm:"KRULL SIEGE",t:"Artiglieria a frammentazione (gittata 2–4). Colpisce la casella bersaglio e tutte quelle adiacenti. Non ammassare i mech."},
   {type:"matria",g:"MTR",nm:"VARCO MADRE",t:"Entità élite. Scarica dimensionale su una linea di 3 caselle. Non spingibile, altissima resistenza, fonte della corruzione del settore."},
@@ -3537,18 +3539,66 @@ const COMIC={
                 "Domanda per l'archivio, da girare a chi verrà dopo: quanto si può prendere da loro prima che prendere sia diventata la cosa che ci ha cambiati?";
        }},
     ]},
+
+  /* TARSIS — scatta alla prima volta che si apre la scheda del settore. Tre
+     tavole, come Cassandra: l'archivio che dice dov'e' l'acqua, l'analisi che
+     dice cosa e' cambiato, il comando che dice cosa costa. L'ultima legge la
+     partita (adattamenti di PALINSESTO, innesti): e' il punto in cui il
+     bacino smette di essere uno scenario e diventa il posto dove si e' arrivati
+     passando da Cassandra e da Orvat. */
+  tarsis:{
+    titolo:"SETTORE TARSIS · BACINO SOMMERSO",
+    tavole:[
+      {scena:"bacino",chi:[],chi_dice:"ARCHIVIO · TARSIS",
+       testo:"Tarsis era un bacino di raccolta: tre dighe, una rete di chiuse, un lago costruito per dissetare tre città. Quando la Spaccatura arrivò, l'acqua fu la prima cosa a dimenticare di essere acqua.\n\nIl livello non è sceso. È salito, e continua."},
+      {scena:"bacino",chi:["neris","neris"],chi_dice:"ANALISI TATTICA",
+       testo:"Fin qui l'acqua è stata la vostra arma migliore: ci buttate dentro ciò che non riuscite a uccidere, e non torna.\n\nQuelli ci camminano. Il Comando li ha chiamati NERIS. Non è che non possano morire: è che l'acqua non è più il posto dove succede. Cercate altrove — voragini, bordi, collisioni — o colpiteli."},
+      {scena:"bacino",chi:["risacca"],chi_dice:"COMANDO CASSANDRA",
+       testo:()=>{
+         const n=nemesis.adaptations.length;
+         const lei=n?("PALINSESTO è già qui, con "+n+" adattament"+(n===1?"o":"i")+" addosso."):"PALINSESTO è già qui, ancora in forma base.";
+         return "C'è una seconda cosa, e questa non cammina nell'acqua: la porta. La chiamiamo RISACCA. Non vuole il vostro danno, vuole la vostra casella: spinge di due, e dietro di voi, in questo posto, c'è quasi sempre un lago.\n\n"+lei+" Si è accorta da tempo che la vostra meccanica può essere usata in due direzioni.";
+       }},
+    ]},
+
+  /* CATENA RECISA — il finale. Scatta fra il resoconto dell'ultimo guardiano e
+     la schermata di fine campagna, UNA volta (come le altre vive in `meta`: chi
+     ricomincia non la rivede). Rilegge la domanda lasciata dalla tavola del
+     guardiano, «quanto si può prendere da loro», e risponde coi numeri veri
+     della campagna, non con una morale. */
+  catena:{
+    titolo:"SORGENTE · CATENA RECISA",
+    tavole:[
+      {scena:"sorgente",chi:[],chi_dice:"COMANDO CASSANDRA",
+       testo:"Il terzo Varco si chiude come gli altri: undici secondi, poi niente. L'acqua del bacino smette di salire. Per la prima volta da mesi la superficie è ferma, e riflette il cielo."},
+      {scena:"sorgente",chi:["palinsesto"],chi_dice:"ANALISI TATTICA",
+       testo:()=>{
+         const n=nemesis.adaptations.length;
+         return "PALINSESTO non è fuggita. Questa volta non c'era un altro posto dove cambiare pagina: la sorgente era il Nido, e il Nido si è chiuso con lei dentro.\n\n"+
+           (n?"Ha portato con sé "+n+" adattament"+(n===1?"o":"i")+" costruit"+(n===1?"o":"i")+" su di voi: "+nemesis.adaptations.map(a=>ADAPT[a]?ADAPT[a].name:a).join(", ")+". Nessuno li ha mai usati contro qualcun altro.":
+            "Non aveva ancora imparato quasi niente. Per una volta, essere troppo precipitosi è stato giusto.")+
+           "\n\nLe otto forme in otto istanti sono diventate una. Non è nessuna di quelle che avete combattuto.";
+       }},
+      {scena:"corridoio",chi:[],chi_dice:"ARCHIVIO · FINE DEL PROTOCOLLO",
+       testo:()=>{
+         const corpi=[...slain].length, inn=ktechUnlocked?ktechUnlocked().length:0;
+         return "Nell'archivio c'era una domanda: quanto si può prendere da loro prima che prendere diventi la cosa che ci ha cambiati.\n\n"+
+           "Avete riportato indietro "+(corpi?corpi+" tipi di creatura":"nessun corpo intero")+", e sui telai ci sono "+(inn?inn+" innesti":"solo acciaio")+". "+
+           "Il Comando registra la guerra come vinta.\n\nNon registra cosa si è preso per vincerla. Quello, per ora, lo sapete solo voi.";
+       }},
+    ]},
 };
 const seenComic=new Set();
 
 /* Stato della sequenza in corso. `dopo` è dove si torna: una tavola non deve
    mai lasciare il giocatore su una schermata che non ha chiesto. */
-let comicNow=null,comicIdx=0,comicBack="menu";
+let comicNow=null,comicIdx=0,comicBack="menu",comicFine=null;
 /* La sequenza che il resoconto ha messo in coda: si consuma uscendo di lì. */
 let comicPending=null;
 
-function playComic(id,dopo){
+function playComic(id,dopo,fine){
   const c=COMIC[id]; if(!c)return false;
-  comicNow=c;comicIdx=0;comicBack=dopo||"menu";
+  comicNow=c;comicIdx=0;comicBack=dopo||"menu";comicFine=fine||null;
   seenComic.add(id);saveState();
   $("comicTitle").textContent=c.titolo;
   go("comic");renderComic();
@@ -3556,16 +3606,23 @@ function playComic(id,dopo){
 }
 /* Scatta solo la prima volta. Restituisce `false` se non c'era niente da
    mostrare, così il chiamante può proseguire per la sua strada. */
-function maybeComic(id,dopo){
+function maybeComic(id,dopo,fine){
   if(seenComic.has(id)||!COMIC[id])return false;
-  return playComic(id,dopo);
+  return playComic(id,dopo,fine);
 }
 function comicAdvance(){
   if(!comicNow)return;
   if(++comicIdx>=comicNow.tavole.length)return comicEnd();
   renderComic();
 }
-function comicEnd(){comicNow=null;go(comicBack);}
+/* `fine` e' per le sequenze che non tornano a una schermata ma a un'azione (il
+   finale: dopo la tavola la campagna si azzera). Se c'e', sostituisce il `go`. */
+function comicEnd(){
+  comicNow=null;
+  const f=comicFine; comicFine=null;
+  if(f)return f();
+  go(comicBack);
+}
 function renderComic(){
   if(!comicNow)return;
   const n=comicNow.tavole.length;
@@ -3602,6 +3659,9 @@ const TX=[
   {id:"neris",who:"ANALISI TATTICA",
    when:()=>living().some(u=>u.type==="neris"),
    text:"Quello è un NERIS. L'acqua non lo uccide: lo sposta. Per lui la spinta funziona ancora — voragine, bordo, collisione — ma se lo buttate in un lago gli avete solo accorciato la strada."},
+  {id:"risacca",who:"ANALISI TATTICA",
+   when:()=>living().some(u=>u.type==="risacca"),
+   text:"Quella è una RISACCA. Non vuole il vostro danno: vuole la vostra casella. Spinge di due, e nel bacino dietro di voi c'è quasi sempre acqua. Controllate cosa c'è alle spalle prima di chiudere il turno."},
   {id:"intento",who:"COMANDO CASSANDRA",
    /* ⚠ Solo nel turno del giocatore. Gli intenti nascono durante la telegrafia, prima
       che il giocatore veda il campo: senza questa condizione era il PRIMO messaggio
@@ -4170,7 +4230,7 @@ function fabricateKtech(id){
   return true;
 }
 
-const SAMPLE_BIO={vorn:1,krull:1,sahir:2,grumo:2,trahn:2,skorr:2,vrast:2,vornelite:2,krullelite:2,neris:2,palinsesto:3,matria:5};
+const SAMPLE_BIO={vorn:1,krull:1,sahir:2,grumo:2,trahn:2,skorr:2,vrast:2,vornelite:2,krullelite:2,neris:2,risacca:2,palinsesto:3,matria:5};
 const SAMPLE_TEC_BUNKER=2, SAMPLE_TEC_TERR=1, SAMPLE_TEC_RELIC=3;
 let samples={bio:0,tec:0};
 const researched=new Set();
@@ -4539,7 +4599,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.9.0";
+const BUILD_VER="0.10.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -5074,6 +5134,14 @@ const KDEF={vorn:{maxHp:3,move:3,dmg:2,rmin:1,rmax:1,atype:"CONTATTO",glyph:"VRN
               ⚠ Non e' `noPush`: la spinta funziona, quindi voragine, bordo e
               collisione restano strade aperte. Nega UNA meccanica, non il gioco. */
            neris:{maxHp:3,move:3,dmg:2,rmin:1,rmax:1,atype:"CONTATTO ANFIBIO",glyph:"NRS",nm:"NERIS",noDrown:true,tier:2},
+           /* RISACCA — l'acqua di Tarsis vista dall'altra parte. Il NERIS nega la
+              tua meccanica (non lo affondi); la RISACCA te la rivolge contro:
+              non fa male, ti SPINGE di due caselle, e nel bacino ogni casella
+              d'acqua dietro di te e' una sentenza. Il danno e' 1 apposta: il
+              pericolo non e' il colpo, e' dove ti lascia. Telegrafata come tutto,
+              quindi la risposta e' guardare cosa c'e' alle tue spalle, non
+              sperare. ⚠ Costa 3 (ENEMY_COST): `combatPower` pesa `kb` 10 a livello. */
+           risacca:{maxHp:3,move:3,dmg:1,rmin:1,rmax:1,atype:"ONDA DI RISACCA",glyph:"RSC",nm:"RISACCA",kb:2,tier:2},
            palinsesto:{maxHp:4,move:3,dmg:2,rmin:1,rmax:1,atype:"ENTITÀ ADATTIVA",glyph:"Ψ",nm:"PALINSESTO",tier:"ADATTIVO"},
            matria:{maxHp:12,move:1,dmg:3,rmin:1,rmax:1,atype:"SCARICA DIMENSIONALE (LINEA 3)",glyph:"MTR",nm:"VARCO MADRE",noPush:true,lineAttack:true,tier:"ÉLITE"}};
 // bonus danno globale dei Kaucha finché un amplificatore è vivo. Legge il
@@ -5751,7 +5819,7 @@ function mkUnit(o){return Object.assign({id:++UID,hp:o.maxHp,moved:false,attacke
    del generatore); una manopola sola, perche' la misura del generatore e il campo
    giocato devono parlare dello stesso relay. */
 const RELAY_PV=2;
-const ENEMY_COST={vorn:2,krull:3,sahir:4,grumo:4,trahn:4,skorr:4,vrast:4,vornelite:4,krullelite:5,neris:3};
+const ENEMY_COST={vorn:2,krull:3,sahir:4,grumo:4,trahn:4,skorr:4,vrast:4,vornelite:4,krullelite:5,neris:3,risacca:3};
 /* Quanti nodi vanno contenuti prima che un archetipo entri nei generatori.
    Gli scenari fissi (m1, il Nido) elencano i nemici a mano e non passano di
    qui: lì la scelta è deliberata.
@@ -5764,7 +5832,7 @@ const ENEMY_COST={vorn:2,krull:3,sahir:4,grumo:4,trahn:4,skorr:4,vrast:4,vorneli
    rialzate — e ricontrollate contro il numero di nodi, non a occhio. */
 const UNLOCK_AFTER={vorn:0,krull:0,sahir:1,grumo:2,vornelite:3,krullelite:3,
                     trahn:3,skorr:3,vrast:3,
-                    neris:0};     // entra solo dai pool di Tarsis: il gate conta per settore
+                    neris:0,risacca:0};     // entrano solo dai pool di Tarsis: il gate conta per settore
 /* Presidio: nessuna soglia deve superare i nodi che si possono contenere
    prima dell'ultimo scenario procedurale, o l'archetipo è codice morto. */
 function unlockableTypes(){
@@ -7831,7 +7899,8 @@ function finish(victory,reason,retreat){
      leggibile: dopo, le unità sono state smontate e `nemesisOnField()` non
      saprebbe più dire se c'era. Il guardiano ha la precedenza — se cadono
      nello stesso momento, quello grosso è il guardiano. */
-  if(victory&&m.boss)comicPending="guardiano";
+  if(victory&&m.boss&&m.sector===lastSector())comicPending="catena";
+  else if(victory&&m.boss)comicPending="guardiano";
   else if(nemesisOnField()&&!seenComic.has("palinsesto"))comicPending="palinsesto";
 
   $("ovTitle").textContent=victory?"ZONA CONTENUTA":retreat?"RITIRATA TATTICA":"PROTOCOLLO FALLITO";
@@ -8017,7 +8086,11 @@ qsa("#ovVal button").forEach(b=>b.addEventListener("click",()=>{
   annuncia("Valutazione registrata: "+b.dataset.v);
 }));
 $("ovBtn").addEventListener("click",()=>{
-  if(campaignOver){resetCampaign();location.reload();return;}
+  if(campaignOver){
+    const fine=()=>{resetCampaign();location.reload();};
+    if(campaignOver==="won"&&maybeComic("catena",null,fine))return;
+    fine();return;
+  }
   buildMap();if(selMissionId)selectMission(selMissionId);renderCorruptionUI();
   /* Il cardine sta QUI: fra il resoconto e la mappa. Una tavola dentro la
      schermata di fine missione competerebbe con le ricompense; una prima
@@ -8214,7 +8287,7 @@ renderCodex();
   const SIZE = {
     jaeger:[24,47], behemoth:[39,41], nullangel:[32,45], aegis:[35,41], lancer:[40,53], lancerjet:[54,25],
     varango:[52,33], spola:[24,34], spettro:[21,40],
-    vorn:[59,24], neris:[59,38], krull:[23,41], sahir:[38,37], grumo:[48,47], trahn:[46,31], skorr:[48,42], vrast:[36,42],
+    vorn:[59,24], neris:[59,38], risacca:[40,46], krull:[23,41], sahir:[38,37], grumo:[48,47], trahn:[46,31], skorr:[48,42], vrast:[36,42],
     vornelite:[80,35], krullelite:[33,51], palinsesto:[52,36], matria:[82,93],
     relay:[29,47], bunker:[42,28], civile:[9,18]
   };
@@ -8223,7 +8296,7 @@ renderCodex();
   const SC = {
     jaeger:.82, behemoth:.92, nullangel:.80, aegis:.84, lancer:.88, lancerjet:.80,
     varango:.90, spola:.76, spettro:.84,
-    vorn:.86, neris:.86, krull:.80, sahir:.85, grumo:.88, trahn:.86, skorr:.84, vrast:.84, vornelite:.98, krullelite:.94,
+    vorn:.86, neris:.86, risacca:.86, krull:.80, sahir:.85, grumo:.88, trahn:.86, skorr:.84, vrast:.84, vornelite:.98, krullelite:.94,
     palinsesto:1.06, matria:1.34, relay:.90, bunker:1, civile:.80
   };
   /* Respiro generale rispetto alla tile. ⚠ È LA leva della scala delle pedine:
@@ -11104,19 +11177,125 @@ renderCodex();
     ctx.strokeStyle='rgba(255,90,77,.55)'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.arc(0,-28,24,t*0.5,t*0.5+3.6); ctx.stroke();
   }
-  /* NERIS: il Vorn, piu' una pinna dorsale e le branchie. La sagoma deve
-     leggersi a distanza come «quello che sta nell'acqua» — per questo la pinna
-     sporge sopra la cresta invece di stare dentro il profilo. */
+  /* NERIS — disegnato per sé, non più «il Vorn con una pinna». Basso sull'acqua
+     come il Vorn ma opposto nella linea: niente zampe a insetto, un corpo
+     allungato e liscio che finisce in una pinna caudale, due arti palmati
+     davanti, una vela dorsale. Anche a venti pixel si legge «quello che nuota»:
+     la sagoma è orizzontale e senza ginocchia. Il teal qui è la CARNE (nel Vorn
+     è solo un accento): la pelle ha preso il colore dell'acqua.
+     ⚠ L'ingombro resta quello dichiarato in SIZE (≈59×38): la pinna dorsale è ciò
+     che lo alza, e sporge sopra il profilo apposta. */
+  const NER_LT='#2e7d8c', NER='#1d5662', NER_DK='#10343d';
   function kNeris(t,s){
-    kVorn(t,s);
-    const sway=reduceMotion?0:Math.sin(t*2.1+s)*1.4;
-    poly([[-5,-15],[0+sway,-33],[9,-14]],'#1f6f78',2.4,'rgba(0,206,209,.45)');
-    poly([[9,-14],[14+sway*0.6,-26],[17.5,-13]],'#17525a',2.2);
-    ctx.strokeStyle='rgba(0,206,209,.6)'; ctx.lineWidth=1.1; ctx.lineCap='round';
-    for(let i=0;i<3;i++){ ctx.beginPath(); ctx.moveTo(4.5+i*2.5,-12.5); ctx.lineTo(3.4+i*2.5,-7.6); ctx.stroke(); }
-    glow(0,-9,17,'rgba(0,206,209,.16)','rgba(0,206,209,0)',1);
+    const resp=reduceMotion?0:Math.sin(t*1.5+s)*0.05;
+    const onda=reduceMotion?0:Math.sin(t*2.2+s);
+    const onda2=reduceMotion?0:Math.sin(t*2.2+s-0.9);
+    // increspatura attorno al corpo: sta a pelo d'acqua, non è ombra
+    ctx.save(); ctx.lineWidth=1.1;
+    for(let i=0;i<3;i++){
+      const k=reduceMotion?.5:((t*0.55+i/3)%1);
+      ctx.strokeStyle=`rgba(0,206,209,${.34*(1-k)})`;
+      ctx.beginPath(); ctx.ellipse(-1,-1,16+k*14,3.4+k*4,0,0,7); ctx.stroke();
+    }
+    ctx.restore();
+    // coda: si assottiglia e si apre in una pinna a coda di rondine, in ritardo sul corpo
+    poly([[-14,-9],[-26,-10+onda2*1.6],[-35,-15+onda2*3],[-32,-9.5+onda2*2],[-36,-4+onda2*3.2],[-26,-6.5+onda2*1.6],[-14,-5]],NER_DK,2.4,'rgba(0,206,209,.30)');
+    // vela dorsale: tre raggi, la più alta in mezzo; sporge sopra il corpo
+    poly([[-12,-13],[-9,-27+onda*1.4],[-5.5,-15],[-2,-33+onda*2],[2.5,-15],[6,-24+onda*1.2],[9,-13]],NER_LT,2.2,'rgba(0,206,209,.5)');
+    ctx.strokeStyle='rgba(4,6,10,.55)'; ctx.lineWidth=.8; ctx.beginPath();
+    ctx.moveTo(-9,-15); ctx.lineTo(-9,-26+onda*1.4); ctx.moveTo(-2,-16); ctx.lineTo(-2,-32+onda*2); ctx.moveTo(6,-15); ctx.lineTo(6,-23+onda*1.2); ctx.stroke();
+    // corpo: un'unica massa allungata, liscia
+    ctx.save(); ctx.scale(1+resp*0.3,1+resp);
+    const corpo=()=>blobPath(20,6.4,12,s,.05,reduceMotion?0:t*0.8);
+    ctx.save(); ctx.translate(-1,-8.5);
+    corpo(); ctx.lineWidth=3.4; ctx.strokeStyle=outOra(); ctx.stroke();
+    ctx.fillStyle=NER; ctx.fill();
+    // ventre chiaro: il contro-ombreggiato dei pesci, letto come «acqua sotto»
+    ctx.save(); corpo(); ctx.clip(); ctx.fillStyle='rgba(120,200,206,.30)'; ctx.fillRect(-24,1.4,50,9); ctx.restore();
+    sottopelle(corpo,'rgba(0,206,209,.6)',.55);
+    corpo(); ctx.lineWidth=3.4; ctx.strokeStyle=outOra(); ctx.stroke();
+    ctx.restore(); ctx.restore();
+    // scaglie a ventaglio sul fianco: tre file, la lettura «pelle bagnata»
+    ctx.strokeStyle='rgba(4,6,10,.45)'; ctx.lineWidth=.8; ctx.beginPath();
+    for(let r=0;r<2;r++)for(let i=0;i<5;i++){ const x=-13+i*5+(r%2)*2.5, y=-11+r*4.2; ctx.moveTo(x,y); ctx.quadraticCurveTo(x+2.6,y+2.4,x+5,y); }
+    ctx.stroke();
+    // arti palmati: due, corti, con la membrana aperta — è come cammina sull'acqua
+    [[6,-4.5,1],[-8,-4.2,-1]].forEach(([x,y,d],i)=>{
+      const sw=reduceMotion?0:Math.sin(t*2.2+i*1.7+s)*1.2;
+      ctx.strokeStyle=outOra(); ctx.lineWidth=3.6; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(x,y-3); ctx.lineTo(x+d*2.4,y+1+sw*0.4); ctx.stroke();
+      ctx.strokeStyle=NER_LT; ctx.lineWidth=1.9; ctx.stroke();
+      poly([[x+d*2.4,y+1+sw*0.4],[x+d*8,y+3.6],[x+d*5.6,y+5.6],[x+d*1.6,y+4.6]],NER_DK,1.8,'rgba(0,206,209,.35)');
+    });
+    // testa: cuneo con mascella inferiore sporgente e denti a spillo
+    poly([[12,-12],[23,-12.6],[27,-8.4],[13,-6.4]],NER_LT,2.6);
+    poly([[13.5,-6.6],[26,-8.2],[23,-3.6],[13,-3.8]],NER_DK,2.4);
+    ctx.strokeStyle='#d6e4ea'; ctx.lineWidth=1; ctx.lineCap='round'; ctx.beginPath();
+    for(let i=0;i<4;i++){ ctx.moveTo(15.5+i*2.6,-6.8-i*0.2); ctx.lineTo(15.8+i*2.6,-4.6-i*0.15); }
+    ctx.stroke();
+    // branchie: tre fessure dietro la testa, sono il tratto che il Vorn non ha
+    ctx.strokeStyle='rgba(0,206,209,.8)'; ctx.lineWidth=1.2; ctx.beginPath();
+    for(let i=0;i<3;i++){ ctx.moveTo(8.4-i*2.4,-12.4); ctx.lineTo(7.4-i*2.4,-6.4); }
+    ctx.stroke();
+    // occhio: laterale, una fessura teal
+    ctx.fillStyle='rgba(0,206,209,.95)'; ctx.beginPath(); ctx.ellipse(18.4,-10.4,1.7,.9,-.2,0,7); ctx.fill();
+    umido(-6,-14,8,2.6,.30,-0.1);
+    umido(14,-12,3.6,1.3,.20,-0.12);
+    glow(0,-8,20,'rgba(0,206,209,.14)','rgba(0,206,209,0)',1);
   }
-  const K_ART={vorn:kVorn,neris:kNeris,krull:kKrull,sahir:kSahir,grumo:kGrumo,trahn:kTrahn,skorr:kSkorr,vrast:kVrast,
+  /* RISACCA — l'acqua che ritorna. Non nuota e non morde: spinge. La sagoma è
+     un'onda al momento di rompersi: dorso arrotolato in avanti sopra un corpo
+     tozzo e due piastre d'arresto. La cresta schiumosa è la parte chiara — in
+     una vignetta o a venti pixel è ciò che dice «onda», e dice anche da che
+     parte arriva la spinta. */
+  function kRisacca(t,s){
+    const resp=reduceMotion?0:Math.sin(t*1.3+s)*0.06;
+    const rompe=reduceMotion?0:Math.sin(t*1.8+s);
+    // schiuma a terra: due anelli che si aprono, davanti
+    ctx.save(); ctx.lineWidth=1.2;
+    for(let i=0;i<2;i++){
+      const k=reduceMotion?.4:((t*0.7+i/2)%1);
+      ctx.strokeStyle=`rgba(214,236,240,${.4*(1-k)})`;
+      ctx.beginPath(); ctx.ellipse(10+k*6,-1,12+k*12,2.6+k*3.2,0,0,7); ctx.stroke();
+    }
+    ctx.restore();
+    // due piastre d'arresto: i «piedi» che puntano nel suolo mentre spinge
+    [[-8,1],[8,1]].forEach(([x],i)=>{
+      poly([[x-5,-1.5],[x+4,-1.5],[x+6,-8],[x-4.4,-9]],NER_DK,2.6);
+      ctx.strokeStyle='rgba(214,236,240,.30)'; ctx.lineWidth=.9; ctx.beginPath(); ctx.moveTo(x-3.4,-6.6); ctx.lineTo(x+4.2,-6); ctx.stroke();
+    });
+    // corpo tozzo
+    ctx.save(); ctx.scale(1+resp*0.3,1+resp);
+    const corpo=()=>blobPath(15,9.6,12,s,.07,reduceMotion?0:t*0.9);
+    ctx.save(); ctx.translate(0,-13);
+    corpo(); ctx.lineWidth=3.4; ctx.strokeStyle=outOra(); ctx.stroke();
+    ctx.fillStyle=NER; ctx.fill();
+    sottopelle(corpo,'rgba(0,206,209,.55)',.5);
+    corpo(); ctx.lineWidth=3.4; ctx.strokeStyle=outOra(); ctx.stroke();
+    ctx.restore(); ctx.restore();
+    // cresta: l'onda che si arrotola sul davanti, più alta del corpo
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(-14,-17);
+    ctx.bezierCurveTo(-10,-36+rompe*1.4,10,-42+rompe*2,22,-30);
+    ctx.bezierCurveTo(26,-24,22,-19,15,-22);
+    ctx.bezierCurveTo(19,-27,15,-31,8,-27);
+    ctx.bezierCurveTo(1,-24,-3,-19,-6,-14);
+    ctx.closePath();
+    ctx.lineJoin='round'; ctx.lineWidth=3.2; ctx.strokeStyle=outOra(); ctx.stroke();
+    ctx.fillStyle=NER_LT; ctx.fill();
+    ctx.restore();
+    // schiuma sul labbro dell'onda e righe di flusso sul dorso
+    ctx.strokeStyle='rgba(224,244,246,.85)'; ctx.lineWidth=1.8; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(-6,-33+rompe); ctx.bezierCurveTo(4,-40+rompe*1.4,16,-36,22,-30); ctx.stroke();
+    ctx.strokeStyle='rgba(224,244,246,.45)'; ctx.lineWidth=.9;
+    ctx.beginPath(); ctx.moveTo(-10,-22); ctx.bezierCurveTo(-2,-30,8,-33,17,-27); ctx.moveTo(-8,-18); ctx.bezierCurveTo(0,-25,10,-26,15,-23); ctx.stroke();
+    ctx.fillStyle='rgba(224,244,246,.8)';
+    [[20,-31.6],[23.4,-27],[16.6,-34.4]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x,y+rompe*.4,1,0,7); ctx.fill(); });
+    // il nucleo in basso, dietro le piastre: è ciò che spinge
+    umido(-3,-18,7,2.4,.28,-0.2);
+    kCore(0,-12,2.2,1);
+  }
+  const K_ART={vorn:kVorn,neris:kNeris,risacca:kRisacca,krull:kKrull,sahir:kSahir,grumo:kGrumo,trahn:kTrahn,skorr:kSkorr,vrast:kVrast,
                vornelite:kVornelite,krullelite:kKrullelite,
                palinsesto:kPalinsesto,matria:kMatria};
 
@@ -12040,7 +12219,8 @@ renderCodex();
   function scena(nome,chi,x,y,w,h,p){
     const t=timeMS/1000;
     if(p===undefined)p=1;
-    const suolo=y+h*(nome==='rivelazione'?0.94:nome==='studio'?0.90:0.76);
+    const acqua=(nome==='bacino'||nome==='sorgente');   // le tavole di Tarsis: il suolo e' la linea d'acqua
+    const suolo=y+h*(nome==='rivelazione'?0.94:nome==='studio'?0.90:acqua?0.68:0.76);
     const conf={   // inquadratura per situazione: angolo, scala, dove guarda
       orizzonte:   {citta:1.0, scala:0,    fuoco:.45, nebbia:.9,  taglio:'#8fb0d8'},
       varco:       {citta:0.55,scala:2.10, fuoco:.50, nebbia:1.0, taglio:'#a98fd0'},
@@ -12050,6 +12230,8 @@ renderCodex();
       caduta:      {citta:0.6, scala:3.60, fuoco:.50, nebbia:1.1, taglio:'#00ced1'},
       trofeo:      {citta:0.0, scala:1.75, fuoco:.50, nebbia:.4,  taglio:'#ffb000'},
       corridoio:   {citta:1.1, scala:0,    fuoco:.50, nebbia:1.0, taglio:'#ffb000'},
+      bacino:      {citta:0.8, scala:2.50, fuoco:.50, nebbia:1.2, taglio:'#00ced1'},
+      sorgente:    {citta:0.35,scala:3.00, fuoco:.50, nebbia:1.5, taglio:'#00ced1'},
     }[nome]||{citta:.9,scala:1.5,fuoco:.5,nebbia:.8,taglio:'#ffb000'};
 
     /* ⚠ Le finestre dell'ingresso stanno QUI, in un posto solo. Sono i numeri
@@ -12069,9 +12251,11 @@ renderCodex();
     if(nome==='caduta'){ crepa(x+w*0.5,y+h*0.05,h*0.32,1.2,crescita,t); }
     if(nome==='rivelazione'){ linee(x+w*conf.fuoco,y+h*0.40,Math.max(w,h),30,fuocoP); alone(x+w*conf.fuoco,y+h*0.45,w*0.38,alonePw,t); }
     if(nome==='corridoio'){ linee(x+w*0.5,suolo-8,w*0.95,16,fuocoP); }
+    if(nome==='sorgente'){ crepa(x+w*0.5,y+h*0.03,h*0.50,1.4,crescita,t); alone(x+w*0.5,suolo-h*0.08,w*0.40,alonePw,t); }
 
-    suoloPiano(x,y,w,h,suolo,nome);
+    if(acqua)specchioAcqua(x,y,w,h,suolo,t); else suoloPiano(x,y,w,h,suolo,nome);
     if(conf.scala>0) figure(chi,x,w,suolo,conf.scala,conf.fuoco,conf.taglio,t,nome,p);
+    if(acqua)acquaDavanti(x,y,w,h,suolo,t);
     foschia(x,y,w,suolo,conf.nebbia*nebbiaP);
     pulviscolo(x,y,w,suolo,nome,t);
     avanti(x,y,w,h,suolo,nome,p);
@@ -12083,6 +12267,7 @@ renderCodex();
     const scuro=(nome==='studio'||nome==='trofeo');
     const g=ctx.createLinearGradient(0,y,0,suolo);
     if(scuro){ g.addColorStop(0,'#080a0f'); g.addColorStop(1,'#0e1219'); }
+    else if(nome==='bacino'||nome==='sorgente'){ g.addColorStop(0,'#08121a'); g.addColorStop(.55,'#12303a'); g.addColorStop(1,'#2a5560'); }
     else { g.addColorStop(0,'#0a0e16'); g.addColorStop(.55,'#141a26'); g.addColorStop(1,'#232a38'); }
     ctx.fillStyle=g; ctx.fillRect(x,y,w,suolo-y);
     if(scuro)return;
@@ -12154,6 +12339,58 @@ renderCodex();
       ctx.quadraticCurveTo(x+w*0.5,y0+16+c*7+Math.sin(t*0.42+c*1.3)*2.4,x+w+20,y0-4+c*3); ctx.stroke();
     }
     ctx.restore();
+  }
+
+  /* L'acqua di Tarsis: un piano di specchio, non un fondale. Sotto la linea
+     d'acqua la città ritorna capovolta e spenta (il riflesso), poi righe di
+     increspatura che scorrono a velocità diverse — le più vicine più larghe e
+     più rapide, la stessa parallasse della città. Niente `Math.random()`:
+     ogni riga è una funzione di indice e tempo. */
+  function specchioAcqua(x,y,w,h,suolo,t){
+    const fondo=y+h;
+    const g=ctx.createLinearGradient(0,suolo,0,fondo);
+    g.addColorStop(0,'#14414a'); g.addColorStop(.35,'#0b2229'); g.addColorStop(1,'#04090c');
+    ctx.fillStyle=g; ctx.fillRect(x,suolo,w,fondo-suolo);
+    // riflesso: strisce verticali spezzate, ambra e teal, che ondeggiano
+    ctx.save(); ctx.beginPath(); ctx.rect(x,suolo,w,fondo-suolo); ctx.clip();
+    for(let i=0;i<18;i++){
+      const px=x+((i*61+17)%Math.round(w));
+      const lung=(fondo-suolo)*(.22+((i*13)%7)*.07);
+      const sh=reduceMotion?0:Math.sin(t*0.9+i)*2.2;
+      ctx.fillStyle=i%5===0?'rgba(255,176,0,.13)':'rgba(0,206,209,.10)';
+      for(let r=0;r<4;r++){ ctx.fillRect(px+sh*(r+1)*.4,suolo+6+r*(lung/4),2.4+((i+r)%3),lung/6); }
+    }
+    // increspature: righe di lunghezza spezzata, piu' larghe verso chi guarda
+    ctx.lineCap='round';
+    for(let d=0;d<10;d++){
+      const k=(d+1)/10, yy=suolo+(fondo-suolo)*k*k;
+      ctx.strokeStyle=`rgba(140,220,224,${(.07+.14*k).toFixed(3)})`; ctx.lineWidth=.8+k*1.6;
+      const v=reduceMotion?0:t*(8+k*26);
+      ctx.beginPath();
+      for(let s=0;s<9;s++){
+        const a=x+(((s*83+d*47)%Math.round(w))+v)%(w+40)-20, len=14+k*36+((s*d)%5)*6;
+        ctx.moveTo(a,yy+Math.sin(t*1.2+s+d)*(reduceMotion?0:1)); ctx.lineTo(a+len,yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+    // la linea d'acqua: china spessa come l'orizzonte, e una riga chiara sopra
+    ctx.lineWidth=3; ctx.strokeStyle='#04060A';
+    ctx.beginPath(); ctx.moveTo(x,suolo); ctx.lineTo(x+w,suolo); ctx.stroke();
+    ctx.lineWidth=1; ctx.strokeStyle='rgba(140,220,224,.35)';
+    ctx.beginPath(); ctx.moveTo(x,suolo+2.5); ctx.lineTo(x+w,suolo+2.5); ctx.stroke();
+  }
+  /* Davanti alle figure: una velatura d'acqua che arriva alle caviglie e due
+     cerchi d'onda per figura. E' quello che dice «guada» invece di «sta su un
+     pavimento blu»; senza, il NERIS posa sull'acqua come una pedina. */
+  function acquaDavanti(x,y,w,h,suolo,t){
+    ctx.save(); ctx.beginPath(); ctx.rect(x,suolo-10,w,h);ctx.clip();
+    const g=ctx.createLinearGradient(0,suolo-10,0,suolo+22);
+    g.addColorStop(0,'rgba(20,65,74,0)'); g.addColorStop(.35,'rgba(20,65,74,.62)'); g.addColorStop(1,'rgba(8,24,30,.85)');
+    ctx.fillStyle=g; ctx.fillRect(x,suolo-10,w,32);
+    ctx.restore();
+    ctx.lineWidth=1; ctx.strokeStyle='rgba(180,235,238,.30)';
+    ctx.beginPath(); ctx.moveTo(x,suolo-1); ctx.lineTo(x+w,suolo-1); ctx.stroke();
   }
 
   function suoloPiano(x,y,w,h,suolo,nome){
