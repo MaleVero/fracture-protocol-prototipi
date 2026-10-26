@@ -1,7 +1,7 @@
 {
-  "versione": "0.10.0",
+  "versione": "0.11.0",
   "data": "2026-10-26",
-  "titolo": "Tavole di Tarsis, la RISACCA e un NERIS tutto suo",
+  "titolo": "Un aspetto per ogni settore e conseguenze che si vedono",
   "cambia": [
     "Settore Tarsis: sei missioni sull'acqua e il guardiano finale, dove PALINSESTO finisce",
     "Nuovo nemico, il NERIS: attraversa l'acqua senza affondare, quindi non basta buttarlo in un lago",
@@ -14,7 +14,10 @@
     "Prova e segnalazioni: a fine missione un tocco (facile, giusta, dura) e in Opzioni un rapporto da copiare o aprire come segnalazione; il gioco non invia nulla da solo",
     "Nuovo nemico a Tarsis, la RISACCA: non ferisce, spinge di due caselle, e nel bacino dietro di te c'è quasi sempre acqua",
     "Il NERIS ha una sagoma sua: corpo allungato, vela dorsale, arti palmati, branchie",
-    "Tavole a fumetti per l'apertura di Orvat e di Tarsis e per il finale della campagna; l'ultima e la terza di ogni apertura leggono ciò che hai fatto"
+    "Tavole a fumetti per l'apertura di Orvat e di Tarsis e per il finale della campagna; l'ultima e la terza di ogni apertura leggono ciò che hai fatto",
+    "Ogni settore ha il suo aspetto: scenografia, pavimento, polvere, vignetta e carta della mappa propri (le regole e i segnali di gioco non cambiano)",
+    "Le conseguenze si vedono: il taglio di un colpo, la scia di una spinta, il tuffo di chi annega, la voragine che si chiude su chi cade",
+    "Tavole più cinematografiche: camera lenta, targa del settore, strisce doppie e dissolvenza della didascalia; la schermata d'esito ha la sua vignetta"
   ],
   "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
 }

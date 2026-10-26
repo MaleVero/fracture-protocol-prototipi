@@ -133,6 +133,16 @@
   /* Archi in SVG: le coordinate sono le stesse dei nodi, quindi non possono
      divergere. `vector-effect` tiene lo spessore costante nonostante lo
      stiramento non uniforme del viewBox. */
+  /* La carta del settore: un disegno a bassissimo contrasto DIETRO nodi e archi.
+     Serve a far sembrare Orvat e Tarsis posti diversi e non la stessa griglia
+     con altri nomi; sta sotto i nodi (z 0) e non prende mai il tocco. */
+  .mapart{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+  .mapcanvas[data-sec="orvat"]{background:radial-gradient(80% 70% at 28% 95%,rgba(255,120,40,.17),transparent 62%),radial-gradient(60% 50% at 82% 18%,rgba(120,50,20,.20),transparent 60%),var(--void-2);}
+  .mapcanvas[data-sec="tarsis"]{background:radial-gradient(90% 80% at 50% 105%,rgba(0,150,160,.18),transparent 62%),radial-gradient(60% 50% at 18% 8%,rgba(20,90,110,.18),transparent 60%),var(--void-2);}
+  .mapcanvas[data-sec="orvat"] .edges line.aperto{stroke:rgba(255,150,60,.62);}
+  .mapcanvas[data-sec="tarsis"] .edges line.aperto{stroke:rgba(0,206,209,.55);}
+  .sectab[data-sec="orvat"].on{border-color:#ff9a3c;} .sectab[data-sec="orvat"].on .secnm{color:#ff9a3c;}
+  .sectab[data-sec="tarsis"].on{border-color:var(--anomal-teal);} .sectab[data-sec="tarsis"].on .secnm{color:var(--anomal-teal);}
   .edges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;}
   .edges line{stroke:rgba(110,118,121,.45);stroke-width:2;vector-effect:non-scaling-stroke;}
   .edges line.aperto{stroke:rgba(255,176,0,.55);stroke-width:2.4;vector-effect:non-scaling-stroke;}
@@ -472,6 +482,8 @@
   @media (min-aspect-ratio:1/1){ #comicCanvas{aspect-ratio:16/9;max-height:58vh;} }
   .comiccap{border-left:2px solid var(--amber);padding:7px 0 7px 10px;}
   .comiccap b{display:block;color:var(--amber);font-size:calc(10px * var(--ts,1));letter-spacing:.18em;margin-bottom:5px;}
+  .comiccap.in{animation:capin .55s ease-out both;}
+  @keyframes capin{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
   .comiccap p{margin:0;color:#d8d2c6;font-size:calc(12px * var(--ts,1));line-height:1.65;white-space:pre-line;}
   .comicfoot{display:flex;justify-content:space-between;align-items:center;}
   .comicdots{display:flex;gap:6px;}
@@ -493,8 +505,12 @@
   #bcontrols button:active:not(:disabled){background:var(--amber);color:var(--void);}
 
   /* ===== ESITO ===== */
-  #outcome{align-items:center;justify-content:center;text-align:center;gap:0;}
-  #outcome .obox{max-width:340px;display:flex;flex-direction:column;gap:16px;align-items:center;}
+  /* ⚠ `justify-content:center` con contenuto piu' alto dello schermo TAGLIA LA CIMA e
+     non si puo' scorrere indietro: con la vignetta in testa succedeva su un telefono.
+     Si centra col margine automatico (che a corto di spazio vale 0) e si scorre. */
+  #outcome{align-items:center;justify-content:flex-start;text-align:center;gap:0;overflow-y:auto;}
+  #outcome .obox{max-width:340px;width:100%;margin:auto 0;padding:14px 0 18px;display:flex;flex-direction:column;gap:16px;align-items:center;}
+  .ovart{width:100%;aspect-ratio:16/7;max-height:26vh;display:block;border:1px solid var(--gunmetal-hi);background:#05070a;}
   #outcome h2{font-size:calc(19px * var(--ts,1));letter-spacing:.22em;color:var(--amber);}
   #outcome h2.defeat{color:var(--danger);}
   #outcome p{font-size:calc(11px * var(--ts,1));color:var(--bone-dim);line-height:1.7;}
@@ -1356,7 +1372,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.10.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.11.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -1482,6 +1498,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
 <!-- ESITO -->
 <section class="screen" id="outcome">
   <div class="obox">
+    <canvas id="ovCanvas" class="ovart" aria-hidden="true"></canvas>
     <h2 id="ovTitle"></h2>
     <p id="ovText"></p>
     <div class="rewardline" id="ovReward"></div>
@@ -2991,10 +3008,52 @@ function setMapZoom(z,cx,cy){
 function fitMap(){mapZoom=1;mapPanX=0;mapPanY=0;applyMapView();
   if(selMissionId)nodePop(MISSIONS.find(m=>m.id===selMissionId));}
 
+/* La carta di un settore: SVG generato, deterministico (nessun Math.random), nello
+   stesso spazio 0–100 degli archi. Ogni settore ha il suo vocabolario:
+   Cassandra una città con la crepa del varco, Orvat ciminiere e condotte intorno
+   a un forno, Tarsis curve di livello attorno a bacini. Contrasto volutamente
+   basso: e' il fondale, non il grafo. */
+function creaCartaSettore(id){
+  const ns="http://www.w3.org/2000/svg", svg=document.createElementNS(ns,"svg");
+  svg.setAttribute("class","mapart"); svg.setAttribute("viewBox","0 0 100 100"); svg.setAttribute("preserveAspectRatio","none");
+  svg.setAttribute("aria-hidden","true");
+  const hh=(i,j)=>{let h=(i*374761393+j*668265263)>>>0;h=((h^(h>>>13))*1274126177)>>>0;return((h^(h>>>16))>>>0)/4294967296;};
+  const nse='vector-effect="non-scaling-stroke"';
+  let m="";
+  if(id==="orvat"){
+    for(let r=0;r<3;r++){                               // condotte: dashed, a quote diverse
+      let d="M0 "+(18+r*30); for(let i=1;i<=5;i++)d+=" L"+(i*20)+" "+(18+r*30+(hh(i,r)-.5)*14);
+      m+=`<path d="${d}" fill="none" stroke="rgba(255,150,60,.20)" stroke-width="1.4" stroke-dasharray="5 4" ${nse}/>`;
+    }
+    for(let i=0;i<7;i++){                               // ciminiere lungo il bordo basso
+      const x=5+i*14+hh(i,3)*5, h=16+hh(i,4)*26, w=2.2+hh(i,5)*1.4;
+      m+=`<path d="M${x-w} 100 L${x-w*.6} ${100-h} L${x+w*.6} ${100-h} L${x+w} 100Z" fill="rgba(255,140,50,.09)" stroke="rgba(255,140,50,.26)" stroke-width="1" ${nse}/>`;
+      m+=`<path d="M${x-w*.6} ${100-h} L${x+w*.6} ${100-h}" stroke="rgba(255,150,60,.65)" stroke-width="2" ${nse}/>`;
+    }
+    [[72,38,16],[72,38,10],[72,38,4]].forEach(([cx,cy,r],i)=>{ m+=`<ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${r*.8}" fill="${i===2?"rgba(255,140,50,.18)":"none"}" stroke="rgba(255,140,50,${.22-i*.04})" stroke-width="1.2" ${nse}/>`; });
+  } else if(id==="tarsis"){
+    const lago=(cx,cy,rx,ry,seed,k)=>{ let d=""; for(let i=0;i<=16;i++){ const a=i/16*Math.PI*2, v=1+(hh(i%16,seed)-.5)*.34; const x=cx+Math.cos(a)*rx*v*k, y=cy+Math.sin(a)*ry*v*k; d+=(i?" L":"M")+x.toFixed(2)+" "+y.toFixed(2); } return d+"Z"; };
+    [[26,30,16,10,1],[66,62,20,13,2],[78,20,10,7,3]].forEach(([cx,cy,rx,ry,sd])=>{
+      [1.9,1.45,1].forEach((k,i)=>{ m+=`<path d="${lago(cx,cy,rx,ry,sd,k)}" fill="${i===2?"rgba(0,190,200,.10)":"none"}" stroke="rgba(0,206,209,${[.10,.15,.26][i]})" stroke-width="1" ${nse}/>`; });
+    });
+    m+=`<path d="M52 0 L50 22 L55 46 L51 70 L54 100" fill="none" stroke="rgba(0,206,209,.28)" stroke-width="3" ${nse}/>`;
+    for(let i=0;i<9;i++){ const y=6+i*11; m+=`<path d="M${50+hh(i,9)*5} ${y} l-3 1.6" stroke="rgba(0,206,209,.30)" stroke-width="1" ${nse}/>`; }   // la diga: tacche di chiusa
+  } else {                                              // cassandra: isolati e la crepa
+    for(let c=0;c<12;c++)for(let r=0;r<7;r++){
+      const hv=hh(c,r); if(hv<.30)continue;
+      const w=5+hv*4, h=4+hh(r,c)*9, x=3+c*8, y=48+r*7-h*.2;
+      m+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(140,160,190,.05)" stroke="rgba(140,160,190,.14)" stroke-width="1" ${nse}/>`;
+    }
+    m+=`<path d="M84 0 L79 14 L86 24 L77 38 L83 50 L74 62" fill="none" stroke="rgba(154,107,196,.34)" stroke-width="2" ${nse}/>`;
+  }
+  svg.innerHTML=m; return svg;
+}
 function buildMap(){
   buildSectorTabs();
   const c=$("mapcanvas"), w=$("mapworld")||c;
-  qsa(".edges,.edge,.node,.nodelabel",w).forEach(e=>e.remove());qsa(".nodepop,.poplink").forEach(e=>e.remove());
+  qsa(".edges,.edge,.node,.nodelabel,.mapart",w).forEach(e=>e.remove());qsa(".nodepop,.poplink").forEach(e=>e.remove());
+  c.dataset.sec=currentSector;
+  { const gl=w.querySelector(".gridlines"); w.insertBefore(creaCartaSettore(currentSector),gl?gl.nextSibling:w.firstChild); }
   applyMapView();
   // un settore alla volta: la mappa è la cintura che stai presidiando
   const vis=id=>sectorOf(id)===currentSector;
@@ -3477,7 +3536,7 @@ const COMIC={
   cassandra:{
     titolo:"SETTORE CASSANDRA · PRIMA DISCESA",
     tavole:[
-      {scena:"orizzonte",chi:[],chi_dice:"ARCHIVIO · 0447",
+      {scena:"orizzonte",chi:[],titolo:"Settore Cassandra",chi_dice:"ARCHIVIO · 0447",
        testo:"La prima Spaccatura si aprì sopra Kelva alle 04:12. Non ci fu un boato: il cielo smise di essere cielo per undici secondi. Quando tornò, mancavano quattromila persone e restava una crepa che nessuno strumento sapeva misurare."},
       {scena:"varco",chi:["vorn","krull"],chi_dice:"ARCHIVIO · 0447",
        testo:"I Kaucha non invadono. Filtrano. Escono da dove la realtà si è consumata e si muovono come se fosse sempre stata casa loro — e ogni ora che una Spaccatura resta aperta, il terreno sotto smette un po' di più di essere nostro."},
@@ -3549,11 +3608,11 @@ const COMIC={
   orvat:{
     titolo:"SETTORE ORVAT · CINTURA INDUSTRIALE",
     tavole:[
-      {scena:"cintura",chi:[],chi_dice:"ARCHIVIO · ORVAT",
+      {scena:"cintura",chi:[],titolo:"Settore Orvat",chi_dice:"ARCHIVIO · ORVAT",
        testo:"Orvat fondeva ciò che Cassandra costruiva. Migliaia di persone vivevano sotto le ciminiere perché sopra c'era sempre lavoro: colatoi, ponti, pozzi di ventilazione che non si fermavano nemmeno di notte.\n\nQuando la Spaccatura arrivò, i forni erano accesi. Lo sono ancora."},
       {scena:"cintura",chi:["skorr","trahn","vrast"],chi_dice:"ANALISI TATTICA",
        testo:"A Cassandra i Kaucha si limitavano ad attraversare. Qui hanno imparato dalla fabbrica.\n\nSKORR porta il fuoco e lo lascia dove colpisce. TRAHN è una calamita: vi strappa dalla posizione e vi trascina dove non volevate andare. VRAST è il gelo di raffreddamento: non fa male, vi toglie il turno.\n\nNon sono più forti. Sono più scomodi."},
-      {scena:"cintura",chi:["behemoth","aegis"],chi_dice:"COMANDO CASSANDRA",
+      {scena:"cintura",chi:[],strisce:[{scena:"cintura",chi:["behemoth","aegis"]},{scena:"cintura",chi:["palinsesto"]}],chi_dice:"COMANDO CASSANDRA",
        testo:()=>{
          const n=nemesis.adaptations.length;
          const lei=n?("PALINSESTO è arrivata prima di voi, e porta addosso "+n+" adattament"+(n===1?"o":"i")+": "+nemesis.adaptations.map(a=>ADAPT[a]?ADAPT[a].name:a).join(", ")+"."):"PALINSESTO è arrivata prima di voi, ancora in forma base.";
@@ -3570,11 +3629,11 @@ const COMIC={
   tarsis:{
     titolo:"SETTORE TARSIS · BACINO SOMMERSO",
     tavole:[
-      {scena:"bacino",chi:[],chi_dice:"ARCHIVIO · TARSIS",
+      {scena:"bacino",chi:[],titolo:"Settore Tarsis",chi_dice:"ARCHIVIO · TARSIS",
        testo:"Tarsis era un bacino di raccolta: tre dighe, una rete di chiuse, un lago costruito per dissetare tre città. Quando la Spaccatura arrivò, l'acqua fu la prima cosa a dimenticare di essere acqua.\n\nIl livello non è sceso. È salito, e continua."},
       {scena:"bacino",chi:["neris","neris"],chi_dice:"ANALISI TATTICA",
        testo:"Fin qui l'acqua è stata la vostra arma migliore: ci buttate dentro ciò che non riuscite a uccidere, e non torna.\n\nQuelli ci camminano. Il Comando li ha chiamati NERIS. Non è che non possano morire: è che l'acqua non è più il posto dove succede. Cercate altrove — voragini, bordi, collisioni — o colpiteli."},
-      {scena:"bacino",chi:["risacca"],chi_dice:"COMANDO CASSANDRA",
+      {scena:"bacino",chi:[],strisce:[{scena:"bacino",chi:["risacca"]},{scena:"bacino",chi:["behemoth","aegis"]}],chi_dice:"COMANDO CASSANDRA",
        testo:()=>{
          const n=nemesis.adaptations.length;
          const lei=n?("PALINSESTO è già qui, con "+n+" adattament"+(n===1?"o":"i")+" addosso."):"PALINSESTO è già qui, ancora in forma base.";
@@ -3590,7 +3649,7 @@ const COMIC={
   catena:{
     titolo:"SORGENTE · CATENA RECISA",
     tavole:[
-      {scena:"sorgente",chi:[],chi_dice:"COMANDO CASSANDRA",
+      {scena:"sorgente",chi:[],titolo:"Catena recisa",chi_dice:"COMANDO CASSANDRA",
        testo:"Il terzo Varco si chiude come gli altri: undici secondi, poi niente. L'acqua del bacino smette di salire. Per la prima volta da mesi la superficie è ferma, e riflette il cielo."},
       {scena:"sorgente",chi:["palinsesto"],chi_dice:"ANALISI TATTICA",
        testo:()=>{
@@ -3652,12 +3711,15 @@ function renderComic(){
   const tv=comicNow.tavole[comicIdx];
   /* Risolte QUI, non dentro il motore: la tavola resta una dichiarazione di
      contenuto e il rendering riceve solo stringhe e tipi di unità. */
-  const risolta={scena:tv.scena,chi_dice:tv.chi_dice,
-    chi:typeof tv.chi==="function"?tv.chi():(tv.chi||[]),
+  const risolviChi=c=>typeof c==="function"?c():(c||[]);
+  const risolta={scena:tv.scena,chi_dice:tv.chi_dice,titolo:tv.titolo,
+    chi:risolviChi(tv.chi),
+    strisce:tv.strisce?tv.strisce.map(st=>({scena:st.scena,chi:risolviChi(st.chi)})):null,
     testo:typeof tv.testo==="function"?tv.testo():tv.testo};
   // il testo lo impagina il DOM, il canvas disegna e basta
   $("comicWho").textContent=(risolta.chi_dice||"").toUpperCase();
   $("comicText").textContent=risolta.testo||"";
+  { const cap=document.querySelector(".comiccap"); if(cap){ cap.classList.remove("in"); void cap.offsetWidth; cap.classList.add("in"); } }   // la didascalia entra: dissolvenza breve
   if(typeof drawComicPanel==="function")drawComicPanel(risolta);
 }
 
@@ -4620,7 +4682,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.10.0";
+const BUILD_VER="0.11.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -7296,7 +7358,12 @@ async function resolveAbility(u,tile,ab){
    strato grafico la legge come legge tutto il resto — osservando — e il
    confine resta dov'e. */
 function killTerreno(t,causa){
-  if(!t||t.player||t.structure||t.hp>0||t._terrKill)return;
+  if(!t||t.structure||t.hp>0||t._terrKill)return;
+  /* I TUOI mech non contano come «smaltiti col terreno» (il contatore e' dei
+     Kaucha), ma la CAUSA si registra lo stesso: e' da li' che lo schermo sa se
+     un mech e' annegato o caduto, e sceglie il gesto e il suono giusti invece
+     dell'esplosione generica. Un campo solo, `_causa`, e nessun altro cambia. */
+  if(t.player){ if(!t._causa)t._causa=causa||"terreno"; return; }
   /* ⚠ DUE campi, non uno sovraccarico: `_terrKill` resta il booleano «ucciso dal
      terreno» che il resto del gioco già legge, `_causa` dice quale terreno.
      Averli fusi in una stringa ha fatto cadere due asserzioni che confrontavano
@@ -8099,6 +8166,7 @@ function finish(victory,reason,retreat){
   { const v=$("ovVal"); if(v){ v.style.display=""; qsa("#ovVal button").forEach(b=>b.classList.remove("on")); $("ovGrazie").textContent=""; } }
   saveState();
   go("outcome");
+  try{ if(typeof drawOutcomeArt==="function")drawOutcomeArt({sector:m.sector,victory:victory,retreat:retreat}); }catch(e){}   // la vignetta dell'esito: decoro, mai bloccante
 }
 qsa("#ovVal button").forEach(b=>b.addEventListener("click",()=>{
   if(!valutaUltima(b.dataset.v))return;
@@ -8709,8 +8777,8 @@ renderCodex();
     ctx.save();
     ctx.globalAlpha=.55; diamond(c.x,c.y+TH*0.55,w,h); ctx.fillStyle='#000'; ctx.fill();
     ctx.globalAlpha=1;
-    diamond(c.x,c.y,w,h); ctx.fillStyle='#0a0d12'; ctx.fill();
-    ctx.lineWidth=1.4; ctx.strokeStyle='rgba(255,176,0,.13)'; ctx.stroke();
+    diamond(c.x,c.y,w,h); ctx.fillStyle=temaCampo().piastra; ctx.fill();
+    ctx.lineWidth=1.4; ctx.strokeStyle=temaCampo().bordo; ctx.stroke();
     ctx.restore();
   }
 
@@ -8751,8 +8819,12 @@ renderCodex();
        luce che schiarisce tutto il campo toglierebbe il contrasto invece di
        darlo — vedi la nota sulla lastra a valore medio. */
     if(scenaLuci) for(const pr of PROPS){
-      if(pr.kind!=='block') continue;
-      luci.push({x:pr.gx, y:pr.gy, r:3.2, i:2.40+(pr.f-0.60)*2.0, c:[255,176,0]});
+      if(pr.kind==='block') luci.push({x:pr.gx, y:pr.gy, r:3.2, i:2.40+(pr.f-0.60)*2.0, c:[255,176,0]});
+      /* i forni di Orvat e i fari di Tarsis: stessa regola dei `block` (raggio
+         corto, solo il bordo), con la tinta del settore. Il forno e' un ambra
+         piu' caldo ma NON il [255,120,40] dell'incendio, che resta un segnale. */
+      else if(pr.kind==='forno') luci.push({x:pr.gx, y:pr.gy, r:3.0, i:1.6+(pr.f-0.60)*1.2, c:[255,160,40]});
+      else if(pr.kind==='pilone') luci.push({x:pr.gx, y:pr.gy, r:3.0, i:1.0, c:[0,206,209]});
     }
     if(B.rift&&B.rift.open) luci.push({x:B.rift.x,y:B.rift.y,r:3.4,i:0.85,c:[120,70,190]});
     if(B.terrain) B.terrain.forEach((o,key)=>{
@@ -8835,6 +8907,36 @@ renderCodex();
       lg.addColorStop(1,`rgba(${L[0]|0},${L[1]|0},${L[2]|0},.22)`);
       ctx.fillStyle=lg; ctx.fill(); ctx.restore();
     }
+    /* Il pavimento del SETTORE: velo tenuissimo (alfa ≤ .07, quindi pochi gradi
+       di tinta e nessuna perdita di valore) e decalcomanie proprie. Cassandra
+       non ne ha: e' il pavimento di riferimento, identico a prima. Le velature
+       di gioco (ambra = tuo, rosso = minaccia, viola = corruzione) restano
+       opache sopra, quindi leggono come sempre — vedi la nota sulle velature. */
+    const tm=nomeTema();
+    if(tm!=='cassandra'){
+      const t2=hash(gx+7,gy+3);
+      ctx.save(); diamond(p.x,p.y,w-2,h-2); ctx.clip();
+      ctx.fillStyle=tm==='orvat'?'rgba(255,140,60,.055)':'rgba(0,170,180,.07)'; ctx.fillRect(p.x-w/2,p.y-h/2,w,h);
+      if(tm==='orvat'){
+        if(t2>0.80){          // grigliato di scolo: tre fessure parallele
+          ctx.strokeStyle='rgba(0,0,0,.38)'; ctx.lineWidth=1; ctx.beginPath();
+          for(let i=-1;i<=1;i++){ ctx.moveTo(p.x-w*0.22+i*w*0.07,p.y-h*0.18-i*h*0.07); ctx.lineTo(p.x+w*0.16+i*w*0.07,p.y+h*0.18-i*h*0.07); }
+          ctx.stroke();
+        } else if(t2>0.66){   // macchia di fuliggine e olio
+          ctx.fillStyle='rgba(8,4,2,.15)'; ctx.beginPath(); ctx.ellipse(p.x+(t2-0.7)*w*0.7,p.y+(t2-0.7)*h*0.5,w*0.17,h*0.14,0.3,0,7); ctx.fill();
+        }
+      } else {
+        if(t2>0.82){          // pozza: acqua ferma, con un riflesso
+          ctx.fillStyle='rgba(0,206,209,.11)'; ctx.beginPath(); ctx.ellipse(p.x+(t2-0.86)*w*0.8,p.y+(t2-0.86)*h*0.6,w*0.19,h*0.15,0,0,7); ctx.fill();
+          ctx.strokeStyle='rgba(214,240,244,.22)'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(p.x-w*0.04,p.y-h*0.02,w*0.09,3.4,4.9); ctx.stroke();
+        } else if(t2>0.68){   // colature: righe oblique di bagnato
+          ctx.strokeStyle='rgba(200,236,242,.16)'; ctx.lineWidth=1; ctx.beginPath();
+          for(let i=0;i<3;i++){ ctx.moveTo(p.x-w*0.2+i*w*0.14,p.y-h*0.2+i*h*0.02); ctx.lineTo(p.x-w*0.05+i*w*0.14,p.y+h*0.18+i*h*0.02); }
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
     // decalcomanie deterministiche: la pavimentazione non è piatta
     const r=hash(gx,gy);
     if(r>0.55){
@@ -8858,7 +8960,7 @@ renderCodex();
     }
     // giunto
     diamond(p.x,p.y,w,h);
-    ctx.lineWidth=1; ctx.strokeStyle='rgba(255,176,0,.085)'; ctx.stroke();
+    ctx.lineWidth=1; ctx.strokeStyle=tm==='orvat'?'rgba(255,140,50,.10)':tm==='tarsis'?'rgba(0,206,209,.10)':'rgba(255,176,0,.085)'; ctx.stroke();
     return p;
   }
 
@@ -8958,6 +9060,38 @@ renderCodex();
      riferimento di scala per le pedine. Sta SOLO ai lati e sul fondo:
      davanti non mettiamo nulla, per non coprire mai l'azione. */
   const PROPS=[];
+  /* ═══ IDENTITÀ DI SETTORE ═══
+     Il campo giocabile ha una tavolozza TARATA (contrasto pedina/suolo misurato:
+     vedi la nota sulla rampa dell'acciaio) e NON si tocca: ogni casella, ogni
+     pedina, ogni segnale restano com'erano in tutti i settori. L'identità sta
+     SOLO fuori dalla lastra — scenografia, bordo, cordolo, polvere, vignetta —
+     cioè dove non ci sono informazioni di gioco da leggere.
+     ⚠ Due colori restano riservati, e nessun settore li usa per decorare:
+     il ROSSO di pericolo (il faro del `mast` e i telegrafi) e il VIOLA del
+     dimensionale (rift, corruzione). Il fuoco di Orvat è un ARANCIO ambra e
+     sta in cima alle ciminiere, mai a livello del suolo, dove l'incendio vero
+     è un'altra cosa; l'acqua di Tarsis è un TEAL spento, lo stesso dell'acqua
+     di gioco, quindi dice «qui c'è acqua» senza inventare un segnale nuovo.
+     `props` è una lista [soglia, tipo] in ordine decrescente: vale il primo
+     tipo con r > soglia. Per Cassandra riproduce ESATTAMENTE la tabella di
+     prima (stessa semina, stesse posizioni): chi la conosce non vede
+     differenze. */
+  const TEMA={
+    cassandra:{piastra:'#0a0d12',bordo:'rgba(255,176,0,.13)',cordolo:'rgba(255,176,0,.2)',zebra:'rgba(255,176,0,.13)',
+      polvere:{col:'#cfd8e0',n:14,vx:[-4,4],vy:[-9,-3],r:[.6,1.5],a:[.05,.18]},
+      vign:'rgba(4,6,10,.62)',
+      props:[[.90,'mast'],[.76,'tank'],[.60,'block'],[.50,'pipes'],[0,'wreck']]},
+    orvat:{piastra:'#0e0a08',bordo:'rgba(255,140,50,.22)',cordolo:'rgba(255,140,50,.28)',zebra:'rgba(255,140,50,.18)',
+      polvere:{col:'#ffb27a',n:20,vx:[-7,7],vy:[-24,-9],r:[.5,1.3],a:[.08,.26]},
+      vign:'rgba(12,5,2,.64)',
+      props:[[.90,'mast'],[.80,'ciminiera'],[.68,'forno'],[.58,'tank'],[.50,'pipes'],[0,'wreck']]},
+    tarsis:{piastra:'#080d10',bordo:'rgba(0,206,209,.20)',cordolo:'rgba(0,206,209,.28)',zebra:'rgba(0,206,209,.16)',
+      polvere:{col:'#a8e6ea',n:22,vx:[-3,3],vy:[7,20],r:[.5,1.4],a:[.07,.22]},
+      vign:'rgba(2,8,10,.64)',
+      props:[[.90,'pilone'],[.78,'diga'],[.64,'tank'],[.50,'pipes'],[0,'wreck']]},
+  };
+  const nomeTema=()=>{ const id=(typeof activeMission!=='undefined'&&activeMission&&activeMission.sector)||'cassandra'; return TEMA[id]?id:'cassandra'; };
+  const temaCampo=()=>TEMA[nomeTema()];
   function buildProps(){
     PROPS.length=0;
     const seed=((B.units?B.units.length:0)*7 + (B.water?B.water.size:0)*13
@@ -8985,7 +9119,7 @@ renderCodex();
     spots.forEach(([gx,gy])=>{
       const r=hash(Math.round(gx*13)+seed, Math.round(gy*7)+seed*3);
       if(r<0.40) return;                        // vuoti: non è un muro continuo
-      const kind = r>0.90?'mast' : r>0.76?'tank' : r>0.60?'block' : r>0.50?'pipes' : 'wreck';
+      const kind=(temaCampo().props.find(([soglia])=>r>soglia)||[0,'wreck'])[1];
       PROPS.push({gx,gy,kind,f:r});
     });
     PROPS.sort((a,b)=>(a.gx+a.gy)-(b.gx+b.gy));
@@ -9043,6 +9177,44 @@ renderCodex();
           ctx.strokeStyle=i?'#141b22':'#1b232c'; ctx.lineWidth=r*2;
           ctx.beginPath(); ctx.moveTo(p.x-w,yy); ctx.lineTo(p.x+w,yy+w*0.5); ctx.stroke();
         }
+      } else if(pr.kind==='ciminiera'){
+        /* Una canna alta e rastremata, con la fascia calda in cima e il fumo che
+           sale. Il fumo e' una funzione di tempo e posizione (niente random) e
+           con il movimento ridotto sta fermo a meta' salita. */
+        const w=TW*0.13, h=TW*(0.95+f*0.7);
+        poly([[p.x-w,p.y],[p.x-w*0.62,p.y-h],[p.x+w*0.62,p.y-h],[p.x+w,p.y]],'#141a21',2.4);
+        ctx.fillStyle='#0b1016'; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x+w,p.y); ctx.lineTo(p.x+w*0.62,p.y-h); ctx.lineTo(p.x,p.y-h); ctx.closePath(); ctx.fill();
+        ctx.fillStyle='rgba(255,140,50,.55)'; ctx.fillRect(p.x-w*0.62,p.y-h,w*1.24,Math.max(2,TW*0.035));
+        glow(p.x,p.y-h,TW*0.22,'rgba(255,140,50,.30)','rgba(255,140,50,0)',.8);
+        for(let k=0;k<4;k++){
+          const q=reduceMotion?(k+.5)/4:((t*0.16+k/4+f)%1);
+          ctx.globalAlpha=.30*(1-q); ctx.fillStyle='#2a2420';
+          ctx.beginPath(); ctx.arc(p.x+q*TW*0.18+Math.sin(q*5+f*9)*TW*0.03,p.y-h-q*TW*0.7,TW*(0.05+q*0.10),0,7); ctx.fill();
+        }
+        ctx.globalAlpha=1;
+      } else if(pr.kind==='forno'){
+        const w=TW*(0.28+f*0.08), h=TW*(0.26+f*0.2);
+        isoBox(p.x,p.y,w,h,'#1a1612','#100c09','#0a0705');
+        const pul=reduceMotion?.8:(.72+.28*Math.sin(t*2.3+f*11));
+        ctx.fillStyle=`rgba(255,150,50,${(.55*pul).toFixed(3)})`;               // la bocca del forno
+        ctx.fillRect(p.x-w*0.72,p.y-h*0.55,w*0.5,Math.max(2,h*0.16));
+        glow(p.x-w*0.45,p.y-h*0.5,TW*0.28,'rgba(255,150,50,.34)','rgba(255,150,50,0)',pul);
+      } else if(pr.kind==='pilone'){
+        const h=TW*(0.85+f*0.6), w=TW*0.07;
+        ctx.strokeStyle=outOra(); ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(p.x-w,p.y); ctx.lineTo(p.x,p.y-h); ctx.lineTo(p.x+w,p.y); ctx.stroke();
+        ctx.strokeStyle='#26343d'; ctx.lineWidth=1.8; ctx.beginPath(); ctx.moveTo(p.x-w,p.y); ctx.lineTo(p.x,p.y-h); ctx.lineTo(p.x+w,p.y); ctx.stroke();
+        ctx.strokeStyle='#1c2830'; ctx.lineWidth=1.2;
+        for(let i=1;i<5;i++){ const yy=p.y-h*(i/5), ww=w*(1-i/5); ctx.beginPath(); ctx.moveTo(p.x-ww,yy); ctx.lineTo(p.x+ww,yy-TW*0.03); ctx.stroke(); }
+        const pul=reduceMotion?.8:(.55+.45*Math.sin(t*1.4+f*8));                // fanale teal, lento: NON il rosso del pericolo
+        ctx.fillStyle=`rgba(0,206,209,${(.85*pul).toFixed(3)})`; ctx.beginPath(); ctx.arc(p.x,p.y-h,2.2,0,7); ctx.fill();
+        glow(p.x,p.y-h,8,'rgba(0,206,209,.45)','rgba(0,206,209,0)',.7*pul);
+      } else if(pr.kind==='diga'){
+        const w=TW*(0.42+f*0.1), h=TW*(0.20+f*0.12);
+        isoBox(p.x,p.y,w,h,'#18222a','#0f171d','#0a1015');
+        ctx.fillStyle='rgba(0,206,209,.10)';                                     // colature d'acqua sulla faccia
+        for(let i=0;i<4;i++){ if(hash(Math.round(pr.gx*7)+i,Math.round(pr.gy*5))<0.4)continue; ctx.fillRect(p.x-w*0.9+i*w*0.4,p.y-h*0.9,Math.max(1.4,w*0.06),h*0.9); }
+        ctx.strokeStyle='rgba(168,230,234,.22)'; ctx.lineWidth=1;                // labbro bagnato in cima
+        ctx.beginPath(); ctx.moveTo(p.x-w,p.y-h); ctx.lineTo(p.x,p.y-h+w/2); ctx.lineTo(p.x+w,p.y-h); ctx.stroke();
       } else {                                   // relitto
         const w=TW*(0.24+f*0.14), h=TW*(0.18+f*0.2);
         poly([[p.x-w,p.y],[p.x-w*0.5,p.y-h],[p.x+w*0.7,p.y-h*0.55],[p.x+w,p.y+w*0.2]],'#12181f',2.4);
@@ -9056,12 +9228,12 @@ renderCodex();
   function drawKerb(){
     const corners=[iso(-0.5,-0.5),iso(W-0.5,-0.5),iso(W-0.5,H-0.5),iso(-0.5,H-0.5)];
     ctx.save();
-    ctx.strokeStyle='rgba(255,176,0,.2)'; ctx.lineWidth=1.4;
+    ctx.strokeStyle=temaCampo().cordolo; ctx.lineWidth=1.4;
     ctx.beginPath();
     corners.forEach((c,i)=> i?ctx.lineTo(c.x,c.y):ctx.moveTo(c.x,c.y));
     ctx.closePath(); ctx.stroke();
     // tacche a zebra sui due lati di fondo
-    ctx.lineWidth=Math.max(1.5,TW*0.035); ctx.strokeStyle='rgba(255,176,0,.13)';
+    ctx.lineWidth=Math.max(1.5,TW*0.035); ctx.strokeStyle=temaCampo().zebra;
     for(let i=0;i<W*2;i++){
       const f=i/(W*2);
       const a={x:lerp(corners[0].x,corners[1].x,f), y:lerp(corners[0].y,corners[1].y,f)};
@@ -12008,6 +12180,48 @@ renderCodex();
     fx.push({t:'tracer',x0,y0,x1,y1,age:0,life:230,color:color||'#7fe9ec'});
   }
   function addDust(gx,gy){ const p=iso(gx,gy); fx.push({t:'ring',x:p.x,y:p.y+TH*0.1,age:0,life:280,color:'rgba(180,190,200,.5)',flat:true}); }
+  /* ═══ LE CONSEGUENZE SI VEDONO ═══
+     Il gioco esiste per far pagare le conseguenze (spinta, acqua, voragine,
+     collisione): vanno viste, non solo lette nel log. Ogni effetto qui nasce da
+     un fatto di STATO gia' noto allo schermo — `_causa` di chi muore, la
+     sorgente di un colpo, la spinta che sposta un'unita' — mai da una chiamata
+     nuova dalla logica: il confine resta dov'e'. Tutto e' breve (<650 ms) e
+     non blocca ne' ritarda niente. */
+  const isoDir=(dx,dy)=>Math.atan2((dx+dy)*TH/2,(dx-dy)*TW/2);
+  /* Il segno del colpo: tre tagli paralleli attraverso il bersaglio, nella
+     direzione da cui arriva. Dice CHI ha colpito chi meglio di una scintilla. */
+  function addSlash(gx,gy,dx,dy,color){
+    const p=iso(gx,gy); const ang=(dx||dy)?isoDir(dx,dy)+1.1:(hash(gx*5,gy*3)*6.28);
+    fx.push({t:'slash',x:p.x,y:p.y-TH*0.55,ang,age:0,life:230,color:color||'#ffe9b0'});
+    fx.push({t:'ring',x:p.x,y:p.y-TH*0.1,age:0,life:260,color:'rgba(255,233,176,.55)',flat:true});
+  }
+  /* Chi viene spinto lascia una scia dalla casella di partenza a quella d'arrivo
+     e una nuvola di polvere dove atterra: la spinta e' IL verbo del gioco. */
+  function addPushTrail(x0,y0,x1,y1){
+    const a=iso(x0,y0), b=iso(x1,y1);
+    fx.push({t:'streak',x0:a.x,y0:a.y-TH*0.45,x1:b.x,y1:b.y-TH*0.45,age:0,life:300});
+    if(reduceMotion)return;
+    for(let i=0;i<5;i++) fx.push({t:'puff',x:b.x+rnd(-TW*0.16,TW*0.16),y:b.y+TH*0.1,vx:rnd(-14,14),vy:rnd(-22,-6),r:TW*rnd(.05,.10),age:0,life:rnd(320,520)});
+  }
+  /* Chi annega: tre cerchi d'acqua che si aprono uno dopo l'altro e gocce che
+     salgono e ricadono. L'acqua e' la meccanica di Tarsis, e doveva fare rumore
+     anche a occhio. */
+  function addSplash(vx,vy){
+    const p=iso(vx,vy);
+    for(let i=0;i<3;i++) fx.push({t:'ring',x:p.x,y:p.y+TH*0.1,age:-i*110,life:520,color:i?'rgba(120,225,230,.55)':'rgba(214,244,246,.75)',flat:true});
+    for(let i=0;i<14;i++){ const a=rnd(-2.6,-0.55),sp=rnd(40,105);
+      fx.push({t:'spark',x:p.x+rnd(-TW*.08,TW*.08),y:p.y-TH*0.1,vx:Math.cos(a)*sp*0.55,vy:Math.sin(a)*sp,age:0,life:rnd(380,620),color:i%3?'#8fe4e8':'#e8fbfc'}); }
+    fx.push({t:'bloom',gx:vx,gy:vy,age:0,life:420,color:'rgba(120,225,230,.5)'});
+  }
+  /* Chi cade: la bocca della voragine si richiude su di lui (un'ellisse nera
+     che si stringe), polvere che sale, detriti che ricadono. */
+  function addAbyss(vx,vy){
+    const p=iso(vx,vy);
+    fx.push({t:'vortice',x:p.x,y:p.y,age:0,life:520});
+    for(let i=0;i<6;i++) fx.push({t:'puff',x:p.x+rnd(-TW*.12,TW*.12),y:p.y,vx:rnd(-10,10),vy:rnd(-34,-14),r:TW*rnd(.05,.11),age:0,life:rnd(420,700)});
+    for(let i=0;i<8;i++){ const a=rnd(-3,0),sp=rnd(20,60);
+      fx.push({t:'spark',x:p.x,y:p.y-TH*0.2,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,age:0,life:rnd(360,560),color:'#6b7380'}); }
+  }
   function addDeath(vx,vy,color){
     const p=iso(vx,vy);
     fx.push({t:'ring',x:p.x,y:p.y-TH*0.4,age:0,life:460,color:color||BRUISE});
@@ -12018,8 +12232,33 @@ renderCodex();
     for(let i=fx.length-1;i>=0;i--){
       const e=fx[i]; e.age+=dt*1000;
       const kk=e.age/e.life; if(kk>=1){ fx.splice(i,1); continue; }
+      if(kk<0) continue;                             // effetto ritardato: non e' ancora partito
       const al=1-kk;
-      if(e.t==='float'){
+      if(e.t==='slash'){
+        const L=TW*0.40, k=Math.min(1,kk*2.4), ca=Math.cos(e.ang), sa=Math.sin(e.ang), nx=-sa, ny=ca;
+        ctx.save(); ctx.globalAlpha=al; ctx.strokeStyle=e.color; ctx.lineCap='round';
+        for(let j=-1;j<=1;j++){
+          const ox=nx*j*TW*0.075, oy=ny*j*TW*0.075, x0=e.x+ox-ca*L, y0=e.y+oy-sa*L;
+          ctx.lineWidth=(j?1.4:2.8)*(1-kk*0.5);
+          ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x0+ca*L*2*k,y0+sa*L*2*k); ctx.stroke();
+        }
+        ctx.restore();
+      } else if(e.t==='streak'){
+        const g=ctx.createLinearGradient(e.x0,e.y0,e.x1,e.y1);
+        g.addColorStop(0,'rgba(220,230,240,0)'); g.addColorStop(1,`rgba(220,230,240,${(.55*al).toFixed(3)})`);
+        ctx.save(); ctx.strokeStyle=g; ctx.lineWidth=TW*0.10*al+1; ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(e.x0,e.y0); ctx.lineTo(e.x1,e.y1); ctx.stroke(); ctx.restore();
+      } else if(e.t==='puff'){
+        e.x+=e.vx*dt; e.y+=e.vy*dt;
+        ctx.save(); ctx.globalAlpha=.34*al; ctx.fillStyle='#c4ccd6';
+        ctx.beginPath(); ctx.arc(e.x,e.y,e.r*(1+kk*1.6),0,7); ctx.fill(); ctx.restore();
+      } else if(e.t==='vortice'){
+        const r=TW*0.34*(1-kk), cx=e.x, cy=e.y;
+        ctx.save(); ctx.globalAlpha=.9*(1-kk*.3); ctx.fillStyle='#02030a';
+        ctx.beginPath(); ctx.ellipse(cx,cy,Math.max(1,r),Math.max(.5,r*0.5),0,0,7); ctx.fill();
+        ctx.globalAlpha=al; ctx.strokeStyle='rgba(154,107,196,.6)'; ctx.lineWidth=1.6;
+        ctx.beginPath(); ctx.ellipse(cx,cy,Math.max(1,r*1.25),Math.max(.5,r*0.62),kk*3,0,5); ctx.stroke(); ctx.restore();
+      } else if(e.t==='float'){
         const p=iso(e.gx,e.gy);
         ctx.save(); ctx.globalAlpha=al;
         ctx.font=`700 ${Math.max(11,TW*0.24)}px ui-monospace,monospace`; ctx.textAlign='center';
@@ -12060,14 +12299,18 @@ renderCodex();
 
   /* -------------------------------------------------- polvere d'ambiente */
   const dust=[];
+  let dustTema=null;
   function drawDust(dt){
     if(reduceMotion) return;
-    while(dust.length<14) dust.push({x:rnd(0,cssW),y:rnd(0,cssH),vx:rnd(-4,4),vy:rnd(-9,-3),a:rnd(.05,.18),r:rnd(.6,1.5)});
+    const pv=temaCampo().polvere, nm=nomeTema();
+    if(dustTema!==nm){ dust.length=0; dustTema=nm; }     // cambio settore: le particelle del vecchio non restano
+    while(dust.length<pv.n) dust.push({x:rnd(0,cssW),y:rnd(0,cssH),vx:rnd(pv.vx[0],pv.vx[1]),vy:rnd(pv.vy[0],pv.vy[1]),a:rnd(pv.a[0],pv.a[1]),r:rnd(pv.r[0],pv.r[1])});
     ctx.save();
     for(const d of dust){
       d.x+=d.vx*dt; d.y+=d.vy*dt;
       if(d.y<-6){ d.y=cssH+4; d.x=rnd(0,cssW); }
-      ctx.globalAlpha=d.a; ctx.fillStyle='#cfd8e0';
+      else if(d.y>cssH+6){ d.y=-4; d.x=rnd(0,cssW); }   // la polvere di Tarsis cade (spruzzi), quella di Orvat sale (brace)
+      ctx.globalAlpha=d.a; ctx.fillStyle=pv.col;
       ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill();
     }
     ctx.restore();
@@ -12181,15 +12424,35 @@ renderCodex();
     disegnaTavola(tavolaTv,1);
   }
 
-  function disegnaTavola(tv,p){
-    const cvc=document.getElementById('comicCanvas'); if(!cvc||!tv) return;
+  /* La targa: il nome del settore stampato sul fotogramma d'apertura, come il
+     titolo di una sequenza. Scivola da sinistra con la stessa curva d'uscita
+     delle figure ed entra dopo che la scena si e' formata (da p=.35). E' puro
+     decoro — il titolo vero sta nel DOM, `#comicTitle` — quindi non porta
+     informazioni e il canvas resta senza testo di lettura. Spaziatura a mano:
+     `ctx.letterSpacing` non c'e' in tutti i browser. */
+  function targaTitolo(testo,x,y,w,h,p){
+    const e=eOut(fra(p,.35,.82)); if(e<=0.01)return;
+    const fs=Math.max(13,Math.min(24,w*0.058)), ls=fs*0.2, t=testo.toUpperCase();
+    ctx.save();
+    ctx.font=`700 ${fs}px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace`;
+    let tw=0; for(const c of t)tw+=ctx.measureText(c).width+ls;
+    const bx=x+14-(1-e)*28, by=y+h-fs*2.5, bw=tw+fs*1.3, bh=fs*1.7;
+    ctx.globalAlpha=e*.92; ctx.fillStyle='rgba(4,6,10,.82)'; ctx.fillRect(bx,by,bw,bh);
+    ctx.fillStyle='#ffb000'; ctx.fillRect(bx,by,3,bh);
+    ctx.globalAlpha=e; ctx.textBaseline='middle'; ctx.fillStyle='#ffb000';
+    let cx=bx+fs*0.7; for(const c of t){ ctx.fillText(c,cx,by+bh/2+1); cx+=ctx.measureText(c).width+ls; }
+    ctx.restore();
+  }
+
+  function disegnaTavola(tv,p,cvId){
+    const cvc=document.getElementById(cvId||'comicCanvas'); if(!cvc||!tv) return;
     const r=cvc.getBoundingClientRect();
-    const w=Math.max(200,r.width||420), h=Math.max(160,r.height||420);
+    const w=Math.max(200,r.width||420), h=Math.max(cvId?80:160,r.height||420);
     const dpr=Math.min(2,window.devicePixelRatio||1);
     /* ⚠ La tela si ridimensiona SOLO quando cambia misura. Assegnare `width`
        la azzera, e farlo a ogni frame vuol dire cancellare una tela che si sta
        per ridipingere da capo: costo doppio, nessun guadagno. */
-    if(tavolaW!==Math.round(w*dpr)||tavolaH!==Math.round(h*dpr)){
+    if(cvc.width!==Math.round(w*dpr)||cvc.height!==Math.round(h*dpr)){   // misura della tela vera: la tavola e la vignetta dell'esito non la dividono
       tavolaW=cvc.width=Math.round(w*dpr); tavolaH=cvc.height=Math.round(h*dpr);
     }
     const prevCtx=ctx, prevTW=TW, prevTH=TH;
@@ -12199,12 +12462,46 @@ renderCodex();
       ctx.clearRect(0,0,w,h);
       TW=64; TH=32;                        // la china si dimensiona su questi
       const pad=10, bw=w-pad*2, bh=h-pad*2;
-      // la vignetta: riquadro nero con cornice pesante, come una gabbia stampata
-      ctx.save();
-      ctx.beginPath(); ctx.rect(pad,pad,bw,bh); ctx.clip();
-      ctx.fillStyle='#0a0d12'; ctx.fillRect(pad,pad,bw,bh);
-      scena(tv.scena||'orizzonte', tv.chi||[], pad, pad, bw, bh, p===undefined?1:p);
-      ctx.restore();
+      /* La vignetta: riquadro nero con cornice pesante, come una gabbia stampata.
+         Una tavola puo' avere UNA vignetta o DUE strisce sovrapposte (`strisce`):
+         due momenti dello stesso istante — prima/dopo, causa/effetto — separati da
+         un canale nero. Ogni striscia e' una scena completa, solo piu' bassa:
+         le figure si rimpiccioliscono col fattore `k`. */
+      const strisce=(tv.strisce&&tv.strisce.length===2)?tv.strisce:null;
+      const el=(reduceMotion||!tavolaT0)?0:Math.max(0,(timeMS-tavolaT0)/1000);       // secondi dall'ingresso
+      const pp=p===undefined?1:p;
+      /* CAMERA. Un fumetto che si guarda sta fermo; un fumetto che si LEGGE ha
+         una camera che si avvicina piano. Spinta lenta dal fotogramma d'ingresso
+         (4% in 2,2 s) e poi un'avanzata quasi impercettibile (tetto +4,5% in piu'):
+         non e' un effetto, e' il motivo per cui l'occhio resta sulla tavola mentre
+         si legge la didascalia. Col movimento ridotto la tavola sta ferma. */
+      const cam=(rx,ry,rw,rh,dir)=>{
+        const z=1+(reduceMotion?0:0.04*eIO(fra(pp,0,1))+Math.min(0.045,el*0.004));
+        const cx=rx+rw/2, cy=ry+rh*0.62, dx=dir*rw*0.012*(reduceMotion?0:eIO(fra(pp,0,1))+Math.min(1,el*0.05));
+        ctx.translate(cx,cy); ctx.scale(z,z); ctx.translate(-cx+dx,-cy);
+      };
+      const dirDi=n=>((n||'').charCodeAt(0)+(n||'').length)%2?1:-1;
+      if(!strisce){
+        ctx.save(); ctx.beginPath(); ctx.rect(pad,pad,bw,bh); ctx.clip();
+        ctx.fillStyle='#0a0d12'; ctx.fillRect(pad,pad,bw,bh);
+        cam(pad,pad,bw,bh,dirDi(tv.scena));
+        scena(tv.scena||'orizzonte', tv.chi||[], pad, pad, bw, bh, pp);
+        ctx.restore();
+      } else {
+        const g=7, hS=(bh-g)/2, kS=Math.max(.5,hS/bh*1.3);
+        strisce.forEach((st,i)=>{
+          const sy=pad+i*(hS+g);
+          ctx.save(); ctx.beginPath(); ctx.rect(pad,sy,bw,hS); ctx.clip();
+          ctx.fillStyle='#0a0d12'; ctx.fillRect(pad,sy,bw,hS);
+          cam(pad,sy,bw,hS,i?-dirDi(st.scena):dirDi(st.scena));
+          scena(st.scena||'orizzonte', st.chi||[], pad, sy, bw, hS, pp, kS);
+          ctx.restore();
+          ctx.lineWidth=2.5; ctx.strokeStyle='#04060A'; ctx.strokeRect(pad,sy,bw,hS);
+        });
+        ctx.fillStyle='#04060A'; ctx.fillRect(pad,pad+hS,bw,g);
+        ctx.fillStyle='rgba(255,176,0,.22)'; ctx.fillRect(pad,pad+hS+g/2-.5,bw,1);
+      }
+      if(tv.titolo) targaTitolo(tv.titolo,pad,pad,bw,bh,pp);
       ctx.lineWidth=3.5; ctx.strokeStyle='#04060A';
       ctx.strokeRect(pad,pad,bw,bh);
       ctx.lineWidth=1; ctx.strokeStyle='rgba(255,176,0,.28)';
@@ -12237,8 +12534,9 @@ renderCodex();
      prezzo e un tetto: chi aggiunge uno strato qui rimisura, invece di
      appoggiarsi a una frase che nel frattempo è diventata falsa. */
 
-  function scena(nome,chi,x,y,w,h,p){
+  function scena(nome,chi,x,y,w,h,p,k){
     const t=timeMS/1000;
+    if(k===undefined)k=1;                  // fattore di scala delle figure: <1 nelle strisce
     if(p===undefined)p=1;
     const acqua=(nome==='bacino'||nome==='sorgente');   // le tavole di Tarsis: il suolo e' la linea d'acqua
     const suolo=y+h*(nome==='rivelazione'?0.94:nome==='studio'?0.90:acqua?0.68:0.76);
@@ -12277,7 +12575,7 @@ renderCodex();
     if(nome==='sorgente'){ crepa(x+w*0.5,y+h*0.03,h*0.50,1.4,crescita,t); alone(x+w*0.5,suolo-h*0.08,w*0.40,alonePw,t); }
 
     if(acqua)specchioAcqua(x,y,w,h,suolo,t); else suoloPiano(x,y,w,h,suolo,nome);
-    if(conf.scala>0) figure(chi,x,w,suolo,conf.scala,conf.fuoco,conf.taglio,t,nome,p);
+    if(conf.scala>0) figure(chi,x,w,suolo,conf.scala*k,conf.fuoco,conf.taglio,t,nome,p);
     if(acqua)acquaDavanti(x,y,w,h,suolo,t);
     foschia(x,y,w,suolo,conf.nebbia*nebbiaP);
     pulviscolo(x,y,w,suolo,nome,t);
@@ -12793,7 +13091,7 @@ renderCodex();
      chiede — questa è una console di contenimento, non una finestra.
      Gradiente e pattern si costruiscono una volta sola: rifarli a ogni frame
      costa più del disegno che decorano. */
-  let vign=null,vignW=0,vignH=0,scanPat=null,scanTried=false;
+  let vign=null,vignW=0,vignH=0,vignTema=null,scanPat=null,scanTried=false;
   let postfx=true;
   function scanPattern(){
     if(scanTried)return scanPat;
@@ -12810,14 +13108,14 @@ renderCodex();
     if(!cssW||!cssH)return;
     ctx.save();
     ctx.setTransform(DPR,0,0,DPR,0,0);
-    if(!vign||vignW!==cssW||vignH!==cssH){
-      vignW=cssW; vignH=cssH;
+    if(!vign||vignW!==cssW||vignH!==cssH||vignTema!==nomeTema()){
+      vignW=cssW; vignH=cssH; vignTema=nomeTema();
       vign=ctx.createRadialGradient(cssW/2,cssH*0.45,Math.min(cssW,cssH)*0.30,
                                     cssW/2,cssH*0.52,Math.max(cssW,cssH)*0.74);
       if(vign.addColorStop){
         vign.addColorStop(0,'rgba(0,0,0,0)');
         vign.addColorStop(0.62,'rgba(0,0,0,.18)');
-        vign.addColorStop(1,'rgba(4,6,10,.62)');
+        vign.addColorStop(1,temaCampo().vign);
       }
     }
     if(postfx){
@@ -12852,6 +13150,7 @@ renderCodex();
         u._scale=0; addBloom(u.x,u.y,TEAL); sfx('spawn');
       }
       if(u._lx!==undefined&&(u._lx!==u.x||u._ly!==u.y)){
+        if(timeMS-(u._pushT||-1e9)<600) addPushTrail(u._lx,u._ly,u.x,u.y);   // spinto: scia e polvere
         ensureVis(u);
         u._moveLen=Math.max(0.001,Math.hypot(u.x-u._vx,u.y-u._vy));
         const sdx=(u.x-u._lx)-(u.y-u._ly);
@@ -12870,7 +13169,16 @@ renderCodex();
     prevIds.forEach(id=>{
       if(cur.has(id)) return;
       const s=lastSeen.get(id);
-      if(s){ addDeath(s.vx,s.vy,s.kaucha?BRUISE:DANGER); shake=Math.max(shake,4.5); }
+      if(s){
+        /* La CAUSA decide il gesto: chi annega fa un tuffo, chi cade sparisce nella
+           voragine, tutti gli altri esplodono come prima. Si legge da `_causa`,
+           la stessa fonte del suono qui sotto. */
+        const m0=(B.units||[]).find(x=>x.id===id), causa0=m0&&m0._causa;
+        if(causa0==='acqua') addSplash(s.vx,s.vy);
+        else if(causa0==='voragine'||causa0==='bordo') addAbyss(s.vx,s.vy);
+        else addDeath(s.vx,s.vy,s.kaucha?BRUISE:DANGER);
+        shake=Math.max(shake,causa0==='acqua'?3:4.5);
+      }
       /* ⚠ Prima l'unità spariva nello stesso frame in cui moriva: restavano
          solo particelle in un punto dove non c'era più niente. Adesso resta
          addosso un `_morte` che il ciclo consuma, e per quel mezzo secondo
@@ -13339,6 +13647,15 @@ renderCodex();
     a._lgx=dx/len; a._lgy=dy/len; a._lunge=1;
   }
 
+  /* `_pushT` segna che QUESTO spostamento e' una spinta e non una camminata: la
+     scia (`addPushTrail`) parte solo cosi'. Un avvolgimento e non un'altra
+     chiamata dalla logica: `push()` resta com'e', e senza questo file gira
+     identica. */
+  const _push=window.push;
+  if(typeof _push==='function'){
+    window.push=function(t,dx,dy,src){ if(t&&typeof t==='object')t._pushT=timeMS; return _push.apply(this,arguments); };
+  }
+
   window.floatDmg=function(x,y,t){
     const shield=(t==='⛨');
     /* La detonazione della cisterna arriva qui col suo glifo: è il momento in
@@ -13367,7 +13684,16 @@ renderCodex();
       } else { u._hx=0; u._hy=0; }
     }
     if(shield) sfx('shield');
-    else { sfx('hit'); addSpark(x,y,'#ffd27f'); shake=Math.max(shake,2.4); }
+    else {
+      sfx('hit'); addSpark(x,y,'#ffd27f'); shake=Math.max(shake,2.4);
+      /* il taglio: solo se c'e' un'unita' colpita e un numero di danno (non il
+         glifo di una detonazione, che ha il suo lampo), orientato come il colpo.
+         Ambra-bianco se a colpire e' un mech, rosato se e' un Kaucha. */
+      if(u&&t!=='✸'){
+        const a=src?(typeof unitAt==='function'?unitAt(src.x,src.y):null):null;
+        addSlash(x,y,src?x-src.x:0,src?y-src.y:0,a&&!a.player?'#ffb0a4':'#ffe9b0');
+      }
+    }
   };
 
   window.go=function(id){
@@ -13444,6 +13770,22 @@ renderCodex();
 
   // gancio di collaudo (usato dai test headless)
   window.drawComicPanel=drawComicPanel;   // la logica la chiama per nome
+  /* La vignetta della schermata d'esito: stessa macchina delle tavole, una tela
+     sua, disegnata UNA volta (p=1) quando l'esito si apre. Dice com'e' andata
+     prima che tu legga: la squadra in piedi nella scena del settore se hai
+     vinto, la scena vuota e arrossata se hai perso, la squadra in grigio-ambra
+     se ti sei sganciato. Solo scene e tipi di unita', come le tavole. */
+  window.drawOutcomeArt=function(o){
+    const scene={cassandra:'schieramento',orvat:'cintura',tarsis:'bacino'}[o.sector]||'schieramento';
+    const chi=o.victory||o.retreat?squad.filter(id=>MECH_ART[id]).slice(0,3):[];
+    disegnaTavola({scena:scene,chi},1,'ovCanvas');
+    const cv=document.getElementById('ovCanvas'); if(!cv)return;
+    const g=cv.getContext('2d'), w=cv.width, h=cv.height;
+    g.save(); g.setTransform(1,0,0,1,0,0);
+    if(!o.victory&&!o.retreat){ g.fillStyle='rgba(120,10,10,.38)'; g.fillRect(0,0,w,h); }        // sconfitta: arrossata
+    else if(o.retreat){ g.fillStyle='rgba(60,50,20,.34)'; g.fillRect(0,0,w,h); }                  // ritirata: spenta
+    g.restore();
+  };
   /* ═══════════════════ ICONE ═══════════════════
      Disegnate dal motore, non caricate da file. Tre conseguenze, le stesse
      che valgono per le tavole:
@@ -13954,7 +14296,8 @@ renderCodex();
                  setCursor:(c)=>{ kbCell=c; },
                  get zoom(){return zoom;}, get TW(){return TW;},
                  setPan:(x,y)=>{panX=x;panY=y;clampPan();},
-                 fxCount:()=>fx.length, detect:detectDeltas,
+                 fxCount:()=>fx.length, fxTipi:()=>fx.map(e=>e.t), detect:detectDeltas,
+                 fxAdd:{addSplash,addAbyss,addSlash,addPushTrail},
                  restart:()=>{ stopLoop(); ensureLoop(); },
                  frameOnce:(t)=>{ timeMS=t||16; },
                  /* Ganci sulla tavola. `tavola(tv,p)` disegna un istante
