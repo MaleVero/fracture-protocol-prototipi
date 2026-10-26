@@ -13,7 +13,7 @@ const SCREENS = ['menu','missioni','hangar','codice','protocolli','ricerca','com
   for (const [vn, o] of Object.entries(VPS)) {
     const ctx = await browser.newContext(o); const page = await ctx.newPage();
     const errs = []; page.on('pageerror', e => errs.push(e.message));
-    await page.goto(URL); await page.waitForTimeout(600);
+    await page.goto(URL); await page.waitForTimeout(600); await page.evaluate(() => seenComic.add('hangar'));   // la tavola della prima apertura coprirebbe la schermata da misurare
     await page.evaluate(() => { RITMO = 0; });
     for (const sc of SCREENS) {
       if (sc === 'battle') await page.evaluate(() => { activeMission = MISSIONS[0]; startBattle(MISSIONS[0]); });

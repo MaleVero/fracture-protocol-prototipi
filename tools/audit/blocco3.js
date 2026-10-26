@@ -2,6 +2,8 @@
 //   node blocco3.js [shots]
 const C = require('./common'); const { chromium } = C.pw; const fs = require('fs');
 const SHOT = process.argv[2] === 'shots';
+const TAVOLE = ['orvat', 'tarsis', 'catena', 'hangar', 'lazyj', 'lazyj_simbiosi', 'lazyj_convergenza'];   // 19 tavole nuove in tutto
+const N_TAVOLE = 19;
 (async () => {
   let fail = 0; const check = (k, ok, x) => { if (!ok) fail++; console.log((ok ? '✓ ' : '✗ ') + k, x === undefined ? '' : (typeof x === 'string' ? x : JSON.stringify(x))); };
   const b = await chromium.launch({ executablePath: C.chromium });
@@ -52,8 +54,8 @@ const SHOT = process.argv[2] === 'shots';
     const c2 = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: rm });
     const q = await c2.newPage(); const e2 = []; q.on('pageerror', e => e2.push(e.message));
     await q.goto(C.URL); await q.waitForTimeout(500);
-    const nn = await q.evaluate(async () => { const out = []; for (const id of ['orvat', 'tarsis', 'catena']) { playComic(id, 'menu'); for (let i = 0; i < COMIC[id].tavole.length; i++) { await new Promise(r => setTimeout(r, 150)); out.push(id + ':' + document.getElementById('comicText').textContent.length); comicAdvance(); } } return out; });
-    check(`le 9 tavole nuove si disegnano e hanno testo (movimento: ${rm})`, nn.length === 9 && nn.every(s => +s.split(':')[1] > 60) && e2.length === 0, { nn, e2 });
+    const nn = await q.evaluate(async (TAVOLE) => { const out = []; for (const id of TAVOLE) { playComic(id, 'menu'); for (let i = 0; i < COMIC[id].tavole.length; i++) { await new Promise(r => setTimeout(r, 150)); const tx = document.getElementById('comicText').textContent; out.push(id + ':' + (/\\n/.test(tx) ? 0 : tx.length)); comicAdvance(); } } return out; }, TAVOLE);
+    check(`le 19 tavole nuove si disegnano e hanno testo (movimento: ${rm})`, nn.length === N_TAVOLE && nn.every(s => +s.split(':')[1] > 60) && e2.length === 0, { nn, e2 });
     await c2.close();
   }
 
@@ -61,8 +63,8 @@ const SHOT = process.argv[2] === 'shots';
   for (const [w, h] of [[320, 568], [844, 390]]) {
     const c3 = await b.newContext({ viewport: { width: w, height: h }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
     const q = await c3.newPage(); await q.goto(C.URL); await q.waitForTimeout(500);
-    const m = await q.evaluate(async () => { const out = []; for (const id of ['orvat', 'tarsis', 'catena']) { playComic(id, 'menu'); for (let i = 0; i < COMIC[id].tavole.length; i++) { await new Promise(r => setTimeout(r, 120)); const bt = document.getElementById('comicNext').getBoundingClientRect(); const cv = document.getElementById('comicCanvas').getBoundingClientRect(); out.push({ ox: document.documentElement.scrollWidth > innerWidth, h: Math.round(bt.height), canvasH: Math.round(cv.height), dentro: bt.right <= innerWidth && bt.left >= 0 }); comicAdvance(); } } return out; });
-    check(`tavole a ${w}×${h}: niente scorrimento orizzontale, pulsante >= 44 px, tela visibile`, m.length === 9 && m.every(x => !x.ox && x.h >= 44 && x.dentro && x.canvasH >= 100), m.map(x => x.h + '/' + x.canvasH).join(' '));
+    const m = await q.evaluate(async (TAVOLE) => { const out = []; for (const id of TAVOLE) { playComic(id, 'menu'); for (let i = 0; i < COMIC[id].tavole.length; i++) { await new Promise(r => setTimeout(r, 120)); const bt = document.getElementById('comicNext').getBoundingClientRect(); const cv = document.getElementById('comicCanvas').getBoundingClientRect(); out.push({ ox: document.documentElement.scrollWidth > innerWidth, h: Math.round(bt.height), canvasH: Math.round(cv.height), dentro: bt.right <= innerWidth && bt.left >= 0 }); comicAdvance(); } } return out; }, TAVOLE);
+    check(`tavole a ${w}×${h}: niente scorrimento orizzontale, pulsante >= 44 px, tela visibile`, m.length === N_TAVOLE && m.every(x => !x.ox && x.h >= 44 && x.dentro && x.canvasH >= 100), m.map(x => x.h + '/' + x.canvasH).join(' '));
     if (SHOT && w === 320) await q.screenshot({ path: C.OUT + '/b3-tavola-320.png' });
     await c3.close();
   }
@@ -129,6 +131,50 @@ const SHOT = process.argv[2] === 'shots';
   check('finale: se la tavola e\' gia\' stata vista azzera subito', !fin.dopoClick.schermata || fin.dopoClick.schermata !== 'comic' ? /schermata=/.test(fin.az || '') : false, fin);
   fin = await finale('persa');
   check('una campagna PERSA non mostra la tavola del finale', fin.dopoClick.schermata !== 'comic' && /schermata=/.test(fin.az || ''), fin);
+
+  // 5b. HANGAR: la tavola parte alla prima apertura, si salta tornando all'hangar, e non ritorna
+  const h1 = await p.evaluate(async () => {
+    RITMO = 0; seenComic.delete('hangar'); go('menu'); await new Promise(r => setTimeout(r, 100));
+    document.querySelector('#menulist .mitem[data-go="hangar"]').click(); await new Promise(r => setTimeout(r, 250));
+    const a = { schermata: document.querySelector('.screen.active').id, titolo: document.getElementById('comicTitle').textContent, visto: seenComic.has('hangar') };
+    document.getElementById('comicSkip').click(); await new Promise(r => setTimeout(r, 200));
+    a.dopo = document.querySelector('.screen.active').id;
+    go('menu'); document.querySelector('#menulist .mitem[data-go="hangar"]').click(); await new Promise(r => setTimeout(r, 200)); a.seconda = document.querySelector('.screen.active').id; return a;
+  });
+  check('Hangar: la prima apertura mostra la tavola, SALTA riporta all\'hangar, la seconda volta niente tavola', h1.schermata === 'comic' && /HANGAR/.test(h1.titolo) && h1.visto && h1.dopo === 'hangar' && h1.seconda === 'hangar', h1);
+  const h2 = await p.evaluate(() => { seenComic.delete('hangar'); const q = squad.slice(); playComic('hangar', 'hangar'); comicAdvance(); const t = document.getElementById('comicText').textContent; comicAdvance(); const t3 = document.getElementById('comicText').textContent; document.getElementById('comicSkip').click(); return { firme: q.every(id => t.includes((chassisById(id) || {}).name || '???')), piloti: PILOTS.every(x => t3.includes(x.name)), t }; });
+  check('Hangar: la tavola 2 elenca davvero la squadra schierata con le firme, la 3 i cinque piloti', h2.firme && h2.piloti && /REATTORE DA SCATTO/.test(h2.t), h2);
+
+  // 5c. LAZY J: le tavole scattano dopo il resoconto, in coda, una volta sola
+  const lj = async (ris, preseen) => {
+    const q = await (await b.newContext({ viewport: { width: 1000, height: 700 }, reducedMotion: 'reduce' })).newPage(); const e4 = []; q.on('pageerror', e => e4.push(e.message));
+    await q.goto(C.URL); await q.waitForTimeout(500);
+    const r = await q.evaluate(async ([ris, preseen]) => {
+      RITMO = 0; seenComic.add('hangar'); ['palinsesto', 'cassandra'].forEach(x => seenComic.add(x)); preseen.forEach(x => seenComic.add(x));
+      risonanza = ris; activeMission = nodeOf('m1'); startBattle(activeMission); await new Promise(r => setTimeout(r, 500));
+      const t = document.getElementById('txOk'); if (t) t.click();
+      const k0 = kauchas()[0]; const prima = risonanza; const ok = await usaIntervento('scossa', { x: k0.x, y: k0.y });
+      B.units.forEach(u => { if (!u.player && !u.structure) u.hp = 0; }); checkEnd(); await new Promise(r => setTimeout(r, 400));
+      const out = { ok, coda: comicCoda.slice(), pending: comicPending, band: bandaIdx(), titoli: [] };
+      document.getElementById('ovBtn').click(); await new Promise(r => setTimeout(r, 300));
+      for (let g = 0; g < 6 && document.querySelector('.screen.active').id === 'comic'; g++) {
+        out.titoli.push(document.getElementById('comicTitle').textContent);
+        const n = COMIC[Object.keys(COMIC).find(id => COMIC[id].titolo === document.getElementById('comicTitle').textContent)].tavole.length;
+        for (let i = 0; i < n; i++) { document.getElementById('comicNext').click(); await new Promise(r => setTimeout(r, 60)); }
+        await new Promise(r => setTimeout(r, 120));
+      }
+      out.finale = document.querySelector('.screen.active').id; out.visti = ['lazyj', 'lazyj_simbiosi', 'lazyj_convergenza'].filter(x => seenComic.has(x)); return out;
+    }, [ris, preseen]);
+    r.e4 = e4; await q.context().close(); return r;
+  };
+  let l = await lj(0, []);
+  check('Lazy J: il primo intervento accoda la tavola «Chi guida»; dopo il resoconto si vede e si torna alla mappa', l.ok && l.coda.join() === 'lazyj' && l.titoli.length === 1 && /CHI GUIDA/.test(l.titoli[0]) && l.finale === 'missioni' && l.e4.length === 0, l);
+  l = await lj(0, ['lazyj']);
+  check('Lazy J: gia\' vista, non ritorna', l.ok && l.coda.length === 0 && l.titoli.length === 0 && l.finale === 'missioni', l);
+  l = await lj(55, ['lazyj']);
+  check('Lazy J: alla banda SIMBIOSI scatta la sua tavola (una sola)', l.coda.join() === 'lazyj_simbiosi' && l.titoli.length === 1 && /SIMBIOSI/.test(l.titoli[0]) && l.finale === 'missioni', l);
+  l = await lj(88, []);
+  check('Lazy J: a CONVERGENZA con tutto da vedere si accodano le tre, in ordine, e poi si torna alla mappa', l.coda.join() === 'lazyj,lazyj_simbiosi,lazyj_convergenza' && l.titoli.length === 3 && l.finale === 'missioni' && l.visti.length === 3, l);
 
   // 6. nessuna rete, nessun errore
   check('nessun errore JavaScript o di console', errs.length === 0, errs);

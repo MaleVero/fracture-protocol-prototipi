@@ -8,7 +8,7 @@ const SHOT = process.argv[2] === 'shots';
   const ctx = await b.newContext({ viewport: { width: 1100, height: 760 } });
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   let fail = 0; const check = (k, ok, x) => { if (!ok) fail++; console.log((ok ? '✓ ' : '✗ ') + k, x === undefined ? '' : (typeof x === 'string' ? x : JSON.stringify(x))); };
-  await p.goto(C.URL); await p.waitForTimeout(700);
+  await p.goto(C.URL); await p.waitForTimeout(700); await p.evaluate(() => seenComic.add('hangar'));   // idem: la tavola della prima apertura coprirebbe l'hangar
 
   // 1. nomi accessibili su ogni schermata
   const senzaNome = await p.evaluate(async () => {

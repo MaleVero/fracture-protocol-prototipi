@@ -51,3 +51,30 @@ schermo **taglia la cima senza possibilità di scorrere**; ora si centra col mar
   partita reale.
 - Il disegno è tutto da codice (un file): niente texture né immagini; una pittura più ricca richiederebbe di
   cambiare questo vincolo.
+
+## Aggiunta (0.12.0) — tavole dell'hangar e di Lazy J
+- **Hangar (`hangar`, 3 tavole)**: scatta alla prima apertura dalla voce di menu HANGAR. Scena nuova `baia`: parete a
+  nervature, portone con banda di pericolo, travi e cavi del carroponte che oscillano, due coni di luce da lavoro,
+  banda gialla e nera sul pavimento. Ambra su acciaio freddo, nessun teal né viola: è casa. Il testo legge lo stato:
+  la tavola 2 elenca la squadra schierata con le firme vere, la 3 i cinque piloti veri.
+- **Lazy J (`lazyj`, `lazyj_simbiosi`, `lazyj_convergenza`)**: la prima quando fa il primo intervento (q=0, uomo in
+  tuta), la seconda alla prima volta in banda SIMBIOSI (un braccio cede, tre dita lunghe), la terza a CONVERGENZA (la
+  maschera ossea si chiude, la visiera resta). Usano la **stessa figura del pannello** (`artLazyJ`, tipo `lazyj:<q>` nelle
+  tavole). Scattano dopo il resoconto, in **coda** (`playCoda`): più tavole nella stessa missione si vedono una dopo
+  l'altra, poi si torna alla mappa. Ho verificato i fatti sul codice: gli interventi e le bande (GUSCIO a INNESTO, STRAPPO a
+  SIMBIOSI), 440 THz, 2 adattamenti per evoluzione a SIMBIOSI e 3 a CONVERGENZA, tratto al livello 2 e maestria al 3.
+- **Fair play**: nessuna tavola dice ciò che l'ARCHIVIO sa. La voce di K-OS e quella di Varga restano dove stanno, nelle
+  trasmissioni; qui compare solo ciò che il giocatore può già osservare.
+- Trovato e corretto durante il lavoro: nella tavola la figura di Lazy J veniva disegnata due volte (contorno di luce in
+  `lighter`), come un fantasma; ora il contorno è solo per telai e creature.
+- Test: `blocco3.js` ora 25 controlli (19 tavole si disegnano, a 320 px e in orizzontale; apertura hangar; coda di
+  Lazy J in quattro casi). `ui.js` e `a11y.js` segnano la tavola dell'hangar come già vista, o coprirebbe la schermata
+  da misurare.
+
+## ⚠ Trovato, NON corretto: lo SFOGO della risonanza non viene mai applicato
+`sfogaRisonanza()` (riga ~2095) è definita ma **non è chiamata da nessuna parte**: chiudere una missione senza usare
+Lazy J non fa scendere la risonanza di 6 come dice il commento di progetto («la rinuncia diventa una mossa»). Oggi la
+barra è un cricchetto a senso unico, esattamente il difetto che lo SFOGO doveva evitare. Non l'ho corretto perché cambia
+il bilanciamento (le misure di `RAPPORTO-BLOCCHI-1-2.md` assumono la barra che non scende), e ho tolto la frase dalla
+tavola `lazyj` perché sarebbe stata falsa. Va deciso: chiamarla in `finish()` (e rimisurare) oppure togliere il
+commento.

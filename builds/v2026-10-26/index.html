@@ -1372,7 +1372,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.11.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.12.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -2058,6 +2058,7 @@ let tend={push:0,drown:0,ranged:0,defense:0};
    a essa: alla banda più alta lui e l'Araldo si somigliano. Vedi docs/TRAMA.md. */
 let risonanza=0;                       // 0..100, campagna lunga, persistita
 let risonanzaUsata=false;              // in questa missione ha già agito?
+let interventoFatto=false;             // ha usato un intervento DAVVERO in questa missione (serve alla tavola della prima volta)
 
 /* Le bande. ⚠ La banda serve DUE volte, e non è un caso: apre gli interventi
    forti e accelera la nemesi. Potenza ed esposizione sono lo stesso quadrante,
@@ -2162,6 +2163,7 @@ async function usaIntervento(key,ber){
   const ok=await i.applica(ber||{});
   if(!ok)return false;
   alzaRisonanza(i.costo);
+  interventoFatto=true;
   bRender();
   return true;
 }
@@ -2929,7 +2931,7 @@ function buildMenu(){
     <span class="chev">›</span></button>`).join("");
   qsa("#menulist .mitem").forEach(b=>b.addEventListener("click",()=>{
     const id=b.dataset.go;
-    if(id==="hangar"){activeMission=null;renderHangar();}
+    if(id==="hangar"){activeMission=null;renderHangar();if(maybeComic("hangar","hangar"))return;}
     if(id==="protocolli")renderProtocols();
     if(id==="comando")renderComando();
     if(id==="opzioni")renderOpzioni();
@@ -3599,6 +3601,74 @@ const COMIC={
        }},
     ]},
 
+  /* LA BAIA — scatta la prima volta che apri l'Hangar. Tre tavole sul posto dove i
+     telai aspettano: cos'e', cosa significa «firma», chi li porta. La seconda legge
+     la tua squadra schierata (nomi e firme veri), la terza i piloti veri: niente
+     di cio' che dice e' scritto a mano due volte. Nessun volto: i piloti restano
+     nomi, soprannomi e una riga di biografia, come nel gioco. */
+  hangar:{
+    titolo:"HANGAR · BAIA 7",
+    tavole:[
+      {scena:"baia",chi:[],titolo:"Baia 7",chi_dice:"OFFICINA · BAIA 7",
+       testo:"La baia sette tiene i telai che nessun altro reparto voleva. Acciaio fatto per scavare, adattato a spingere: otto scheletri, ognuno con un'asimmetria che i meccanici hanno smesso di correggere.\n\nNessuno somiglia a un altro. È voluto, e non lo ha deciso il Comando."},
+      {scena:"baia",chi:()=>squad.slice(0,3),chi_dice:"OFFICINA · FIRME",
+       testo:()=>{
+         const righe=squad.map(id=>{ const c=chassisById(id); const f=FIRME[id]; return c?(c.name+(f?" — "+f.nm:"")):null; }).filter(Boolean);
+         return "I moduli si comprano e si scambiano. La FIRMA no: nasce col telaio, non si smonta, non ce l'ha nessun altro.\n\n"+
+           (righe.length?"In squadra, adesso:\n"+righe.join("\n")+"\n\n":"")+
+           "È la ragione per cui portate QUEL mech e non un altro con gli stessi numeri.";
+       }},
+      {scena:"baia",chi:[],strisce:[{scena:"baia",chi:["aegis","lancer"]},{scena:"baia",chi:["varango","spettro"]}],chi_dice:"COMANDO CASSANDRA",
+       testo:()=>{
+         const n=PILOTS.map(q=>q.name+" («"+q.call+"»)");
+         return "Poi ci sono i piloti: "+n.slice(0,-1).join(", ")+" e "+n[n.length-1]+".\n\n"+
+           "Del quinto il Comando non ha un fascicolo. Cresce come gli altri: prima un tratto, poi una maestria. Ogni pilota cambia ciò che il telaio sa fare.\n\n"+
+           "Quando scegliete chi sale su cosa, scegliete anche cosa siete disposti a perdere.";
+       }},
+    ]},
+
+  /* LAZY J — tre tavole che seguono l'arco della RISONANZA: la prima volta che
+     interviene (e' ancora un uomo), la prima volta che raggiunge SIMBIOSI (il
+     braccio sinistro cede), la prima volta che raggiunge CONVERGENZA (la maschera
+     si chiude). La figura e' quella del pannello, a q=0 / .55 / 1: l'arco si vede
+     addosso a lui, e cosi' qui come li' il viola e' lecito perche' lui E' in parte
+     dimensionale. ⚠ Nessuna tavola dice cio' che l'ARCHIVIO sa: il fair play del
+     gioco regge sul fatto che il giocatore potesse accorgersene dal silenzio di
+     chi sapeva, non da una didascalia che lo spiega.
+     Scattano come `palinsesto`: dopo il resoconto, mai dentro la missione. */
+  lazyj:{
+    titolo:"LAZY J · CHI GUIDA",
+    tavole:[
+      {scena:"studio",chi:["lazyj:0"],titolo:"Lazy J",chi_dice:"ARCHIVIO · LAZY J",
+       testo:"Non è un pilota e non sta sulla griglia. Quando la squadra scende, lui resta dove nessuno lo vede e ascolta: percepisce ogni vibrazione nel raggio di cinquecento metri, e nessun telaio ha una gittata simile.\n\nQuasi umano. È la parola che il referto usa, e per ora è esatta."},
+      {scena:"studio",chi:[],strisce:[{scena:"schieramento",chi:["jaeger","behemoth","nullangel"]},{scena:"studio",chi:["lazyj:0"]}],chi_dice:"COMANDO CASSANDRA",
+       testo:"Ha tre interventi, e nessuno è un'arma. SCOSSA NERA spinge un Kaucha in qualunque casella, senza fargli danno. GUSCIO fa incassare a lui il colpo destinato a un mech. STRAPPO cava a un Kaucha l'adattamento che lo rendeva imbattibile.\n\nSono cose che la griglia non può fare. Si sbloccano mano a mano che la risonanza sale."},
+      {scena:"varco",chi:["lazyj:0"],chi_dice:"ANALISI TATTICA",
+       testo:()=>"Ogni intervento alza la RISONANZA: adesso "+Math.round(risonanza)+" su 100. Il valore vale 440 THz, la frequenza dei Kaucha di rango nobile.\n\nPiù sale, più lui è forte, e più l'alveare lo nota. È la stessa barra: potenza ed esposizione. La muovete solo voi."},
+    ]},
+  lazyj_simbiosi:{
+    titolo:"LAZY J · SIMBIOSI",
+    tavole:[
+      {scena:"studio",chi:["lazyj:0.55"],titolo:"Simbiosi",chi_dice:"ANALISI TATTICA",
+       testo:"Un braccio non risponde più a lui: risponde alla biomassa. Tre dita lunghe al posto della mano, e filamenti che escono dalla sagoma.\n\nL'altro è ancora suo, e resta umano a ogni banda: serve a ricordare con cosa si sta confrontando il resto."},
+      {scena:"studio",chi:[],strisce:[{scena:"studio",chi:["lazyj:0.55"]},{scena:"rivelazione",chi:["palinsesto"]}],chi_dice:"COMANDO CASSANDRA",
+       testo:()=>{
+         const n=nemesis.adaptations.length;
+         return "Il guscio è suo quanto la pelle. Il Comando lo ha scritto come «cedimento strutturale» e ha smesso di firmare i rapporti con quella parola.\n\nLa nemesi si adatta ai suoi verbi: ogni sua evoluzione porta ora due adattamenti invece di uno. "+(n?"Ne ha già "+n+": "+nemesis.adaptations.map(a=>ADAPT[a]?ADAPT[a].name:a).join(", ")+".":"Per ora è ancora in forma base.")+" STRAPPO adesso è sbloccato: è l'unico gesto con cui le togliete qualcosa invece di subire.";
+       }},
+    ]},
+  lazyj_convergenza:{
+    titolo:"LAZY J · CONVERGENZA",
+    tavole:[
+      {scena:"studio",chi:["lazyj:1"],titolo:"Convergenza",chi_dice:"ANALISI TATTICA",
+       testo:"La maschera ossea si è chiusa sul viso. La visiera è rimasta: è l'ultima cosa che il referto riconosce come sua.\n\nPiù kaucha che uomo. Il Comando non lo scrive più; lo registra e passa oltre."},
+      {scena:"studio",chi:[],strisce:[{scena:"studio",chi:["lazyj:1"]},{scena:"rivelazione",chi:["palinsesto"]}],chi_dice:"COMANDO CASSANDRA",
+       testo:()=>{
+         const n=nemesis.adaptations.length;
+         return "Ogni evoluzione della nemesi, adesso, porta tre adattamenti invece di uno: "+(n?"ne ha già "+n+" e comincia a somigliargli.":"non ne ha ancora, ma comincia a somigliargli.")+"\n\nÈ il prezzo della risonanza, ed è la stessa barra che gli dà i suoi poteri: avete alzato da soli la difficoltà del vostro antagonista, e lo sapevate mentre lo facevate.\n\nSe è stata una scelta, è stata vostra.";
+       }},
+    ]},
+
   /* ORVAT — la cintura industriale. Stessa regola di Tarsis: scatta alla prima
      apertura della scheda del settore (il guardiano di Cassandra l'ha appena
      annunciato). Tre tavole, tre voci: l'archivio dice cos'era, l'analisi dice
@@ -3675,6 +3745,9 @@ const seenComic=new Set();
 let comicNow=null,comicIdx=0,comicBack="menu",comicFine=null;
 /* La sequenza che il resoconto ha messo in coda: si consuma uscendo di lì. */
 let comicPending=null;
+/* Le tavole in coda dopo un resoconto: piu' di una puo' scattare nella stessa missione
+   (il guardiano e SIMBIOSI, la prima apparizione di PALINSESTO e il primo intervento). */
+let comicCoda=[];
 
 function playComic(id,dopo,fine){
   const c=COMIC[id]; if(!c)return false;
@@ -3697,6 +3770,14 @@ function comicAdvance(){
 }
 /* `fine` e' per le sequenze che non tornano a una schermata ma a un'azione (il
    finale: dopo la tavola la campagna si azzera). Se c'e', sostituisce il `go`. */
+/* Gioca la prima tavola non ancora vista della lista e, finita, la successiva; solo
+   alla fine torna alla schermata. Restituisce false se non c'era niente da mostrare. */
+function playCoda(ids,dopo){
+  const i=ids.findIndex(id=>COMIC[id]&&!seenComic.has(id));
+  if(i<0)return false;
+  const resto=ids.slice(i+1);
+  return playComic(ids[i],dopo,()=>{ if(!playCoda(resto,dopo))go(dopo); });
+}
 function comicEnd(){
   comicNow=null;
   const f=comicFine; comicFine=null;
@@ -4682,7 +4763,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.11.0";
+const BUILD_VER="0.12.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -7990,6 +8071,14 @@ function finish(victory,reason,retreat){
   if(victory&&m.boss&&m.sector===lastSector())comicPending="catena";
   else if(victory&&m.boss)comicPending="guardiano";
   else if(nemesisOnField()&&!seenComic.has("palinsesto"))comicPending="palinsesto";
+  /* Le tavole di LAZY J, dopo la principale e solo se non si sono mai viste. Si
+     decidono QUI per la stessa ragione: la banda e l'intervento vanno letti
+     mentre lo stato e' quello della missione appena chiusa. */
+  comicCoda=[];
+  if(interventoFatto&&!seenComic.has("lazyj"))comicCoda.push("lazyj");
+  if(bandaIdx()>=2&&!seenComic.has("lazyj_simbiosi"))comicCoda.push("lazyj_simbiosi");
+  if(bandaIdx()>=3&&!seenComic.has("lazyj_convergenza"))comicCoda.push("lazyj_convergenza");
+  interventoFatto=false;
 
   $("ovTitle").textContent=victory?"ZONA CONTENUTA":retreat?"RITIRATA TATTICA":"PROTOCOLLO FALLITO";
   $("ovTitle").className=victory?"":retreat?"retreat":"defeat";
@@ -8185,7 +8274,8 @@ $("ovBtn").addEventListener("click",()=>{
      schermata di fine missione competerebbe con le ricompense; una prima
      della missione dopo si legge come un caricamento. */
   const inSospeso=comicPending;comicPending=null;
-  if(inSospeso&&maybeComic(inSospeso,"missioni"))return;
+  const coda=(inSospeso?[inSospeso]:[]).concat(comicCoda); comicCoda=[];
+  if(playCoda(coda,"missioni"))return;
   go("missioni");});
 $("ovCodexBtn").addEventListener("click",()=>{backTo="outcome";renderCodex();go("codice");});
 
@@ -12539,7 +12629,7 @@ renderCodex();
     if(k===undefined)k=1;                  // fattore di scala delle figure: <1 nelle strisce
     if(p===undefined)p=1;
     const acqua=(nome==='bacino'||nome==='sorgente');   // le tavole di Tarsis: il suolo e' la linea d'acqua
-    const suolo=y+h*(nome==='rivelazione'?0.94:nome==='studio'?0.90:acqua?0.68:0.76);
+    const suolo=y+h*(nome==='rivelazione'?0.94:nome==='studio'?0.90:nome==='baia'?0.82:acqua?0.68:0.76);
     const conf={   // inquadratura per situazione: angolo, scala, dove guarda
       orizzonte:   {citta:1.0, scala:0,    fuoco:.45, nebbia:.9,  taglio:'#8fb0d8'},
       varco:       {citta:0.55,scala:2.10, fuoco:.50, nebbia:1.0, taglio:'#a98fd0'},
@@ -12549,6 +12639,7 @@ renderCodex();
       caduta:      {citta:0.6, scala:3.60, fuoco:.50, nebbia:1.1, taglio:'#00ced1'},
       trofeo:      {citta:0.0, scala:1.75, fuoco:.50, nebbia:.4,  taglio:'#ffb000'},
       corridoio:   {citta:1.1, scala:0,    fuoco:.50, nebbia:1.0, taglio:'#ffb000'},
+      baia:        {citta:0,   scala:2.60, fuoco:.50, nebbia:.5,  taglio:'#ffb000'},
       cintura:     {citta:1.15,scala:2.40, fuoco:.50, nebbia:1.1, taglio:'#ff9a3c'},
       bacino:      {citta:0.8, scala:2.50, fuoco:.50, nebbia:1.2, taglio:'#00ced1'},
       sorgente:    {citta:0.35,scala:3.00, fuoco:.50, nebbia:1.5, taglio:'#00ced1'},
@@ -12564,6 +12655,7 @@ renderCodex();
     const nebbiaP =eOut(fra(p,0,.90));        // la foschia che chiude il fondo
 
     cielo(x,y,w,h,suolo,nome);
+    if(nome==='baia') hangarFondo(x,y,w,h,suolo,t,p);
     if(nome==='studio'||nome==='trofeo') griglia(x,y,w,suolo);
     if(conf.citta>0) citta(x,y,w,suolo,conf.citta,p,t);
     if(nome==='cintura') ciminiere(x,y,w,suolo,t,p);
@@ -12575,6 +12667,7 @@ renderCodex();
     if(nome==='sorgente'){ crepa(x+w*0.5,y+h*0.03,h*0.50,1.4,crescita,t); alone(x+w*0.5,suolo-h*0.08,w*0.40,alonePw,t); }
 
     if(acqua)specchioAcqua(x,y,w,h,suolo,t); else suoloPiano(x,y,w,h,suolo,nome);
+    if(nome==='baia') hangarPiano(x,y,w,h,suolo,t,p);
     if(conf.scala>0) figure(chi,x,w,suolo,conf.scala*k,conf.fuoco,conf.taglio,t,nome,p);
     if(acqua)acquaDavanti(x,y,w,h,suolo,t);
     foschia(x,y,w,suolo,conf.nebbia*nebbiaP);
@@ -12585,7 +12678,7 @@ renderCodex();
   /* Cielo a fasce, non a gradiente liscio: il gradiente è un rendering, le
      fasce sono una stampa. */
   function cielo(x,y,w,h,suolo,nome){
-    const scuro=(nome==='studio'||nome==='trofeo');
+    const scuro=(nome==='studio'||nome==='trofeo'||nome==='baia');
     const g=ctx.createLinearGradient(0,y,0,suolo);
     if(scuro){ g.addColorStop(0,'#080a0f'); g.addColorStop(1,'#0e1219'); }
     else if(nome==='cintura'){ g.addColorStop(0,'#0b0705'); g.addColorStop(.5,'#2b160b'); g.addColorStop(1,'#6a3212'); }
@@ -12661,6 +12754,66 @@ renderCodex();
       ctx.quadraticCurveTo(x+w*0.5,y0+16+c*7+Math.sin(t*0.42+c*1.3)*2.4,x+w+20,y0-4+c*3); ctx.stroke();
     }
     ctx.restore();
+  }
+
+  /* LA BAIA — l'hangar dove i telai aspettano. Non e' un posto all'aperto: ha un
+     soffitto, e la luce viene da sopra. Quattro strati, dal fondo al davanti:
+     la parete a nervature con il portone e la sua banda di pericolo; le travi del
+     carroponte con i cavi che oscillano; due coni di luce da lavoro (in `lighter`,
+     quindi illuminano e non coprono); e, dopo il pavimento, la banda gialla e nera
+     d'ingombro. Ambra su acciaio freddo: lo stesso accordo del resto del gioco
+     ("NOSTRO"), qui senza teal ne' viola — in questo posto non c'e' niente
+     dimensionale, ed e' per questo che lo si legge come casa. */
+  function hangarFondo(x,y,w,h,suolo,t,p){
+    const e=eOut(fra(p===undefined?1:p,0,.7));
+    // parete: nervature verticali e fasce orizzontali
+    ctx.save();
+    const wall=ctx.createLinearGradient(0,y,0,suolo); wall.addColorStop(0,'#0c1017'); wall.addColorStop(1,'#1b212b');
+    ctx.fillStyle=wall; ctx.fillRect(x,y,w,suolo-y);
+    ctx.strokeStyle='rgba(120,140,170,.10)'; ctx.lineWidth=1; ctx.beginPath();
+    for(let gx=x;gx<x+w+20;gx+=w/9){ ctx.moveTo(gx,y); ctx.lineTo(gx,suolo); }
+    for(let i=1;i<4;i++){ const gy=y+(suolo-y)*i/4; ctx.moveTo(x,gy); ctx.lineTo(x+w,gy); }
+    ctx.stroke();
+    // portone centrale con banda di pericolo in cima
+    const pw=w*0.30, px=x+w*0.5-pw/2, py=y+(suolo-y)*0.22;
+    ctx.fillStyle='#07090d'; ctx.fillRect(px,py,pw,suolo-py);
+    ctx.strokeStyle='rgba(255,176,0,.20)'; ctx.lineWidth=1.4; ctx.strokeRect(px,py,pw,suolo-py);
+    ctx.save(); ctx.beginPath(); ctx.rect(px,py,pw,7); ctx.clip();
+    for(let i=-2;i<pw/6+2;i++){ ctx.fillStyle=i%2?'rgba(255,176,0,.45)':'rgba(4,6,10,.9)'; ctx.beginPath(); ctx.moveTo(px+i*6,py+7); ctx.lineTo(px+i*6+6,py); ctx.lineTo(px+i*6+12,py); ctx.lineTo(px+i*6+6,py+7); ctx.fill(); }
+    ctx.restore();
+    // travi del soffitto: diagonali che convergono, e la rotaia del carroponte
+    ctx.strokeStyle='rgba(150,165,190,.16)'; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<7;i++){ const gx=x+w*i/6; ctx.moveTo(gx,y); ctx.lineTo(x+w*0.5+(gx-x-w*0.5)*0.55,y+(suolo-y)*0.20); }
+    ctx.stroke();
+    ctx.fillStyle='#05070b'; ctx.fillRect(x,y+(suolo-y)*0.17,w,5);
+    // cavi: tre, che oscillano appena e finiscono in un gancio
+    ctx.strokeStyle='rgba(5,7,11,.95)'; ctx.lineWidth=2;
+    [[.22,.42],[.55,.55],[.84,.36]].forEach(([fx,len],i)=>{
+      const cx=x+w*fx, sw=reduceMotion?0:Math.sin(t*0.7+i*2)*2.2, ly=y+(suolo-y)*(0.17+len*0.55*e);
+      ctx.beginPath(); ctx.moveTo(cx,y+(suolo-y)*0.19); ctx.quadraticCurveTo(cx+sw,(y+ly)/2,cx+sw*1.6,ly); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx+sw*1.6,ly+3,3.4,0,Math.PI,false); ctx.stroke();
+    });
+    // coni di luce da lavoro
+    ctx.globalCompositeOperation='lighter';
+    [[.30,.20],[.70,.20]].forEach(([fx,sp],i)=>{
+      const tx=x+w*fx, fl=reduceMotion?1:(.92+.08*Math.sin(t*3.1+i*1.7));
+      const g=ctx.createLinearGradient(0,y,0,suolo); g.addColorStop(0,`rgba(255,200,120,${(.20*fl*e).toFixed(3)})`); g.addColorStop(1,'rgba(255,176,0,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(tx-6,y); ctx.lineTo(tx+6,y); ctx.lineTo(tx+w*sp,suolo); ctx.lineTo(tx-w*sp,suolo); ctx.closePath(); ctx.fill();
+    });
+    ctx.restore();
+  }
+  function hangarPiano(x,y,w,h,suolo,t,p){
+    // banda d'ingombro: strisce oblique gialle e nere lungo il bordo davanti
+    const by=suolo+(y+h-suolo)*0.50, bh=Math.max(6,(y+h-suolo)*0.18);
+    ctx.save(); ctx.beginPath(); ctx.rect(x,by,w,bh); ctx.clip();
+    ctx.fillStyle='rgba(4,6,10,.85)'; ctx.fillRect(x,by,w,bh);
+    ctx.fillStyle='rgba(255,176,0,.38)';
+    for(let gx=x-bh;gx<x+w+bh;gx+=bh*2){ ctx.beginPath(); ctx.moveTo(gx,by+bh); ctx.lineTo(gx+bh,by); ctx.lineTo(gx+bh*2,by); ctx.lineTo(gx+bh,by+bh); ctx.fill(); }
+    ctx.restore();
+    // riflesso caldo sul pavimento, sotto i coni
+    ctx.save(); ctx.globalCompositeOperation='lighter';
+    const g=ctx.createRadialGradient(x+w*0.5,suolo+4,2,x+w*0.5,suolo+4,w*0.46); g.addColorStop(0,'rgba(255,176,0,.10)'); g.addColorStop(1,'rgba(255,176,0,0)');
+    ctx.fillStyle=g; ctx.fillRect(x,suolo-4,w,(y+h-suolo)+4); ctx.restore();
   }
 
   /* Le ciminiere di Orvat: tre sagome nere davanti alla città, con la fascia
@@ -12743,7 +12896,7 @@ renderCodex();
   }
 
   function suoloPiano(x,y,w,h,suolo,nome){
-    ctx.fillStyle=(nome==='studio'||nome==='trofeo')?'#090c11':'#0b0e14';
+    ctx.fillStyle=(nome==='studio'||nome==='trofeo'||nome==='baia')?'#090c11':'#0b0e14';
     ctx.fillRect(x,suolo,w,y+h-suolo);
     // fughe in prospettiva: danno la profondità del piano d'appoggio
     ctx.save(); ctx.strokeStyle='rgba(255,176,0,.055)'; ctx.lineWidth=1;
@@ -12775,7 +12928,12 @@ renderCodex();
     if(p===undefined)p=1;
     const uno=chi.length===1;
     chi.forEach((tipo,i)=>{
-      const art=MECH_ART[tipo]||K_ART[tipo];
+      /* LAZY J nella tavola: `lazyj:<q>` con q fra 0 (uomo) e 1 (convergenza), la
+         stessa figura del pannello e con la stessa regola — la banda si vede
+         addosso a lui. Non e' un mech ne' un Kaucha: niente luce di taglio da
+         acciaio e niente passaggio di dettaglio (sono ricette per telai e carne). */
+      const lj=/^lazyj/.test(tipo)?Math.max(0,Math.min(1,parseFloat(tipo.split(':')[1])||0)):-1;
+      const art=lj>=0?((tt)=>artLazyJ(tt,lj)):(MECH_ART[tipo]||K_ART[tipo]);
       if(!art)return;
       /* ⚠ Scaglionate. Tre mech che arrivano nello stesso istante si leggono
          come un solo oggetto in tre pezzi; sfalsati di un'inezia si leggono
@@ -12806,12 +12964,14 @@ renderCodex();
       ctx.scale(s,s);
       // luce di taglio: un contorno chiaro dal lato illuminato stacca la
       // figura dal fondale senza schiarirla
-      ctx.save(); ctx.globalAlpha=.85*e; ctx.translate(-2.2,-2.2);
-      ctx.globalCompositeOperation='lighter';
-      if(MECH_ART[tipo]) art(t, taglio); else art(t, i*1.7);
-      ctx.restore();
-      if(MECH_ART[tipo]) art(t, ACCENT[tipo]||AMBER); else art(t, i*1.7);
-      dettaglio(tipo,s,t);
+      if(lj<0){      // Lazy J non ha il contorno di luce: raddoppiato in `lighter` diventava un fantasma
+        ctx.save(); ctx.globalAlpha=.85*e; ctx.translate(-2.2,-2.2);
+        ctx.globalCompositeOperation='lighter';
+        if(MECH_ART[tipo]) art(t, taglio); else art(t, i*1.7);
+        ctx.restore();
+      }
+      if(lj>=0) art(t); else if(MECH_ART[tipo]) art(t, ACCENT[tipo]||AMBER); else art(t, i*1.7);
+      if(lj<0) dettaglio(tipo,s,t);
       ctx.restore();
     });
   }
@@ -12884,7 +13044,7 @@ renderCodex();
      ed è quello che distingue un'aria da uno sfondo. */
   function pulviscolo(x,y,w,suolo,nome,t){
     if(t===undefined)t=0;
-    const n=nome==='studio'?26:nome==='trofeo'?18:52;
+    const n=nome==='studio'?26:nome==='trofeo'?18:nome==='baia'?16:52;
     const alt=Math.max(1,Math.round(suolo-y));
     ctx.save();
     for(let i=0;i<n;i++){
@@ -12913,7 +13073,7 @@ renderCodex();
        che scorre di più. Al contrario si leggerebbe come un fondale. */
     const e=eOut(fra(p,0,.75));
     ctx.save(); ctx.fillStyle='#04060A';
-    if(nome==='studio'||nome==='trofeo'){
+    if(nome==='studio'||nome==='trofeo'||nome==='baia'){
       // quinta stretta: siamo in un hangar, non all'aperto
       const q=w*0.055*(1-e);
       ctx.fillRect(x-q,y,w*0.055,h); ctx.fillRect(x+w*0.945+q,y,w*0.055,h);
