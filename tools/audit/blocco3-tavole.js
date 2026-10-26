@@ -7,7 +7,7 @@ const C = require('./common'); const { chromium } = C.pw;
   const p = await ctx.newPage(); const errs = [];
   p.on('pageerror', e => errs.push(e.message));
   await p.goto(C.URL); await p.waitForTimeout(600);
-  for (const id of ['tarsis', 'catena']) {
+  for (const id of ['orvat', 'tarsis', 'catena']) {
     const n = await p.evaluate(i => { playComic(i, 'menu'); return COMIC[i].tavole.length; }, id);
     for (let k = 0; k < n; k++) {
       await p.waitForTimeout(250);

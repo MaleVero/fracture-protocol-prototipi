@@ -11,13 +11,13 @@
 - **NERIS ridisegnato**: non più «il Vorn con una pinna». Corpo allungato e liscio, coda a rondine, vela dorsale a tre
   raggi, due arti palmati, branchie, pelle teal (nel Vorn il teal è solo un accento). Letto sul campo a 3×: non si
   confonde con Vorn e Krull.
-- **Tavole a fumetti**: `tarsis` (apertura, scatta alla prima volta che si apre la scheda del settore; 3 tavole) e `catena`
+- **Tavole a fumetti**: `orvat` (apertura della cintura industriale, 3 tavole, scena nuova `cintura`: ciminiere, fumo, bagliore dei forni), `tarsis` (apertura, scatta alla prima volta che si apre la scheda del settore; 3 tavole) e `catena`
   (finale, fra il resoconto dell'ultimo guardiano e l'azzeramento della campagna; 3 tavole). Come le altre: una volta
   sola, sempre saltabili, vivono in `meta`. Testi con parti **lette dalla partita** (adattamenti di PALINSESTO, corpi
   riportati, innesti): il finale risponde con numeri veri alla domanda lasciata dalla tavola del guardiano di Cassandra.
   Due scene nuove nel motore delle tavole: `bacino` e `sorgente` (specchio d'acqua con riflesso e increspature,
   velatura alle caviglie), che rispettano `reduceMotion`.
-- **Tap target** dei pulsanti delle tavole portati a 44 px (erano 37: difetto che c'era già, trovato da `blocco3.js`).
+- **Tap target** dei pulsanti delle tavole portati a 44 px (erano 37: difetto che c'era già, trovato da `blocco3.js`) e SALTA non va più a capo quando il titolo è lungo.
 - Versione 0.10.0; indice, `build.json`, `provare.html` aggiornati.
 
 ## Misure (agente «esperto», caso peggiore: `--progress ultimo --nemesi 2 --ris 92`, 60 semi freschi, stessi semi)
@@ -52,12 +52,12 @@ meno di così, quindi la scelta è *la meno peggio*, confermata poi su 60 semi n
 - **Nuovo tipo di terreno**: ho scelto un nemico che usa una meccanica esistente invece di un terreno, perché un terreno
   nuovo tocca motore, telegrafia, generatore, disegno e accessibilità e *poi* va tarato: il costo è di un blocco intero, e
   il guadagno non è misurabile senza persone che giochino.
-- Musica o suoni per le tavole; una tavola per l'apertura di Orvat (c'è solo per Cassandra e Tarsis).
+- Musica o suoni per le tavole.
 
 ## Come verificare
 ```
 cd tools/audit
-node blocco3.js [shots]     # 14 controlli: registro, spinta in acqua, giroscopi, 6 tavole, 320 px, finale (3 casi)
+node blocco3.js [shots]     # 15 controlli: registro, spinta in acqua, giroscopi, 9 tavole, 320 px, finale (3 casi)
 node blocco3-tavole.js      # un PNG per tavola in out/ (diagnostica visiva)
 BUILD=<cartella-base> node sim.js --missions t1,t2,t3,t4,t5,t6,t7 --seeds 60 --seed0 100 --jobs 3 --progress ultimo --nemesi 2 --ris 92
 ```

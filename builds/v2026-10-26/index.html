@@ -458,11 +458,11 @@
      composizione ci finiva schiacciata dentro. */
   .comicwrap{width:100%;max-width:560px;margin:0 auto;min-height:100%;
     display:flex;flex-direction:column;justify-content:center;gap:10px;padding:12px 12px 16px;}
-  .comichead{display:flex;justify-content:space-between;align-items:center;
+  .comichead{display:flex;justify-content:space-between;align-items:center;gap:10px;
     font-size:calc(10px * var(--ts,1));letter-spacing:.18em;color:var(--bone-dim);}
   .comichead button,.comicfoot button{background:transparent;border:1px solid var(--bone-dim);
     color:var(--bone-dim);font-family:inherit;font-size:calc(10px * var(--ts,1));letter-spacing:.14em;
-    padding:7px 12px;cursor:pointer;min-height:44px;}   /* bersaglio di tocco minimo: prima 37 px, trovato dal blocco 3 */
+    padding:7px 12px;cursor:pointer;min-height:44px;white-space:nowrap;flex:0 0 auto;}   /* bersaglio di tocco minimo: prima 37 px, trovato dal blocco 3 */
   .comicfoot button{border-color:var(--amber);color:var(--amber);font-size:calc(11px * var(--ts,1));padding:11px 20px;}
   /* Il canvas è SOLO disegno. La didascalia sta fuori, nel DOM: dentro il
      canvas copriva due terzi della vignetta e il soggetto ci finiva dietro.
@@ -3537,6 +3537,27 @@ const COMIC={
          return "Con la Madre chiusa, il fronte si sposta"+(next?": "+next.nm+", "+next.sub+".":".")+
                 "\n\nE PALINSESTO è passata di là prima di voi. Non è fuggita — ha cambiato pagina.\n\n"+
                 "Domanda per l'archivio, da girare a chi verrà dopo: quanto si può prendere da loro prima che prendere sia diventata la cosa che ci ha cambiati?";
+       }},
+    ]},
+
+  /* ORVAT — la cintura industriale. Stessa regola di Tarsis: scatta alla prima
+     apertura della scheda del settore (il guardiano di Cassandra l'ha appena
+     annunciato). Tre tavole, tre voci: l'archivio dice cos'era, l'analisi dice
+     cosa e' cambiato nel bestiario, il comando dice cosa cambia per CHI GIOCA —
+     qui distruggere e' il compito, e le persone scendono da sole. L'ultima
+     legge la partita: PALINSESTO e' passata di qui prima di voi. */
+  orvat:{
+    titolo:"SETTORE ORVAT · CINTURA INDUSTRIALE",
+    tavole:[
+      {scena:"cintura",chi:[],chi_dice:"ARCHIVIO · ORVAT",
+       testo:"Orvat fondeva ciò che Cassandra costruiva. Migliaia di persone vivevano sotto le ciminiere perché sopra c'era sempre lavoro: colatoi, ponti, pozzi di ventilazione che non si fermavano nemmeno di notte.\n\nQuando la Spaccatura arrivò, i forni erano accesi. Lo sono ancora."},
+      {scena:"cintura",chi:["skorr","trahn","vrast"],chi_dice:"ANALISI TATTICA",
+       testo:"A Cassandra i Kaucha si limitavano ad attraversare. Qui hanno imparato dalla fabbrica.\n\nSKORR porta il fuoco e lo lascia dove colpisce. TRAHN è una calamita: vi strappa dalla posizione e vi trascina dove non volevate andare. VRAST è il gelo di raffreddamento: non fa male, vi toglie il turno.\n\nNon sono più forti. Sono più scomodi."},
+      {scena:"cintura",chi:["behemoth","aegis"],chi_dice:"COMANDO CASSANDRA",
+       testo:()=>{
+         const n=nemesis.adaptations.length;
+         const lei=n?("PALINSESTO è arrivata prima di voi, e porta addosso "+n+" adattament"+(n===1?"o":"i")+": "+nemesis.adaptations.map(a=>ADAPT[a]?ADAPT[a].name:a).join(", ")+"."):"PALINSESTO è arrivata prima di voi, ancora in forma base.";
+         return "Due cose cambiano. A Orvat distruggere è il compito: i piloni di sostegno sono minerale, e il minerale non costa corruzione.\n\nE in questo posto c'è ancora gente. Gli sfollati scendono da soli, una casella a fine round, e si fermano se la strada è occupata. Non sono un obiettivo: sono una regola. Ogni voragine aperta senza guardare è un nome.\n\n"+lei;
        }},
     ]},
 
@@ -12230,6 +12251,7 @@ renderCodex();
       caduta:      {citta:0.6, scala:3.60, fuoco:.50, nebbia:1.1, taglio:'#00ced1'},
       trofeo:      {citta:0.0, scala:1.75, fuoco:.50, nebbia:.4,  taglio:'#ffb000'},
       corridoio:   {citta:1.1, scala:0,    fuoco:.50, nebbia:1.0, taglio:'#ffb000'},
+      cintura:     {citta:1.15,scala:2.40, fuoco:.50, nebbia:1.1, taglio:'#ff9a3c'},
       bacino:      {citta:0.8, scala:2.50, fuoco:.50, nebbia:1.2, taglio:'#00ced1'},
       sorgente:    {citta:0.35,scala:3.00, fuoco:.50, nebbia:1.5, taglio:'#00ced1'},
     }[nome]||{citta:.9,scala:1.5,fuoco:.5,nebbia:.8,taglio:'#ffb000'};
@@ -12246,6 +12268,7 @@ renderCodex();
     cielo(x,y,w,h,suolo,nome);
     if(nome==='studio'||nome==='trofeo') griglia(x,y,w,suolo);
     if(conf.citta>0) citta(x,y,w,suolo,conf.citta,p,t);
+    if(nome==='cintura') ciminiere(x,y,w,suolo,t,p);
     if(nome==='orizzonte') crepa(x+w*0.66,y+h*0.06,h*0.46,1,crescita,t);
     if(nome==='varco'){ crepa(x+w*0.5,y+h*0.03,h*0.58,1.5,crescita,t); alone(x+w*0.5,suolo-h*0.10,w*0.34,alonePw,t); }
     if(nome==='caduta'){ crepa(x+w*0.5,y+h*0.05,h*0.32,1.2,crescita,t); }
@@ -12267,6 +12290,7 @@ renderCodex();
     const scuro=(nome==='studio'||nome==='trofeo');
     const g=ctx.createLinearGradient(0,y,0,suolo);
     if(scuro){ g.addColorStop(0,'#080a0f'); g.addColorStop(1,'#0e1219'); }
+    else if(nome==='cintura'){ g.addColorStop(0,'#0b0705'); g.addColorStop(.5,'#2b160b'); g.addColorStop(1,'#6a3212'); }
     else if(nome==='bacino'||nome==='sorgente'){ g.addColorStop(0,'#08121a'); g.addColorStop(.55,'#12303a'); g.addColorStop(1,'#2a5560'); }
     else { g.addColorStop(0,'#0a0e16'); g.addColorStop(.55,'#141a26'); g.addColorStop(1,'#232a38'); }
     ctx.fillStyle=g; ctx.fillRect(x,y,w,suolo-y);
@@ -12339,6 +12363,33 @@ renderCodex();
       ctx.quadraticCurveTo(x+w*0.5,y0+16+c*7+Math.sin(t*0.42+c*1.3)*2.4,x+w+20,y0-4+c*3); ctx.stroke();
     }
     ctx.restore();
+  }
+
+  /* Le ciminiere di Orvat: tre sagome nere davanti alla città, con la fascia
+     rossa in cima e il fumo che sale. Il fumo e' una funzione di indice e tempo
+     (niente Math.random) e si ferma col movimento ridotto. Il bagliore dei forni
+     sta DIETRO le sagome, sul bordo del suolo: e' la luce che il cielo prende. */
+  function ciminiere(x,y,w,suolo,t,p){
+    if(p===undefined)p=1;
+    const e=eOut(fra(p,0,.8));
+    // bagliore dei forni lungo la linea d'orizzonte
+    const g=ctx.createLinearGradient(0,suolo-60,0,suolo);
+    g.addColorStop(0,'rgba(255,120,40,0)'); g.addColorStop(1,'rgba(255,120,40,'+(.34*e).toFixed(3)+')');
+    ctx.fillStyle=g; ctx.fillRect(x,suolo-60,w,60);
+    [[.17,.56,9],[.43,.74,11],[.82,.62,10]].forEach(([fx,alt,lar],i)=>{
+      const cx=x+w*fx, hh=(suolo-y)*alt*e, bx=cx-lar/2;
+      ctx.fillStyle='#04060A';
+      ctx.beginPath(); ctx.moveTo(bx,suolo); ctx.lineTo(bx+lar*.18,suolo-hh); ctx.lineTo(bx+lar*.82,suolo-hh); ctx.lineTo(bx+lar,suolo); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='rgba(255,90,40,.5)'; ctx.fillRect(bx+lar*.18,suolo-hh,lar*.64,3);       // la fascia calda in cima
+      // fumo: cerchi che salgono e si allargano, piu' radi in alto
+      for(let k=0;k<7;k++){
+        const f=reduceMotion?(k/7):(((t*.10)+k/7+i*.31)%1);
+        const px=cx+Math.sin(f*5+i)*5+f*(i%2?14:-10), py=suolo-hh-f*(suolo-y)*.55, r=3+f*13;
+        ctx.globalAlpha=Math.max(0,.30*(1-f)*e); ctx.fillStyle=i%2?'#3b2a22':'#2a2420';
+        ctx.beginPath(); ctx.arc(px,py,r,0,7); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    });
   }
 
   /* L'acqua di Tarsis: un piano di specchio, non un fondale. Sotto la linea

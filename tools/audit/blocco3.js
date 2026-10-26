@@ -52,8 +52,8 @@ const SHOT = process.argv[2] === 'shots';
     const c2 = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: rm });
     const q = await c2.newPage(); const e2 = []; q.on('pageerror', e => e2.push(e.message));
     await q.goto(C.URL); await q.waitForTimeout(500);
-    const nn = await q.evaluate(async () => { const out = []; for (const id of ['tarsis', 'catena']) { playComic(id, 'menu'); for (let i = 0; i < COMIC[id].tavole.length; i++) { await new Promise(r => setTimeout(r, 150)); out.push(id + ':' + document.getElementById('comicText').textContent.length); comicAdvance(); } } return out; });
-    check(`le 6 tavole nuove si disegnano e hanno testo (movimento: ${rm})`, nn.length === 6 && nn.every(s => +s.split(':')[1] > 60) && e2.length === 0, { nn, e2 });
+    const nn = await q.evaluate(async () => { const out = []; for (const id of ['orvat', 'tarsis', 'catena']) { playComic(id, 'menu'); for (let i = 0; i < COMIC[id].tavole.length; i++) { await new Promise(r => setTimeout(r, 150)); out.push(id + ':' + document.getElementById('comicText').textContent.length); comicAdvance(); } } return out; });
+    check(`le 9 tavole nuove si disegnano e hanno testo (movimento: ${rm})`, nn.length === 9 && nn.every(s => +s.split(':')[1] > 60) && e2.length === 0, { nn, e2 });
     await c2.close();
   }
 
@@ -61,8 +61,8 @@ const SHOT = process.argv[2] === 'shots';
   for (const [w, h] of [[320, 568], [844, 390]]) {
     const c3 = await b.newContext({ viewport: { width: w, height: h }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
     const q = await c3.newPage(); await q.goto(C.URL); await q.waitForTimeout(500);
-    const m = await q.evaluate(async () => { const out = []; for (const id of ['tarsis', 'catena']) { playComic(id, 'menu'); for (let i = 0; i < COMIC[id].tavole.length; i++) { await new Promise(r => setTimeout(r, 120)); const bt = document.getElementById('comicNext').getBoundingClientRect(); const cv = document.getElementById('comicCanvas').getBoundingClientRect(); out.push({ ox: document.documentElement.scrollWidth > innerWidth, h: Math.round(bt.height), canvasH: Math.round(cv.height), dentro: bt.right <= innerWidth && bt.left >= 0 }); comicAdvance(); } } return out; });
-    check(`tavole a ${w}×${h}: niente scorrimento orizzontale, pulsante >= 44 px, tela visibile`, m.length === 6 && m.every(x => !x.ox && x.h >= 44 && x.dentro && x.canvasH >= 100), m.map(x => x.h + '/' + x.canvasH).join(' '));
+    const m = await q.evaluate(async () => { const out = []; for (const id of ['orvat', 'tarsis', 'catena']) { playComic(id, 'menu'); for (let i = 0; i < COMIC[id].tavole.length; i++) { await new Promise(r => setTimeout(r, 120)); const bt = document.getElementById('comicNext').getBoundingClientRect(); const cv = document.getElementById('comicCanvas').getBoundingClientRect(); out.push({ ox: document.documentElement.scrollWidth > innerWidth, h: Math.round(bt.height), canvasH: Math.round(cv.height), dentro: bt.right <= innerWidth && bt.left >= 0 }); comicAdvance(); } } return out; });
+    check(`tavole a ${w}×${h}: niente scorrimento orizzontale, pulsante >= 44 px, tela visibile`, m.length === 9 && m.every(x => !x.ox && x.h >= 44 && x.dentro && x.canvasH >= 100), m.map(x => x.h + '/' + x.canvasH).join(' '));
     if (SHOT && w === 320) await q.screenshot({ path: C.OUT + '/b3-tavola-320.png' });
     await c3.close();
   }
@@ -81,6 +81,17 @@ const SHOT = process.argv[2] === 'shots';
     a.secondaVolta = document.querySelector('.screen.active').id; sec.locked = eraBloccato; return a;
   });
   check('la tavola di Tarsis parte dalla scheda del settore, si salta, e non ritorna', t1.schermata === 'comic' && /TARSIS/.test(t1.titolo) && t1.visto && t1.dopo === 'missioni' && t1.secondaVolta === 'missioni', t1);
+  const o1 = await p.evaluate(async () => {
+    RITMO = 0; seenComic.delete('orvat'); const sec = SECTORS.find(s => s.id === 'orvat'); const era = sec.locked; sec.locked = false; buildSectorTabs();
+    go('missioni'); await new Promise(r => setTimeout(r, 200));
+    document.querySelector('#sectorTabs .sectab[data-sec="orvat"]').click(); await new Promise(r => setTimeout(r, 300));
+    const a = { schermata: document.querySelector('.screen.active').id, titolo: document.getElementById('comicTitle').textContent, skipH: Math.round(document.getElementById('comicSkip').getBoundingClientRect().height), skipRighe: document.getElementById('comicSkip').getClientRects().length };
+    document.getElementById('comicSkip').click(); await new Promise(r => setTimeout(r, 200));
+    document.querySelector('#sectorTabs .sectab[data-sec="cassandra"]').click(); await new Promise(r => setTimeout(r, 150));
+    document.querySelector('#sectorTabs .sectab[data-sec="orvat"]').click(); await new Promise(r => setTimeout(r, 200));
+    a.secondaVolta = document.querySelector('.screen.active').id; sec.locked = era; return a;
+  });
+  check('la tavola di Orvat parte dalla scheda del settore, una volta sola, con SALTA da 44 px', o1.schermata === 'comic' && /ORVAT/.test(o1.titolo) && o1.secondaVolta === 'missioni' && o1.skipH >= 44, o1);
   const persiste = await p.evaluate(() => { const s = JSON.parse(localStorage.getItem(SAVE_KEY + '/1') || localStorage.getItem(SAVE_KEY) || 'null'); return !!s; });
   check('la tavola vista entra nel salvataggio (meta.comic)', persiste || true);
 
