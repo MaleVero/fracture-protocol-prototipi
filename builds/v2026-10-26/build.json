@@ -1,7 +1,7 @@
 {
-  "versione": "0.15.0",
+  "versione": "0.16.0",
   "data": "2026-10-26",
-  "titolo": "La galleria dell'arte",
+  "titolo": "Comando e Opzioni rifiniti",
   "cambia": [
     "Settore Tarsis: sei missioni sull'acqua e il guardiano finale, dove PALINSESTO finisce",
     "Nuovo nemico, il NERIS: attraversa l'acqua senza affondare, quindi non basta buttarlo in un lago",
@@ -24,7 +24,9 @@
     "Il briefing di ogni missione mostra le creature possibili: a colori quelle che conosci, nere le altre",
     "Ogni missione parte con una targa sul campo; il menu ha lo sfondo del settore, l'hangar mette il telaio sotto una luce da lavoro e la mappa si macchia di viola con la corruzione",
     "Icona del gioco per il browser e per la schermata iniziale del telefono; hangar: il pulsante Officina non copre più il testo",
-    "Galleria arte (Opzioni): telai, creature e strutture in grande con il motore del campo, pose e pavimenti dei tre settori, confronto a due, altezze e sagome a confronto e le coppie più confondibili"
+    "Galleria arte (Opzioni): telai, creature e strutture in grande con il motore del campo, pose e pavimenti dei tre settori, confronto a due, altezze e sagome a confronto e le coppie più confondibili",
+    "Comando rifatto: tre schede di settore con anello di avanzamento e barra della corruzione, sei numeri della campagna, profilo di Lazy J (banda, barra, interventi sbloccati, figura), dossier di PALINSESTO con livello a punti, adattamenti e tecnologie rubate, XP dei piloti verso il livello successivo",
+    "Opzioni rifinite: interruttori veri (leggibili da lettore di schermo), cursori con la traccia riempita e anteprima del testo, avanzamento dello slot di salvataggio e piede con build e collegamento alla pagina di prova"
   ],
   "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
 }

@@ -287,6 +287,70 @@
   @keyframes miIn{0%{opacity:0;transform:translateX(-40px)}14%{opacity:1;transform:none}78%{opacity:1;transform:none}100%{opacity:0;transform:translateX(18px)}}
   @media (prefers-reduced-motion:reduce){#missionIntro{animation:miFade 2.2s linear both}@keyframes miFade{0%,80%{opacity:1}100%{opacity:0}}}
   /* GALLERIA: confronto di telai, creature e strutture. Strumento di lavoro, dentro il gioco perche' usa lo stesso motore del campo. */
+  /* COMANDO — il quadro della campagna, Lazy J e il dossier della nemesi */
+  .cm-sezioni{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+  .cm-sec{border:1px solid var(--gunmetal-hi);background:rgba(0,0,0,.25);padding:9px 6px 8px;text-align:center;border-top:2px solid var(--c)}
+  .cm-sec.corrente{background:rgba(255,255,255,.035);box-shadow:0 0 0 1px var(--c) inset}
+  .cm-sec.chiuso{opacity:.45;border-top-color:var(--gunmetal-hi)} .cm-sec.perso{border-top-color:var(--danger)}
+  .cm-anello{width:54px;height:54px;border-radius:50%;margin:0 auto 6px;position:relative;display:flex;align-items:center;justify-content:center}
+  .cm-anello::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--gunmetal)}
+  .cm-anello span{position:relative;font-size:calc(13px * var(--ts,1));color:var(--bone);font-weight:700}
+  .cm-anello small{font-size:calc(9px * var(--ts,1));color:var(--bone-dim);font-weight:400}
+  .cm-nm{font-size:calc(10px * var(--ts,1));letter-spacing:.14em;color:var(--c)}
+  .cm-sub{font-size:calc(8.5px * var(--ts,1));color:var(--bone-dim);margin:2px 0 6px;line-height:1.3}
+  .cm-barra{height:4px;background:var(--gunmetal-hi);margin:0 4px}
+  .cm-barra i{display:block;height:100%;background:linear-gradient(90deg,var(--anomal-teal),var(--bruise-hi))}
+  .cm-st{font-size:calc(8.5px * var(--ts,1));letter-spacing:.1em;color:var(--bone-dim);margin-top:5px}
+  .cm-griglia{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .cm-cella{border:1px solid var(--gunmetal-hi);background:rgba(0,0,0,.2);padding:7px 4px;text-align:center;display:flex;flex-direction:column;gap:1px}
+  .cm-cella .cm-i{font-size:calc(12px * var(--ts,1));color:var(--amber);opacity:.8}
+  .cm-cella b{font-size:calc(15px * var(--ts,1));color:var(--bone)} .cm-cella b small{font-size:calc(9px * var(--ts,1));color:var(--bone-dim);font-weight:400}
+  .cm-cella span:last-child{font-size:calc(8.5px * var(--ts,1));color:var(--bone-dim);letter-spacing:.05em}
+  .cm-risposta{margin-top:10px;font-size:calc(10px * var(--ts,1));color:var(--bone-dim);letter-spacing:.04em}
+  .lj-top{display:flex;gap:12px;align-items:center}
+  canvas.lj-ritratto{width:64px;height:92px;flex:none;background:linear-gradient(180deg,rgba(154,107,196,.10),rgba(0,0,0,.35));border:1px solid var(--gunmetal-hi)}
+  .lj-info{flex:1;min-width:0}
+  .lj-hdr{display:flex;justify-content:space-between;align-items:baseline;font-size:calc(12px * var(--ts,1));letter-spacing:.16em;color:var(--bruise-hi)}
+  .lj-hdr span{font-size:calc(18px * var(--ts,1));color:var(--bone)} .lj-hdr small{font-size:calc(9px * var(--ts,1));color:var(--bone-dim)}
+  .lj-bar{position:relative;height:8px;margin:7px 0;background:var(--gunmetal-hi)}
+  .lj-bar>i:first-child{display:block;height:100%;background:linear-gradient(90deg,var(--anomal-teal),var(--bruise-hi))}
+  .lj-bar .lj-tick{position:absolute;top:-3px;width:1px;height:14px;background:var(--bone-dim)}
+  .lj-ds{font-size:calc(10px * var(--tsp,1));line-height:1.5;color:var(--bone-dim);font-style:italic}
+  .lj-ints{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+  .lj-int{border:1px solid var(--gunmetal-hi);padding:6px 5px;opacity:.5;display:flex;flex-direction:column;gap:2px}
+  .lj-int.on{opacity:1;border-color:var(--bruise-hi)}
+  .lj-int b{font-size:calc(9px * var(--ts,1));letter-spacing:.08em;color:var(--bone)} .lj-int span{font-size:calc(8.5px * var(--ts,1));color:var(--bone-dim)} .lj-int em{font-style:normal;font-size:calc(8.5px * var(--ts,1));color:var(--bruise-hi)}
+  .lj-nota{margin-top:8px;font-size:calc(9.5px * var(--ts,1));color:var(--bone-dim);line-height:1.5}
+  .nem-vuoto,.nem-testa{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+  .nem-vuoto .ico.big,.nem-testa .ico.big{width:64px;height:64px;margin:0;flex:none;background:radial-gradient(circle at 50% 60%,rgba(154,107,196,.22),transparent 70%);border:1px solid var(--gunmetal-hi)}
+  .nem-pip{display:flex;gap:4px;margin-top:4px} .nem-pip i{width:16px;height:6px;background:var(--gunmetal-hi)} .nem-pip i.on{background:var(--bruise-hi)}
+  .nem-chips{display:flex;flex-wrap:wrap;gap:5px;margin:3px 0 8px}
+  .nem-chip{font-size:calc(9px * var(--ts,1));letter-spacing:.08em;color:var(--bone);border:1px solid var(--bruise-hi);padding:3px 7px;background:rgba(154,107,196,.10)}
+  .nem-chip.rub{border-color:var(--anomal-teal);background:rgba(0,206,209,.08)} .nem-chip.dim{border-color:var(--gunmetal-hi);color:var(--bone-dim);background:none}
+  .rosterrow:not(.compatta) .rhead .ico{width:44px;height:44px;margin-right:8px;border:1px solid var(--gunmetal-hi);background:rgba(0,0,0,.3)}
+  .xplab{font-size:calc(8.5px * var(--ts,1));letter-spacing:.1em;color:var(--bone-dim);margin-top:6px}
+  @media (min-width:700px){
+    .cm-griglia{grid-template-columns:repeat(6,1fr)}
+    #pilotRoster{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
+    #pilotRoster .rosterrow{border-bottom:1px solid var(--gunmetal-hi)}
+  }
+  /* OPZIONI — interruttori a pillola, cursori col riempimento, schede campagna con avanzamento */
+  h3 .opt-i{display:inline-block;min-width:20px;margin-right:7px;color:var(--bone-dim);letter-spacing:0;font-weight:400}
+  .optsw{display:flex;align-items:center;gap:8px;justify-content:flex-start;padding:5px 9px}
+  .optsw i{flex:none;width:26px;height:14px;border-radius:7px;background:rgba(138,151,166,.28);position:relative;transition:background .15s}
+  .optsw i::after{content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:var(--bone-dim);transition:left .15s,background .15s}
+  .optsw.on i{background:rgba(255,176,0,.45)} .optsw.on i::after{left:14px;background:var(--amber)}
+  .optsw:focus-visible,.optvol input:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+  .optvol input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:26px;margin:0;min-width:0}
+  .optvol input[type=range]::-webkit-slider-runnable-track{height:4px;background:linear-gradient(90deg,var(--amber) var(--f,50%),rgba(138,151,166,.3) var(--f,50%))}
+  .optvol input[type=range]::-moz-range-track{height:4px;background:linear-gradient(90deg,var(--amber) var(--f,50%),rgba(138,151,166,.3) var(--f,50%))}
+  .optvol input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--amber);border:2px solid #0a0d12;margin-top:-7px}
+  .optvol input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--amber);border:2px solid #0a0d12}
+  .opt-anteprima{margin:2px 0 4px;padding:8px 10px;border-left:2px solid var(--amber);background:rgba(0,0,0,.25);font-size:calc(10.5px * var(--tsp,1));line-height:1.6;color:var(--bone-dim);font-style:italic}
+  .opt-anteprima span{font-style:normal;color:var(--amber);font-weight:700;margin-right:6px}
+  .slotbar{height:5px;background:var(--gunmetal-hi);margin:2px 0 7px} .slotbar i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--hazard))}
+  .opt-info{text-align:center;font-size:calc(9.5px * var(--ts,1));line-height:1.8;color:var(--bone-dim);padding:10px 8px 16px;letter-spacing:.06em}
+  .opt-info b{color:var(--amber);letter-spacing:.14em} .opt-info a{color:var(--anomal-teal)}
   .gal-bar{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 10px;font-size:calc(10px * var(--ts,1));letter-spacing:.08em;color:var(--bone-dim)}
   .gal-bar .gl{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
   .gal-bar button{background:transparent;border:1px solid var(--gunmetal-hi);color:var(--bone-dim);font:inherit;padding:6px 9px;min-height:36px;cursor:pointer}
@@ -1432,7 +1496,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.15.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.16.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -1495,7 +1559,8 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
 <section class="screen" id="comando">
   <div class="topbar"><button class="backbtn" data-back>‹</button><div class="tt">COMANDO<small>PROFILO &amp; CAMPAGNA</small></div></div>
   <div class="scroll">
-    <div class="panel"><h3>STATO CAMPAGNA</h3><div class="muted" id="campaignStat">Settore Cassandra · Turno 0447</div></div>
+    <div class="panel"><h3>STATO CAMPAGNA</h3><div id="campaignStat">Settore Cassandra · Turno 0447</div></div>
+    <div class="panel"><h3>LAZY J — RISONANZA</h3><div id="lazyProfilo"></div></div>
     <div class="panel"><h3>DOSSIER — PALINSESTO</h3><div id="nemesisDossier"></div></div>
     <div class="panel"><h3>EQUIPAGGIO PILOTI</h3><div id="pilotRoster"></div></div>
     <div class="stub"><div class="sg">⛓</div><div class="sh">VAULT — IN SVILUPPO</div><div class="sp">Collegamento wallet e persistenza on-chain di telai e piloti recuperati.</div></div>
@@ -4862,7 +4927,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.15.0";
+const BUILD_VER="0.16.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -4988,24 +5053,33 @@ function renderCodex(){
 function renderNemesisDossier(){
   const el=$("nemesisDossier"); if(!el)return;
   if(!nemesis.awake){
-    el.innerHTML=`<div class="muted">Nessuna anomalia adattiva rilevata nel settore.</div>`;return;
+    el.innerHTML=`<div class="nem-vuoto">${iconTag("kaucha","palinsesto","big")}<div class="muted">Nessuna anomalia adattiva rilevata nel settore.<br>Si manifesterà dopo la prima missione.</div></div>`;
+    paintIcons(el); return;
   }
   const tot=tend.push+tend.drown+tend.ranged+tend.defense||1;
   const barra=(lab,v)=>`<div class="tendrow"><span class="tendlab">${lab}</span>`+
     `<span class="tendbar"><i style="width:${Math.round(v/tot*100)}%"></i></span>`+
     `<span class="tendval">${v}</span></div>`;
   const stu=nemesisStudying();
+  /* Il livello come punti (0–5: tetto di evoluzione), le forme come pillole: si legge a colpo
+     d'occhio quanto e' cresciuta e di cosa, senza una frase da decifrare. */
+  const pip=Array.from({length:5},(_,i)=>`<i class="${i<nemesis.level?"on":""}"></i>`).join("");
+  const chips=nemesis.adaptations.length?nemesis.adaptations.map(k=>`<span class="nem-chip" title="${ADAPT[k]?ADAPT[k].desc:""}">${ADAPT[k]?ADAPT[k].name:k}</span>`).join(""):`<span class="nem-chip dim">forma base</span>`;
+  const rubati=nemesis.stolen.length?nemesis.stolen.map(t=>`<span class="nem-chip rub">${STEAL[t]?STEAL[t].nm:t}</span>`).join(""):`<span class="nem-chip dim">nessuna</span>`;
   el.innerHTML=
+    `<div class="nem-testa">${iconTag("kaucha","palinsesto","big")}<div>`+
     (nemesis.dead
       ? `<div class="nemdead">◉ RECISA ALLA FONTE — non tornerà.</div>`
       : `<div class="nemstate">FORMA ATTUALE · livello ${nemesis.level}${nemesis.fled?` · respinta ${nemesis.fled} volte`:""}${nemesis.wounded?` · <b>ferita</b>`:""}</div>`)+
-    `<div class="nemrow"><b>ADATTAMENTI</b> ${nemesisAdaptText()}</div>`+
-    `<div class="nemrow"><b>TECNOLOGIA ASSIMILATA</b> ${nemesisStolenText()}</div>`+
+    `<div class="nem-pip" role="img" aria-label="Livello ${nemesis.level} su 5">${pip}</div></div></div>`+
+    `<div class="nemrow"><b>ADATTAMENTI</b></div><div class="nem-chips">${chips}</div>`+
+    `<div class="nemrow"><b>TECNOLOGIA ASSIMILATA</b></div><div class="nem-chips">${rubati}</div>`+
     (stu?`<div class="nemrow next">◔ <b>STA OSSERVANDO</b> ${stu.why} → prossimo: <b>${stu.name}</b> (${stu.desc})</div>`:"")+
     `<div class="tendtitle">COSA HA MISURATO DI TE</div>`+
     barra("spinta",tend.push)+barra("annegamenti",tend.drown)+
     barra("gittata",tend.ranged)+barra("difesa",tend.defense)+
     `<div class="muted" style="margin-top:7px;line-height:1.6;">Ridurla a zero sul campo non la uccide: si disfa e rientra nella Spaccatura, ferita — e <b>le si strappa via un pezzo della tecnologia assimilata</b>, che torna in armeria. Solo al Nido la si affronta alla fonte, e lì si recupera tutto.<br>Se un mech cade mentre ti sganci, il relitto resta sul campo e lei ne prende l'equipaggiamento. Vincendo lo recuperi comunque.</div>`;
+  paintIcons(el);
 }
 
 /* ===== RICERCA (campioni → rami di sviluppo) ===== */
@@ -5182,7 +5256,8 @@ function schedaPilota(p,i,compatta){
         <div class="rps">${p.ps}${lv>1?" · veterano "+perkText(lv):""}</div></div></div>
     ${p.bio?`<div class="rbio">${p.bio}</div>`:""}
     ${tratti}
-    <div class="xpbar"><i style="width:${pct}%"></i></div></div>`;
+    <div class="xplab">${lv>=MAX_LEVEL?"LIVELLO MASSIMO":`XP ${into} / ${XP_PER_LEVEL} · prossimo LV${lv+1}`}</div>
+    <div class="xpbar" role="img" aria-label="Esperienza: ${lv>=MAX_LEVEL?"livello massimo":pct+" per cento verso il livello "+(lv+1)}"><i style="width:${pct}%"></i></div></div>`;
 }
 /* ═══════════ OPZIONI ═══════════
    Metà di questa schermata non aggiunge codice: espone interruttori che il
@@ -5192,7 +5267,7 @@ function schedaPilota(p,i,compatta){
    meccanica non annunciata: c'è, e non serve a nessuno. */
 function renderOpzioni(){
   const sw=(k,nm,ds)=>`<div class="optrow"><div class="optl"><b>${nm}</b><span>${ds}</span></div>
-    <button class="optsw${OPZ[k]?" on":""}" data-opt="${k}">${OPZ[k]?"ATTIVO":"SPENTO"}</button></div>`;
+    <button class="optsw${OPZ[k]?" on":""}" data-opt="${k}" role="switch" aria-checked="${OPZ[k]?"true":"false"}"><i aria-hidden="true"></i><span>${OPZ[k]?"ATTIVO":"SPENTO"}</span></button></div>`;
   const slots=[];
   for(let n=0;n<NSLOT;n++){
     const s=slotInfo(n), attivo=(n===slotAttivo);
@@ -5201,32 +5276,34 @@ function renderOpzioni(){
       ${s.vuoto
         ? `<div class="slotvuoto">— slot vuoto —</div>
            <button class="slotbtn" data-nuova="${n}">COMINCIA QUI</button>`
-        : `<div class="slotdati">${s.contenuti}/${s.totale} nodi contenuti · ${s.settore}<br>
+        : `<div class="slotbar" role="img" aria-label="${s.contenuti} nodi contenuti su ${s.totale}"><i style="width:${Math.round(100*s.contenuti/Math.max(1,s.totale))}%"></i></div>
+           <div class="slotdati">${s.contenuti}/${s.totale} nodi contenuti · ${s.settore}<br>
              ${s.frammenti} frammenti · ◈ ${s.sigilli}${s.finita?" · <b>conclusa</b>":""}</div>
            ${attivo?"":`<button class="slotbtn" data-vai="${n}">RIPRENDI</button>`}
            <button class="slotbtn danger" data-nuova="${n}">RICOMINCIA${attivo?"":" QUI"}</button>`}
     </div>`);
   }
   $("optScroll").innerHTML=`
-    <div class="panel"><h3>AUDIO</h3>
+    <div class="panel"><h3><span class="opt-i" aria-hidden="true">♪</span>AUDIO</h3>
       <div class="optrow"><div class="optl"><b>VOLUME</b><span>Tutto il suono è sintetizzato: nessun file, nessun download.</span></div>
-        <div class="optvol"><input type="range" min="0" max="100" step="5" id="optVol" value="${OPZ.volume}"><b id="optVolVal">${OPZ.volume}</b></div></div>
+        <div class="optvol"><input type="range" min="0" max="100" step="5" id="optVol" value="${OPZ.volume}" style="--f:${OPZ.volume}%"><b id="optVolVal">${OPZ.volume}</b></div></div>
       ${sw("audio","SUONO","Spegne tutto senza perdere il livello del volume.")}
     </div>
-    <div class="panel"><h3>LEGGIBILITÀ</h3>
+    <div class="panel"><h3><span class="opt-i" aria-hidden="true">Aa</span>LEGGIBILITÀ</h3>
       <div class="optrow"><div class="optl"><b>DIMENSIONE DEL TESTO</b><span>Vale per tutta l'interfaccia, e cresce di più sui testi descrittivi — bio dei piloti, tratti, descrizioni dei moduli, codex.</span></div>
-        <div class="optvol"><input type="range" min="85" max="160" step="5" id="optTesto" value="${OPZ.testo}"><b id="optTestoVal">${OPZ.testo}%</b></div></div>
+        <div class="optvol"><input type="range" min="85" max="160" step="5" id="optTesto" value="${OPZ.testo}" style="--f:${Math.round((OPZ.testo-85)/75*100)}%"><b id="optTestoVal">${OPZ.testo}%</b></div></div>
+      <div class="opt-anteprima" aria-hidden="true"><span>Aa</span> Corriere di superficie prima della Prima Spaccatura. Dice di conoscere le crepe meglio di chi le ha mappate.</div>
     </div>
-    <div class="panel"><h3>RESA</h3>
+    <div class="panel"><h3><span class="opt-i" aria-hidden="true">◐</span>RESA</h3>
       ${sw("moto","ANIMAZIONI","Pulsazioni, scintille e movimento continuo. Spente, il campo resta leggibile e più fermo.")}
       ${sw("china","CHINA","Contorni spessi, ombre a macchia piena e tratteggio: il registro a fumetto.")}
       ${sw("atmosfera","ATMOSFERA","Vignettatura e scanline. Tengono il registro da console di contenimento.")}
     </div>
-    <div class="panel"><h3>CAMPAGNE</h3>
+    <div class="panel"><h3><span class="opt-i" aria-hidden="true">▤</span>CAMPAGNE</h3>
       <div class="muted" style="margin-bottom:9px;line-height:1.7;">Ogni slot è una campagna a sé. Il <b>codice kaucha</b>, la ricerca e gli abbattimenti restano tuoi in tutte: quello che hai imparato non si disimpara ricominciando.</div>
       <div class="slotgrid">${slots.join("")}</div>
     </div>
-    <div class="panel"><h3>COPIA DI SICUREZZA</h3>
+    <div class="panel"><h3><span class="opt-i" aria-hidden="true">⇩</span>COPIA DI SICUREZZA</h3>
       <div class="muted" style="margin-bottom:9px;line-height:1.7;">I progressi stanno nella memoria di questo browser, che sul telefono può cancellarla (spazio scarso, pulizia dei dati, giorni senza aprire la pagina). Un file di copia li mette al sicuro e li porta su un altro dispositivo.<br><span id="persistStat">${archivioPersistente===true?"Il browser ha concesso l'archivio persistente.":archivioPersistente===false?"Il browser non garantisce l'archivio: fai una copia ogni tanto.":""}</span></div>
       <div class="slotgrid">
         <button class="slotbtn" id="bkExport">SCARICA COPIA</button>
@@ -5234,11 +5311,11 @@ function renderOpzioni(){
       </div>
       <input type="file" id="bkFile" accept="application/json,.json" style="display:none" aria-label="File di copia da ripristinare">
     </div>
-    <div class="panel"><h3>GALLERIA ARTE</h3>
+    <div class="panel"><h3><span class="opt-i" aria-hidden="true">◫</span>GALLERIA ARTE</h3>
       <div class="muted" style="margin-bottom:9px;line-height:1.7;">Telai, creature e strutture in grande, con lo stesso motore del campo: pose, pavimenti dei tre settori, confronto di altezze e di sagome, e le coppie che si somigliano di più. Serve a controllare l'arte, non a giocare.</div>
       <button class="slotbtn" id="apriGalleria">APRI LA GALLERIA</button>
     </div>
-    <div class="panel"><h3>PROVA E SEGNALAZIONI</h3>
+    <div class="panel"><h3><span class="opt-i" aria-hidden="true">✎</span>PROVA E SEGNALAZIONI</h3>
       <div class="muted" style="margin-bottom:9px;line-height:1.7;">Questo gioco è in prova. <b>Non manda niente in rete</b>: tiene sul tuo dispositivo un diario delle missioni (e il tuo giudizio «facile / giusta / dura», se lo dai a fine missione). Se vuoi dirci com'è andata, componi un rapporto, leggilo qui sotto e mandalo tu a chi ti ha dato il link.<br>Diario: <b>${leggiDiario().length}</b> mission${leggiDiario().length===1?"e":"i"} registrat${leggiDiario().length===1?"a":"e"} · build ${BUILD_VER}.</div>
       <div class="slotgrid">
         <button class="slotbtn" id="rpCopia">COPIA RAPPORTO</button>
@@ -5247,7 +5324,8 @@ function renderOpzioni(){
       </div>
       <details style="margin-top:10px"><summary style="cursor:pointer;color:var(--bone-dim);font-size:var(--t-mini);letter-spacing:var(--k-mini)">COSA CONTIENE IL RAPPORTO</summary>
         <pre class="rapporto" id="rpAnteprima" tabindex="0" aria-label="Anteprima del rapporto"></pre></details>
-    </div>`;
+    </div>
+    <div class="opt-info"><b>FRACTURE PROTOCOL</b> · build ${BUILD_VER}<br>Un file solo, nessuna connessione: tutto gira e resta su questo dispositivo.<br><a href="../../provare.html">Come provarlo e segnalare ›</a></div>`;
   { const an=$("rpAnteprima"); if(an)an.textContent=creaRapporto(); }
   { const g=$("apriGalleria"); if(g)g.addEventListener("click",()=>{backTo="opzioni";go("galleria");}); }
   { const c=$("rpCopia"); if(c)c.addEventListener("click",copiaRapporto);
@@ -5255,11 +5333,11 @@ function renderOpzioni(){
 
   const vol=$("optVol");
   if(vol)vol.addEventListener("input",()=>{
-    const v=+vol.value; $("optVolVal").textContent=v; setOpzione("volume",v);
+    const v=+vol.value; $("optVolVal").textContent=v; vol.style.setProperty("--f",v+"%"); setOpzione("volume",v);
   });
   const txt=$("optTesto");
   if(txt)txt.addEventListener("input",()=>{
-    const v=+txt.value; $("optTestoVal").textContent=v+"%"; setOpzione("testo",v);
+    const v=+txt.value; $("optTestoVal").textContent=v+"%"; txt.style.setProperty("--f",Math.round((v-85)/75*100)+"%"); setOpzione("testo",v);
   });
   qsa("#optScroll .optsw").forEach(b=>b.addEventListener("click",()=>{
     setOpzione(b.dataset.opt,!OPZ[b.dataset.opt]); renderOpzioni();
@@ -5298,8 +5376,57 @@ function renderOpzioni(){
     nuovaCampagna(n);
   }));
 }
+/* IL QUADRO DELLA CAMPAGNA. Tre schede di settore (anello dei nodi contenuti nel colore del
+   settore, barra di corruzione, stato) e sei numeri in una griglia: prima erano sei righe di
+   testo, che si leggono ma non si confrontano. Gli anelli usano lo stesso linguaggio dei nodi
+   della mappa (conic-gradient), cosi' «quanto e' fatto» ha un solo aspetto in tutto il gioco. */
+function quadroCampagna(){
+  const col={cassandra:"var(--amber)",orvat:"#ff9a3c",tarsis:"var(--anomal-teal)"};
+  const sett=SECTORS.map(sec=>{
+    const nodi=sectorNodes(sec.id), fatti=nodi.filter(m=>cleared.has(m.id)).length, tot=nodi.length||1;
+    const cr=Math.round(sectorCorrOf(sec.id)), chiuso=!!sec.locked, perso=sectorLost(sec.id), tenuto=sectorHeld(sec.id);
+    const stato=chiuso?"CHIUSO":perso?"PERDUTO":tenuto?"CONTENUTO":cr+"% MARCIO";
+    const c=col[sec.id]||"var(--amber)", ang=Math.round(fatti/tot*360);
+    return `<div class="cm-sec${chiuso?" chiuso":""}${perso?" perso":""}${sec.id===currentSector?" corrente":""}" style="--c:${c}">
+      <div class="cm-anello" style="background:conic-gradient(${c} 0deg ${ang}deg,rgba(255,255,255,.07) ${ang}deg 360deg)" role="img" aria-label="${fatti} nodi contenuti su ${nodi.length}"><span>${fatti}<small>/${nodi.length}</small></span></div>
+      <div class="cm-nm">${sec.nm.replace("SETTORE ","")}</div>
+      <div class="cm-sub">${sec.sub}</div>
+      <div class="cm-barra" aria-hidden="true"><i style="width:${chiuso?0:Math.min(100,cr)}%"></i></div>
+      <div class="cm-st">${stato}</div></div>`;
+  }).join("");
+  const cell=(ico,v,l)=>`<div class="cm-cella"><span class="cm-i" aria-hidden="true">${ico}</span><b>${v}</b><span>${l}</span></div>`;
+  const tier=escalationTier();
+  return `<div class="cm-sezioni">${sett}</div>
+    <div class="cm-griglia">
+      ${cell("◬",cleared.size+"<small>/"+MISSIONS.length+"</small>","missioni contenute")}
+      ${cell("⬡",CHASSIS.filter(c=>c.unlocked).length+"<small>/"+CHASSIS.length+"</small>","telai sbloccati")}
+      ${cell("⊞",ownedModules.length,"moduli in armeria")}
+      ${cell("◈",frammenti,"frammenti")}
+      ${cell("✦",sigilli,"sigilli")}
+      ${cell("☣",ganglio,"gangli")}
+    </div>
+    <div class="cm-risposta">Risposta della Spaccatura: <b style="color:${tier[1]}">${tier[0]}</b> · turno operativo 0447</div>`;
+}
+/* LAZY J nel profilo: la stessa figura del pannello di battaglia (cambia con la banda) accanto alla
+   barra con le tacche di soglia, e i tre interventi con cio' che serve per sbloccarli — cosi'
+   si vede dove sta la barra e cosa comprerebbe salendo, fuori dalla pressione di una battaglia. */
+function profiloLazyJ(){
+  const b=bandaRisonanza(), pieno=Math.max(0,Math.min(100,Math.round(risonanza)));
+  const ticks=BANDE.slice(1).map(x=>`<i class="lj-tick" style="left:${x.min}%" title="${x.nome}"></i>`).join("");
+  const ints=INTERVENTI.map(i=>{
+    const aperto=bandaIdx()>=i.banda;
+    return `<div class="lj-int${aperto?" on":""}"><b>${i.nome}</b><span>${aperto?"disponibile":"richiede "+BANDE[i.banda].nome}</span><em>+${i.costo} risonanza</em></div>`;
+  }).join("");
+  return `<div class="lj-top">${window.lazyTag?lazyTag(pieno/100,"lj-ritratto"):""}
+    <div class="lj-info"><div class="lj-hdr">${b.nome}<span>${pieno}<small>/100</small></span></div>
+      <div class="lj-bar" role="img" aria-label="Risonanza ${pieno} su 100, banda ${b.nome}"><i style="width:${pieno}%"></i>${ticks}</div>
+      <div class="lj-ds">${b.ds}</div></div></div>
+    <div class="lj-ints">${ints}</div>
+    <div class="lj-nota">Ogni intervento alza la barra. Chiudere una missione senza farlo intervenire la fa scendere di ${SFOGO}.</div>`;
+}
 function renderComando(){
-  $("campaignStat").innerHTML=`${sectorDef(currentSector).nm.split(" ").map(w=>w[0]+w.slice(1).toLowerCase()).join(" ")} · Turno operativo 0447<br>Missioni completate: ${cleared.size} / ${MISSIONS.length}<br>Telai sbloccati: ${CHASSIS.filter(c=>c.unlocked).length} / ${CHASSIS.length}<br>Moduli in armeria: ${ownedModules.length}<br>Frammenti: ${frammenti}<br>Risposta della Spaccatura: <b style="color:${escalationTier()[1]}">${escalationTier()[0]}</b>`;
+  $("campaignStat").innerHTML=quadroCampagna();
+  { const lp=$("lazyProfilo"); if(lp){ lp.innerHTML=profiloLazyJ(); if(window.paintLazy)paintLazy(lp); } }
   renderNemesisDossier();
   /* Il fascicolo del pilota: chi è, cosa sa fare adesso, e cosa imparerà.
      L'ultima parte è la più importante — un tratto annunciato è un motivo per
