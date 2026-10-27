@@ -1625,7 +1625,7 @@ a.slotbtn{display:flex;align-items:center;justify-content:center;text-decoration
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.22.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.23.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -3815,10 +3815,10 @@ const CODEX=[
   {type:"vorn", g:"VRN",nm:"VORN", t:"Sciamatore da contatto. Chiude la distanza, colpisce in mischia."},
   {type:"krull",g:"KRL",nm:"KRULL",t:"Artigliere ad arco. Colpisce a 2–3 tile lungo le linee."},
   {type:"sahir",g:"SHR",nm:"SAHIR",t:"Amplificatore psionico. Non attacca, ma potenzia i Kaucha vicini (+1 danno). Bersaglio prioritario."},
-  {type:"grumo",g:"GRM",nm:"GRUMO",t:"Corazzato pesante. Immune al knockback: non puoi spingerlo. Va abbattuto col danno diretto."},
-  {type:"vrast",g:"VRS",nm:"VRAST",t:"Non ferisce: congela. Il mech colpito salta il turno successivo — e in una squadra di tre, perdere un turno è perdere un terzo della battaglia. Telegrafato come tutto il resto: puoi toglierti di mezzo."},
-  {type:"skorr",g:"SKR",nm:"SKORR",t:"Incendia la casella che colpisce, che ci fosse un bosco o no. Non ti uccide col colpo: ti toglie il terreno sotto i piedi per tre round, e il fuoco non distingue fra te e loro."},
-  {type:"trahn",g:"TRH",nm:"TRAHN",t:"Non respinge: attrae. Ti strappa dalla posizione che avevi scelto e ti trascina verso di sé — dentro il grumo dei suoi, o dentro la voragine che stavi aggirando. Rompe la formazione, non la corazza."},
+  {type:"grumo",g:"GRM",nm:"GRUMO",t:"Corazzato pesante. Immune al knockback: non puoi spingerlo. Va abbattuto col danno diretto. Avanti nella campagna compare anche in versione élite: più grossa, più resistente, con un anello rosso a terra."},
+  {type:"vrast",g:"VRS",nm:"VRAST",t:"Non ferisce: congela. Il mech colpito salta il turno successivo — e in una squadra di tre, perdere un turno è perdere un terzo della battaglia. Telegrafato come tutto il resto: puoi toglierti di mezzo. Avanti nella campagna compare anche in versione élite: più grossa, più resistente, con un anello rosso a terra."},
+  {type:"skorr",g:"SKR",nm:"SKORR",t:"Incendia la casella che colpisce, che ci fosse un bosco o no. Non ti uccide col colpo: ti toglie il terreno sotto i piedi per tre round, e il fuoco non distingue fra te e loro. Avanti nella campagna compare anche in versione élite: più grossa, più resistente, con un anello rosso a terra."},
+  {type:"trahn",g:"TRH",nm:"TRAHN",t:"Non respinge: attrae. Ti strappa dalla posizione che avevi scelto e ti trascina verso di sé — dentro il grumo dei suoi, o dentro la voragine che stavi aggirando. Rompe la formazione, non la corazza. Avanti nella campagna compare anche in versione élite: più grossa, più resistente, con un anello rosso a terra."},
   {type:"neris",g:"NRS",nm:"NERIS",t:"Anfibio. Attraversa l'acqua senza affondare: buttarlo in acqua non lo uccide, lo sposta. Per lui servono la voragine, il bordo, la collisione o il danno diretto. Chi crede che l'acqua sia ovunque un'arma, qui sbaglia."},
   {type:"risacca",g:"RSC",nm:"RISACCA",t:"Non ferisce: spinge. Il suo colpo respinge di DUE caselle, e a Tarsis ogni casella d'acqua dietro di te è un mech perduto. È telegrafata come tutto il resto: la risposta è guardare cosa c'è alle tue spalle, o toglierla di mezzo prima. I GIROSCOPI D'ASSETTO sono nati per lei."},
   {type:"vornelite",g:"VRN+",nm:"VORN APEX",t:"Caricatore élite. Veloce e letale; il suo impatto RESPINGE il mech colpito — attento ad acqua e bordi."},
@@ -5089,7 +5089,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.22.0";
+const BUILD_VER="0.23.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -5739,7 +5739,7 @@ const squadPower=()=>squad.reduce((s,cid,i)=>{
 function missionThreat(m){
   if(!m)return 0;
   if(m.cfg&&m.cfg.enemies)
-    return m.cfg.enemies.reduce((s,e)=>s+combatPower(KDEF[e.t]),0);
+    return m.cfg.enemies.reduce((s,e)=>s+combatPower(e.elite?Object.assign({},KDEF[e.t],{maxHp:KDEF[e.t].maxHp+(ELITE_MOD[e.t].maxHp||0),dmg:KDEF[e.t].dmg+(ELITE_MOD[e.t].dmg||0),pull:(KDEF[e.t].pull||0)+(ELITE_MOD[e.t].pull||0)}):KDEF[e.t]),0);
   if(m.spec){
     const pool=m.spec.pool||["vorn"];
     const avgPow=pool.reduce((s,t)=>s+combatPower(KDEF[t]),0)/pool.length;
@@ -6385,6 +6385,20 @@ function mkUnit(o){return Object.assign({id:++UID,hp:o.maxHp,moved:false,attacke
    giocato devono parlare dello stesso relay. */
 const RELAY_PV=2;
 const ENEMY_COST={vorn:2,krull:3,sahir:4,grumo:4,trahn:4,skorr:4,vrast:4,vornelite:4,krullelite:5,neris:3,risacca:3};
+/* ═══ ÉLITE PER BANDIERA ═══
+   Vorn e Krull hanno la loro élite come TIPO a parte (vornelite, krullelite). Per le altre quattro creature che negano una
+   regola — Grumo (spinta), Vrast (turno), Skorr (terreno), Trahn (posizione) — l'élite e' la stessa creatura con la bandiera
+   `elite`: stessi tratti, qualche punto vita e danno in piu' e la sagoma con i suoi segni di rango. Cosi' la logica che legge il
+   TIPO (noPush, freeze, burn, pull) non si tocca, e il costo nel budget e' di due punti in piu'. Compaiono solo dall'escalation
+   in poi, come le due di sempre, e mai negli scenari scritti a mano. */
+const ELITE_MOD={grumo:{maxHp:2,cost:2},vrast:{maxHp:1,dmg:1,cost:2},skorr:{maxHp:1,dmg:1,cost:2},trahn:{maxHp:1,pull:1,cost:2}};
+const ELITE_CHANCE=0.2;
+function applyElite(u){
+  const m=ELITE_MOD[u.type]; if(!m||u.elite)return u;
+  for(const k of ["maxHp","dmg","pull"]) if(m[k]) u[k]=(u[k]||0)+m[k];
+  u.hp=u.maxHp; u.elite=true; u.tier=3; u.name=u.name.replace(/-/,"+-"); u.glyph=(u.glyph||"")+"+";
+  return u;
+}
 /* Quanti nodi vanno contenuti prima che un archetipo entri nei generatori.
    Gli scenari fissi (m1, il Nido) elencano i nemici a mano e non passano di
    qui: lì la scelta è deliberata.
@@ -6497,8 +6511,8 @@ function generaCampo(spec,diff){
      Le righe alte restano nel sacchetto, non svuotate: una seconda ondata che
      arriva dopo è ritmo, un muro tutto addosso al primo round è solo caos. */
   const FRONTE=[4,4,4,4,4,3,3,3,3,2,2,1,0];
-  const place=type=>{let t2=0;while(t2++<200){const ex=randInt(0,7),ey=pick(FRONTE);
-    if(isFree(ex,ey)){enemies.push({t:type,x:ex,y:ey});block(ex,ey);return ENEMY_COST[type];}}return 0;};
+  const place=(type,elite)=>{let t2=0;while(t2++<200){const ex=randInt(0,7),ey=pick(FRONTE);
+    if(isFree(ex,ey)){enemies.push(elite?{t:type,x:ex,y:ey,elite:true}:{t:type,x:ex,y:ey});block(ex,ey);return ENEMY_COST[type]+(elite?ELITE_MOD[type].cost:0);}}return 0;};
   const esc=escalationLevel(), escBonus=Math.min(10,Math.round(esc*1.2));
   let budget=Math.round((spec.budget+escBonus)*MINACCIA);
   /* Il bestiario si apre col tempo: le forme che negano spinta, posizione,
@@ -6522,7 +6536,8 @@ function generaCampo(spec,diff){
   const tettoNemici=(spec.maxNemici||8)-((typeof nemesis!=="undefined"&&nemesis.awake&&!nemesis.dead)?1:0);
   while(budget>=2&&enemies.length<tettoNemici&&guard++<100){
     const aff=pool.filter(ty=>ENEMY_COST[ty]<=budget);if(!aff.length)break;
-    const c=place(pick(aff));if(!c)break;budget-=c;}
+    const ty=pick(aff), el=!!ELITE_MOD[ty]&&esc>=ELITE_THRESHOLD&&budget>=ENEMY_COST[ty]+ELITE_MOD[ty].cost&&Math.random()<ELITE_CHANCE;
+    const c=place(ty,el);if(!c)break;budget-=c;}
 
   /* ═══ RIPARAZIONE MIRATA ═══
      Fin qui il generatore ha piazzato terreno e nemici senza mai metterli in
@@ -7084,6 +7099,7 @@ function startBattle(mission){
   // nemici
   cfg.enemies.forEach((e,i)=>{const def=KDEF[e.t];
     const u=mkUnit(Object.assign({type:e.t,name:def.nm+"-"+String.fromCharCode(945+i),player:false},def));
+    if(e.elite)applyElite(u);
     u.x=e.x;u.y=e.y;B.units.push(u);});
   cfg.enemies.forEach(e=>codexSeen.add(e.t)); // sblocca le schede Kaucha incontrate
   // nemesi adattiva: si manifesta nelle missioni sul campo
@@ -11498,6 +11514,18 @@ renderCodex();
      addosso senza che nessuno se ne ricordi. È la stessa scelta di `china()`
      e `rifinitura()`. */
   let kPulse=1;                       // dilatazione del nucleo, letta da kCore
+  /* ═══ IL MOTO DI RIPOSO ═══
+     Ogni specie ha il suo gesto, e quasi tutti sono impulsi brevi dentro un ciclo lungo: una creatura che si agita di
+     continuo e' rumore, una che sta ferma e ogni tanto fa UNA cosa si legge come viva. `kBump` da' l'impulso (0..1) una volta
+     per ciclo; con «riduci movimento» tutto e' fermo. */
+  const kBump=(x,w)=>{ const f=x-Math.floor(x), d=w||0.14; return f<d?Math.sin(f/d*Math.PI):0; };
+  let kFlex=0;                        // quanto le zampe si flettono ora (letto da kLegs)
+  /* ═══ IL RANGO ═══
+     Una creatura élite e' la STESSA creatura, piu' grossa, con le stesse tre firme: venature rosse (il rosso e' il pericolo, e
+     un'élite lo e'), una struttura in piu' sulla sagoma (cresta, speroni, un paio di braccia, un camino) e il nucleo piu' grande.
+     Non una sagoma nuova: il giocatore impara una famiglia, non due creature. `kEl` e' letto dalle singole sagome; l'anello rosso
+     a terra lo disegna `drawUnit`, lo stesso per tutte. */
+  let kEl=false;
   function posaK(u){
     if(!u)return {dx:0,dy:0,sx:1,sy:1,nucleo:1};
     const sl=u._lunge||0, co=u._hurt||0;
@@ -11532,7 +11560,7 @@ renderCodex();
     const sm=Math.round(Math.abs(seed)*7);
     for(let i=0;i<n;i++){
       const f=n>1?(i/(n-1))*2-1:0, bx=f*span;
-      const sway=reduceMotion?0:Math.sin(t*2+i*1.4+seed)*1.2;
+      const sway=reduceMotion?0:Math.sin(t*2+i*1.4+seed)*1.2*(1+kFlex*1.8);
       const L=len*(0.80+((i*5+sm)%5)*0.10);
       const gx=bx*0.88, gy=-L*0.95+sway;        // ginocchio ALTO
       const px=bx*1.20, py=0;                   // piede
@@ -11589,7 +11617,10 @@ renderCodex();
   function kVorn(t,s){
     const resp=reduceMotion?0:Math.sin(t*1.6+s)*0.055;        // respiro
     const rit =reduceMotion?0:Math.sin(t*1.6+s-0.7)*1.5;      // ritardo secondario
-    kLegs(4,20,10,s,t,2.8);
+    /* il gesto del Vorn: ogni tre secondi e mezzo si accuccia, flette le zampe e apre la mandibola — «sta per scattare» */
+    const scat=reduceMotion?0:kBump(t*0.29+s*0.17,0.16);
+    kFlex=scat; kLegs(4,20,10,s,t,2.8); kFlex=0;
+    ctx.save(); ctx.scale(1+scat*0.04,1-scat*0.07);
 
     // ── massa inferiore: sacca molle che poggia, più scura del corpo
     ctx.save(); ctx.scale(1,1+resp*0.6);
@@ -11621,12 +11652,13 @@ renderCodex();
     // ── testa/muso: tre piani invece di un rettangolo
     poly([[11,-9.5],[21,-10.5],[23,-6.5],[11,-5.5]],FLESH_DK,2.6);
     poly([[13,-9],[20.5,-9.8],[21.5,-7.8],[13,-7.3]],'#2d1642',1.8);
-    poly([[12,-5.8],[22.5,-6.3],[21,-3],[12,-3.4]],'#100617',2.2);   // mandibola
+    const gj=scat*2.2;                                                    // la mandibola cala quando scatta
+    poly([[12,-5.8+gj*.5],[22.5,-6.3+gj],[21,-3+gj*1.2],[12,-3.4+gj*.6]],'#100617',2.2);   // mandibola
     // zanne
     ctx.strokeStyle='#c9b9a8'; ctx.lineWidth=1.5; ctx.lineCap='round';
     ctx.beginPath();
-    ctx.moveTo(20,-6.6); ctx.lineTo(23.4,-4.6);
-    ctx.moveTo(17,-6.4); ctx.lineTo(19.6,-3.9);
+    ctx.moveTo(20,-6.6); ctx.lineTo(23.4,-4.6+gj);
+    ctx.moveTo(17,-6.4); ctx.lineTo(19.6,-3.9+gj);
     ctx.stroke();
 
     // ── materiale: venature sotto pelle e bagnato sul dorso
@@ -11645,49 +11677,78 @@ renderCodex();
       ctx.lineWidth=.7; ctx.strokeStyle='rgba(4,6,10,.8)'; ctx.stroke();
     }
     kCore(-1,-8,2.1,1);
+    ctx.restore();
   }
   function kKrull(t,s){
-    // trampoli lunghi: tutta l'altezza viene da qui
+    /* sui trampoli il Krull oscilla: i piedi restano fermi, la testa cerca il bersaglio. L'ugello carica e scarica. */
+    const sw=reduceMotion?0:Math.sin(t*0.9+s)*1.9, tilt=reduceMotion?0:Math.sin(t*0.9+s-0.6)*0.07;
+    const car=reduceMotion?.5:(Math.sin(t*2.4+s)+1)/2;
+    const stilt=(a,b,c,d)=>{ ctx.beginPath(); ctx.moveTo(a,b); ctx.quadraticCurveTo((a+c)/2-sw*0.25,(b+d)/2,c,d); };
     ctx.strokeStyle=outOra(); ctx.lineWidth=4; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(-7,0); ctx.lineTo(-3,-19); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(7,0); ctx.lineTo(3,-19); ctx.stroke();
+    stilt(-7,0,-3+sw,-19); ctx.stroke(); stilt(7,0,3+sw,-19); ctx.stroke();
     ctx.strokeStyle=FLESH_LT; ctx.lineWidth=2.4;
-    ctx.beginPath(); ctx.moveTo(-7,0); ctx.lineTo(-3,-19); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(7,0); ctx.lineTo(3,-19); ctx.stroke();
+    stilt(-7,0,-3+sw,-19); ctx.stroke(); stilt(7,0,3+sw,-19); ctx.stroke();
+    // articolazioni: due nodi sulle gambe, il punto in cui si piegano
+    for(const [kx,ky] of [[-5.2+sw*.35,-9.5],[5.2+sw*.35,-9.5]]){ ctx.beginPath(); ctx.arc(kx,ky,1.5,0,7); ctx.fillStyle=FLESH_DK; ctx.fill(); ctx.lineWidth=.8; ctx.strokeStyle=outOra(); ctx.stroke(); }
+    ctx.save(); ctx.translate(sw,0); ctx.translate(0,-25); ctx.rotate(tilt); ctx.translate(0,25);
     blob(0,-25,8,8.5,8,s,.09,reduceMotion?0:t*0.7,FLESH,3,'rgba(0,206,209,.28)');
+    // sacca d'artiglieria sul dorso: e' cio' che lancia
+    poly([[-8.5,-29],[-3,-34.5],[1,-29]],FLESH_DK,2);
     poly([[2,-30],[9,-40],[13,-37],[6,-27]],FLESH_DK,2.5);   // ugello puntato in alto
-    glow(11,-38,5,'rgba(0,206,209,.5)','rgba(0,206,209,0)',.9);
+    ctx.strokeStyle='rgba(0,206,209,.55)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(4,-31); ctx.lineTo(10,-38.2); ctx.stroke();   // canna illuminata
+    glow(11,-38,5+car*3,`rgba(0,206,209,${.35+car*.35})`,'rgba(0,206,209,0)',.9);
     kCore(0,-25,2.3,1);
+    ctx.restore();
   }
+  /* SAHIR — ridisegnato. Prima era uno stelo con un disco e quattro tentacoli, cioe' un lampione. Ora e' cio' che fa:
+     un organo che AMPLIFICA, sospeso sopra il suolo senza niente che lo regga. Una cupola molle con le pieghe di un cervello,
+     retta da tre costole d'osso a coppa, con una frangia di filamenti che pende e non tocca terra, e una corona di schegge che
+     gli gira attorno quando pulsa. Fragile e prezioso: e' il «bersaglio prioritario», e deve sembrarlo. */
   function kSahir(t,s){
-    ctx.strokeStyle=outOra(); ctx.lineWidth=5;
-    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-16); ctx.stroke();
-    ctx.strokeStyle=FLESH_LT; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-16); ctx.stroke();
-    // tentacoli
-    for(let i=0;i<4;i++){
-      const f=(i%2?1:-1), o=(i<2?0:1);
-      const sw=reduceMotion?0:Math.sin(t*1.3+i)*2.2;
-      ctx.strokeStyle=outOra(); ctx.lineWidth=3.2;
-      ctx.beginPath(); ctx.moveTo(0,-12-o*4);
-      ctx.quadraticCurveTo(f*8,-16-o*3+sw,f*13,-8-o*5+sw); ctx.stroke();
-      ctx.strokeStyle=BRUISE; ctx.lineWidth=1.8;
-      ctx.beginPath(); ctx.moveTo(0,-12-o*4);
-      ctx.quadraticCurveTo(f*8,-16-o*3+sw,f*13,-8-o*5+sw); ctx.stroke();
-    }
     const pu=reduceMotion?.6:(Math.sin(t*2.2)+1)/2;
-    blob(0,-24,9.5,9,10,s,.07,reduceMotion?0:t*0.5,FLESH,3,`rgba(154,107,196,${.4+pu*.5})`);
-    glow(0,-24,15+pu*5,`rgba(154,107,196,${.35+pu*.3})`,'rgba(154,107,196,0)',1);
-    // anelli d'amplificazione
+    const hv=reduceMotion?0:Math.sin(t*1.7+s)*1.5;                 // fluttua: nessuno lo regge
+    // filamenti: cinque, lunghezze diseguali, ondeggiano in ritardo sulla cupola e finiscono a mezz'aria con una punta che luce
+    for(let i=0;i<5;i++){
+      const f=(i-2)/2, L=14+((i*3)%4)*2.2, sw=reduceMotion?0:Math.sin(t*1.4+i*1.1+s)*2.4;
+      const x0=f*6, y0=-19+hv, x1=f*12+sw, y1=-19+L-hv*0.2+hv*0.0;
+      ctx.lineCap='round'; ctx.strokeStyle=outOra(); ctx.lineWidth=2.8;
+      ctx.beginPath(); ctx.moveTo(x0,y0); ctx.quadraticCurveTo(x0+f*8+sw*0.5,y0+L*0.45,x1,Math.min(-2.5,y1)); ctx.stroke();
+      ctx.strokeStyle=BRUISE; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle=`rgba(160,110,205,${.4+pu*.35})`; ctx.beginPath(); ctx.arc(x1,Math.min(-2.5,y1),1.2,0,7); ctx.fill();
+    }
+    ctx.save(); ctx.translate(0,hv);
+    blob(0,-26,10.5,8.6,12,s,.07,reduceMotion?0:t*0.5,FLESH,3,`rgba(154,107,196,${.4+pu*.5})`);
+    glow(0,-26,16+pu*5,`rgba(154,107,196,${.35+pu*.3})`,'rgba(154,107,196,0)',1);
+    // costole d'osso a coppa: due archi ai fianchi della cupola, e' cio' che la regge a mezz'aria
+    for(const sd of [-1,1]){
+      ctx.strokeStyle=outOra(); ctx.lineWidth=3.4; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(sd*3.5,-15.5); ctx.quadraticCurveTo(sd*13.5,-17.5,sd*12.8,-27.5); ctx.stroke();
+      ctx.strokeStyle='#9a82bb'; ctx.lineWidth=1.7; ctx.stroke();
+    }
+    // pieghe del cervello: due archi sulla cupola, il nucleo sotto
+    vene([[-8,-26,-5,-31,-1,-31.5,3,-30],[-7,-22.5,-3,-26,2,-25,7,-27.5]],'rgba(185,138,223,.55)',1,.9);
+    // schegge che orbitano quando pulsa: sono cio' che amplifica
+    for(let i=0;i<5;i++){
+      const a=(reduceMotion?0:t*(0.7+pu*0.4))+i*(Math.PI*2/5), rr=15+pu*3;
+      const ox=Math.cos(a)*rr, oy=-26+Math.sin(a)*rr*0.42, sc=0.8+Math.sin(a)*0.25;
+      ctx.save(); ctx.translate(ox,oy); ctx.rotate(a*1.4); ctx.globalAlpha=0.5+Math.sin(a)*0.3+pu*0.2;
+      poly([[-2.4*sc,-1.6*sc],[2.6*sc,-.8*sc],[1.2*sc,2.4*sc]],'rgba(138,92,184,.95)',1.2);
+      ctx.restore();
+    }
+    // anelli d'amplificazione: onde che si aprono dalla cupola
     ctx.strokeStyle=`rgba(154,107,196,${.5+pu*.4})`; ctx.lineWidth=1.4;
     for(let i=0;i<2;i++){
-      const rr=11+((t*0.5+i*0.5)%1)*13;
-      ctx.globalAlpha=.7*(1-((t*0.5+i*0.5)%1));
-      ctx.beginPath(); ctx.ellipse(0,-24,rr,rr*0.55,0,0,7); ctx.stroke();
+      const ph=reduceMotion?(0.3+i*0.4):((t*0.5+i*0.5)%1);
+      const rr=12+ph*13;
+      ctx.globalAlpha=.7*(1-ph);
+      ctx.beginPath(); ctx.ellipse(0,-26,rr,rr*0.5,0,0,7); ctx.stroke();
     }
     ctx.globalAlpha=1;
-    ctx.fillStyle=`rgba(185,138,223,${.7+pu*.3})`;
-    ctx.beginPath(); ctx.arc(0,-24,2.6,0,7); ctx.fill();
+    // il nucleo: niente pupilla verticale (non e' un predatore), una perla che pulsa
+    ctx.fillStyle=`rgba(190,140,232,${.75+pu*.25})`;
+    ctx.beginPath(); ctx.arc(0,-26,2.8,0,7); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(-1,-27.1,.8,0,7); ctx.fill();
+    ctx.restore();
   }
   /* Il Grumo è un muro: la sagoma deve dire "questo non lo sposti" prima che
      tu legga la scheda. Largo, schiacciato, zampe corte e piantate. */
@@ -11714,12 +11775,22 @@ renderCodex();
     blob(0,-16+resp*0.3,12,5.6,10,s,.05,reduceMotion?0:t*0.35,FLESH,3.2);
     // ziggurat di piastre corazzate: la massa sale a scalini
     for(let i=0;i<3;i++){
-      const w=9.5-i*2.2, y=-20-i*7.2;
+      const w=9.5-i*2.2, y=-20-i*7.2-resp*(i+1)*0.55;       // ogni piastra si alza un poco piu' della precedente: respira a scalini
       poly([[-w,y],[w,y],[w*0.7,y-7.6],[-w*0.7,y-7.6]],i%2?FLESH_LT:FLESH_DK,2.6);
     }
-    ctx.strokeStyle='rgba(138,151,166,.45)'; ctx.lineWidth=1.2;
+    const gp=reduceMotion?.5:(Math.sin(t*1.1+s)+1)/2;
+    ctx.strokeStyle=`rgba(138,151,166,${.34+gp*.3})`; ctx.lineWidth=1.2;
     ctx.beginPath(); ctx.moveTo(-16,-8); ctx.lineTo(16,-8); ctx.stroke();
-    kCore(0,-16,2,.9);
+    if(kEl){
+      // speroni che escono dalla base e una punta sulla cima: la corazza ha messo le difese
+      for(const sd of [-1,1]){ poly([[sd*15.5,-7],[sd*28,-19],[sd*13,-15.5]],FLESH_LT,2.4); poly([[sd*8,-37.5],[sd*13.5,-47],[sd*5,-43.5]],FLESH_DK,2); }
+      poly([[-3.4,-41.6],[0,-55],[3.4,-41.6]],FLESH_LT,2.2);
+      // giunture arroventate fra le piastre: il rosso del pericolo
+      ctx.strokeStyle=`rgba(255,90,77,${.5+gp*.35})`; ctx.lineWidth=1.3; ctx.beginPath();
+      for(let i=0;i<3;i++){ const w=9.5-i*2.2, y=-20-i*7.2-resp*(i+1)*0.55; ctx.moveTo(-w*.9,y-.6); ctx.lineTo(w*.9,y-.6); }
+      ctx.stroke();
+    }
+    kCore(0,-16,kEl?2.7:2,.9);
   }
   /* Le élite devono leggersi come "la stessa creatura, più grossa": stessa
      postura della forma base, non una silhouette nuova. Altrimenti il
@@ -11741,7 +11812,8 @@ renderCodex();
     ctx.beginPath(); ctx.moveTo(-10,-11); ctx.lineTo(-2,-15); ctx.lineTo(6,-10); ctx.stroke();
     kCore(-1,-11,2.6,1);
   }
-  function kKrullelite(t,s){
+  function kKrullelite(t0,s){
+    const t=reduceMotion?0:t0;     // con «riduci movimento» le orbe stanno ferme
     // trampoli del Krull, più lunghi: la famiglia resta riconoscibile
     ctx.strokeStyle=outOra(); ctx.lineWidth=4.4;
     [[-8,0,-4,-24],[8,0,4,-24],[0,0,0,-23]].forEach(([a,b,c,d])=>{
@@ -11779,12 +11851,23 @@ renderCodex();
     poly([[-10,-16],[-4,-26],[5,-26],[11,-16],[6,-10],[-6,-10]],FLESH,3);
     poly([[-6,-17],[-1,-23],[4,-17],[0,-13]],'rgba(150,220,240,.55)',1.6);
     // corona di ghiaccio: cinque punte, quella centrale la più alta
-    for(let i=0;i<5;i++){
-      const bx=-12+i*6, h=(i===2?17:(i===1||i===3)?12:8), lean=(i-2)*1.2;
+    const NC=kEl?7:5;
+    for(let i=0;i<NC;i++){
+      const mid=(NC-1)/2, bx=-12+i*(24/(NC-1)), h=(kEl?(i===3?22:(i===2||i===4)?16:(i===1||i===5)?12:8):(i===2?17:(i===1||i===3)?12:8)), lean=(i-mid)*(kEl?0.8:1.2);
       const ly=-24-h+(reduceMotion?0:Math.sin(t*1.2+i)*0.8);
-      poly([[bx-2.7,-23],[bx+lean,ly],[bx+2.7,-23]],i%2?'#a9dcee':'#d2f0fa',1.8);
+      /* ⚠ Ghiaccio a MEZZO TONO (prima #d2f0fa): sul pavimento chiaro la corona sparisce, e la corona e' la sagoma. Il bianco
+         resta solo nel lampo che la attraversa ogni tanto, e nel filo di luce sul bordo. */
+      poly([[bx-(kEl?2.1:2.7),-23],[bx+lean,ly],[bx+(kEl?2.1:2.7),-23]],kEl&&i===mid?'#c0625e':(i%2?'#5aa6c4':'#79bbd6'),1.8);
+      ctx.strokeStyle='rgba(226,246,252,.55)'; ctx.lineWidth=.8; ctx.beginPath(); ctx.moveTo(bx-1.6,-23.5); ctx.lineTo(bx+lean-.2,ly+2); ctx.stroke();
+      const lampo=reduceMotion?0:Math.pow(Math.max(0,Math.sin(t*2.1-i*0.9+s)),10);
+      if(lampo>0.02){ ctx.strokeStyle=`rgba(255,255,255,${lampo*.9})`; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(bx-.8,-23.5); ctx.lineTo(bx+lean,ly+1.5); ctx.stroke(); }
     }
-    kCore(0,-18,2.1,1);
+    if(kEl){   // schegge di ghiaccio che girano attorno alla corona: il freddo e' diventato un'arma in piu'
+      for(let i=0;i<3;i++){ const a=(reduceMotion?0:t*0.8)+i*2.1, ox=Math.cos(a)*15, oy=-30+Math.sin(a)*4;
+        ctx.save(); ctx.translate(ox,oy); ctx.rotate(a); poly([[-2,-3],[2,-1],[-1,3]],'#8fd0e6',1.4); ctx.restore(); }
+      ctx.strokeStyle='rgba(255,90,77,.55)'; ctx.lineWidth=1.1; ctx.beginPath(); ctx.moveTo(-5,-17); ctx.lineTo(0,-21); ctx.lineTo(5,-17); ctx.stroke();
+    }
+    kCore(0,-18,kEl?2.7:2.1,1);
   }
 
   /* SKORR — la postura dice "sto per bruciare qualcosa": corpo sollevato su
@@ -11803,18 +11886,28 @@ renderCodex();
     kLegs(4,16,8,s,t,2.2);
     blob(0,-12,14,7,9,s,.11,reduceMotion?0:t*1.1,FLESH,3,'rgba(255,90,0,.34)');
     // due fumaioli: la firma verticale, ma corta — il profilo resta basso
-    for(const [cx,h] of [[-10,20],[-3.5,14]]){
+    for(const [cx,h] of (kEl?[[-10,22],[-3.5,16],[3,10]]:[[-10,20],[-3.5,14]])){
       poly([[cx-2.4,-16],[cx-1.9,-16-h],[cx+1.9,-16-h],[cx+2.4,-16]],FLESH_DK,2.2);
       poly([[cx-3.4,-15-h],[cx+3.4,-15-h],[cx+2.4,-19-h],[cx-2.4,-19-h]],FLESH_LT,1.8);
+      // fumo: sbuffi scuri che salgono e si allargano. Fermo con «riduci movimento»: resta un solo sbuffo a mezza altezza.
+      if(inchiostro) for(let k=0;k<(reduceMotion?1:3);k++){
+        const age=reduceMotion?0.3:(((t*0.5+k/3+cx*0.05)%1)+1)%1;   // il modulo di un negativo resta negativo: all'avvio il raggio sarebbe < 0 e arc() lancia
+        ctx.save(); ctx.globalAlpha=0.5*(1-age); ctx.fillStyle='#2b2230';
+        ctx.beginPath(); ctx.arc(cx+Math.sin(age*5+k+cx)*2.2,-20-h-age*15,1.4+age*3.2,0,7); ctx.fill(); ctx.restore();
+      }
     }
     // braciere: fauci aperte in avanti, dentro la sagoma
     poly([[9,-17],[22,-21],[22,-8],[9,-10]],FLESH_DK,2.6);
     const puls=reduceMotion?.6:(Math.sin(t*4)+1)/2;
     glow(19,-14,7+puls*3,`rgba(255,90,0,${.5+puls*.3})`,'rgba(255,90,0,0)',1);
-    ctx.fillStyle=`rgba(255,90,77,${.75+puls*.25})`;
-    ctx.beginPath(); ctx.ellipse(19,-14,3.2,2.4,0,0,7); ctx.fill();
+    ctx.fillStyle=kEl?`rgba(255,226,170,${.8+puls*.2})`:`rgba(255,90,77,${.75+puls*.25})`;   // l'élite brucia a bianco
+    ctx.beginPath(); ctx.ellipse(19,-14,kEl?4:3.2,kEl?3:2.4,0,0,7); ctx.fill();
+    if(kEl){   // lingue di fiamma dai camini
+      for(const [cx,h] of [[-10,22],[-3.5,16],[3,10]]){ const fl=reduceMotion?.6:(Math.sin(t*9+cx)+1)/2;
+        ctx.fillStyle=`rgba(255,120,40,${.55+fl*.3})`; ctx.beginPath(); ctx.moveTo(cx-1.6,-19-h); ctx.quadraticCurveTo(cx+fl*1.6,-24-h-fl*3,cx+1.6,-19-h); ctx.fill(); }
+    }
     for(let i=0;i<3;i++){
-      const x=-8+i*7, dr=((t*0.8+i*0.33)%1);
+      const x=-8+i*7, dr=reduceMotion?(0.2+i*0.3):((t*0.8+i*0.33)%1);
       ctx.save(); ctx.globalAlpha=(1-dr)*0.65;
       ctx.fillStyle='rgba(255,90,0,.9)';
       ctx.beginPath(); ctx.arc(x,-6+dr*6,1.6,0,7); ctx.fill(); ctx.restore();
@@ -11828,26 +11921,40 @@ renderCodex();
   function kTrahn(t,s){
     kLegs(3,15,8,s,t,2.4);
     blob(0,-12,13,9,9,s,.08,reduceMotion?0:t*0.5,FLESH,3.2,'rgba(154,107,196,.34)');
-    // bracci uncinati, curvati verso l'interno
+    // bracci uncinati, curvati verso l'interno: si serrano nel momento in cui gli anelli collassano (il richiamo)
+    const ser=reduceMotion?0:Math.sin(((t*0.9)%1)*Math.PI);
     [-1,1].forEach(sd=>{
+      const cxm=sd*(20-ser*5.5), cym=-20-ser*2, txm=sd*(11-ser*3.4), tym=-27-ser*1;
       ctx.strokeStyle=outOra(); ctx.lineWidth=4.2; ctx.lineCap='round';
-      ctx.beginPath(); ctx.moveTo(sd*7,-15); ctx.quadraticCurveTo(sd*20,-20,sd*11,-27); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sd*7,-15); ctx.quadraticCurveTo(cxm,cym,txm,tym); ctx.stroke();
       ctx.strokeStyle=FLESH_LT; ctx.lineWidth=2.4;
-      ctx.beginPath(); ctx.moveTo(sd*7,-15); ctx.quadraticCurveTo(sd*20,-20,sd*11,-27); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sd*7,-15); ctx.quadraticCurveTo(cxm,cym,txm,tym); ctx.stroke();
+      // l'uncino alla punta
+      ctx.strokeStyle=outOra(); ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(txm,tym); ctx.lineTo(txm-sd*2.8,tym+3.4); ctx.stroke();
     });
+    if(kEl){   // secondo paio di bracci, piu' bassi e corti: afferra anche chi e' vicino
+      [-1,1].forEach(sd=>{
+        const cxm=sd*(17-ser*4), txm=sd*(12-ser*3);
+        ctx.strokeStyle=outOra(); ctx.lineWidth=3.8; ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(sd*8.5,-9); ctx.quadraticCurveTo(cxm,-8,txm,-2.5); ctx.stroke();
+        ctx.strokeStyle=FLESH_LT; ctx.lineWidth=2.1; ctx.stroke();
+        ctx.strokeStyle=outOra(); ctx.lineWidth=1.8; ctx.beginPath(); ctx.moveTo(txm,-2.5); ctx.lineTo(txm-sd*2.6,-5.6); ctx.stroke();
+      });
+    }
     // anelli che si stringono verso il nucleo: il richiamo
     const ph=reduceMotion?0.5:(t*0.9)%1;
     for(let i=0;i<3;i++){
       const f=((ph+i/3)%1);
       ctx.save();
       ctx.globalAlpha=(1-f)*0.7;
-      ctx.strokeStyle=BRUISE; ctx.lineWidth=1.8;
+      ctx.strokeStyle=kEl&&i===0?'rgba(255,90,77,.9)':BRUISE; ctx.lineWidth=1.8;
       ctx.beginPath(); ctx.ellipse(0,-12,4+f*17,2.4+f*10,0,0,7); ctx.stroke();
       ctx.restore();
     }
-    kCore(0,-12,2.4,1);
+    kCore(0,-12,kEl?3:2.4,1);
   }
-  function kPalinsesto(t,s){
+  function kPalinsesto(t0,s){
+    const t=reduceMotion?0:t0;     // ferma con «riduci movimento»: la scheggia e il glitch non girano
     // corpo "glitchato": due copie sfalsate bruise/teal + nucleo
     ctx.save(); ctx.globalAlpha=.45;
     const off=reduceMotion?0:Math.sin(t*7)*1.8;
@@ -11869,7 +11976,8 @@ renderCodex();
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fillText('Ψ',0,-15); ctx.restore();
   }
-  function kMatria(t,s){
+  function kMatria(t0,s){
+    const t=reduceMotion?0:t0;
     // gonna di tentacoli
     for(let i=0;i<7;i++){
       const f=(i/6)*2-1, sw=reduceMotion?0:Math.sin(t*1.1+i*0.9)*3;
@@ -12001,7 +12109,7 @@ renderCodex();
     ctx.bezierCurveTo(1,-24,-3,-19,-6,-14);
     ctx.closePath();
     ctx.lineJoin='round'; ctx.lineWidth=3.2; ctx.strokeStyle=outOra(); ctx.stroke();
-    ctx.fillStyle=NER_LT; ctx.fill();
+    ctx.fillStyle='#276878'; ctx.fill();
     ctx.restore();
     // schiuma sul labbro dell'onda e righe di flusso sul dorso
     ctx.strokeStyle='rgba(224,244,246,.85)'; ctx.lineWidth=1.8; ctx.lineCap='round';
@@ -12186,8 +12294,9 @@ renderCodex();
     {
       const p=iso(u._vx,u._vy);
       const sc=SC[spriteKey(u)]||1;
-      const S=(TW/64)*u._scale*UNIT_S*sc;
       const kaucha=!u.player&&!u.structure;
+      const elite=kaucha&&(!!u.elite||(KDEF[u.type]&&KDEF[u.type].tier===3));   // le due élite di sempre e le élite per bandiera
+      const S=(TW/64)*u._scale*UNIT_S*sc*(u.elite?1.1:1);
       const key=spriteKey(u);
       /* ⚠⚠ IL RIQUADRO SI MISURA, NON SI LEGGE DA `SIZE` — ed e'
          l'invariante 8, dichiarata risolta e risolta solo per l'OMBRA.
@@ -12202,7 +12311,8 @@ renderCodex();
          ⚠ `boxDi` misura i pixel col medesimo dispatch di questa funzione
          e tiene il risultato in cache, quindi costa una volta per chiave.
          `SIZE` resta solo come ripiego per quando non c'e' una tela vera. */
-      const bxo=boxDi(key,u.structure,kaucha);
+      const bxo0=boxDi(key,u.structure,kaucha);
+      const bxo=u.elite?Object.assign({},bxo0,{y0:bxo0.y0-9,h:bxo0.h+9,w:bxo0.w+8}):bxo0;   // le punte in piu' dell'élite sporgono dalla sagoma di base
       const sz=[bxo.w, -bxo.y0];
 
       // salto d'arco durante lo spostamento
@@ -12245,6 +12355,13 @@ renderCodex();
         diamond(p.x - olx*alt*0.17, p.y+TH*0.1 - oly*alt*0.085,
                 largh, largh*(TH/TW)); ctx.fill();
         ctx.restore();
+      }
+
+      // anello di rango: l'élite ha un anello rosso a terra, lo stesso per tutte le specie
+      if(elite){
+        ctx.save(); ctx.globalAlpha=(reduceMotion?.7:.5+Math.sin(t*3+u._bob)*0.2)*u._scale;
+        ctx.strokeStyle=DANGER; ctx.lineWidth=1.6;
+        diamond(p.x,p.y+TH*0.1,TW*0.78,TH*0.78); ctx.stroke(); ctx.restore();
       }
 
       /* Alone di distacco per i Kaucha. Il contorno spesso funziona su fondo
@@ -12327,8 +12444,9 @@ renderCodex();
         kPulse=K.nucleo; materiale="carne";   // niente smussi sulla carne
         ctx.save();
         ctx.translate(K.dx,K.dy); ctx.scale(K.sx,K.sy);
+        kEl=!!u.elite;
         try{ (K_ART[key]||kVorn)(t,u._bob); }
-        finally{ ctx.restore(); kPulse=1; materiale="acciaio"; }
+        finally{ ctx.restore(); kPulse=1; kEl=false; materiale="acciaio"; }
       }
       // l'unità passa alla sagoma: lo scheletro ricava la posa dal suo stato
       else if(voxAttivo&&key==='behemoth'){ acc=voxUnita(t,ACCENT[key]||AMBER,u); }
@@ -12355,7 +12473,7 @@ renderCodex();
       /* ⚠ Dalla SILHOUETTE, non dalla tabella. Le asserzioni sulle proporzioni
          leggono questo: finche veniva da `SIZE` presidiavano la tabella, e due
          sagome potevano convergere senza che nessun test se ne accorgesse. */
-      const bxb=boxDi(key,u.structure,kaucha);
+      const bxb=u.elite?bxo:boxDi(key,u.structure,kaucha);
       u._bbox={ x:p.x+bxb.x0*S, y:feetY+bob+bxb.y0*S, w:bxb.w*S, h:bxb.h*S+TH*0.2 };
 
       /* La ruota di catene gira ATTORNO alla sagoma, quindi si disegna fuori
@@ -14393,7 +14511,7 @@ renderCodex();
      disegnerebbe la battaglia dentro la scheda (stessa regola di tavole e icone).
      ⚠ `B` si salva e si ripristina intero: la galleria si apre dalle Opzioni, e una
      battaglia in memoria non deve perdere niente. */
-  const GAL={tema:'cassandra',posa:'idle',zoom:1.6,anima:false,raf:null,celle:[],t0:0,sel:[]};
+  const GAL={tema:'cassandra',posa:'idle',rango:'base',zoom:1.6,anima:false,raf:null,celle:[],t0:0,sel:[]};
   function galTipi(){
     const mech=Object.keys(MECH_ART).filter(k=>k!=='lancerjet').concat(['lancerjet']);
     const kau=Object.keys(K_ART);
@@ -14409,13 +14527,14 @@ renderCodex();
       player:mech,structure:str,civil:key==='civile',hp:ch?ch.maxHp:(kd?kd.maxHp:2),maxHp:ch?ch.maxHp:(kd?kd.maxHp:2),
       x:0,y:0,_vx:0,_vy:0,_scale:1,_face:1,_bob:0.6,_flash:0,_hurt:0,_lunge:0,_lgx:0,_lgy:0,_hx:0,_hy:0,frozen:0,guard:0};
     if(key==='lancerjet')u.assetto='caccia';
+    if(GAL.rango==='elite'&&ELITE_MOD[key])u.elite=true;     // le quattro che hanno l'élite per bandiera
     if(posa==='colpo'){ u._lunge=0.5; u._lgx=1; u._lgy=0; }
     else if(posa==='ferito'){ u._hurt=0.85; u._hx=-1; u._hy=0; u._flash=0.35; }
     else if(posa==='crollo'){ u._morte=0.55; u.hp=0; u._lgx=1; }
     return u;
   }
   function galFit(u,w,h,tw){
-    const key=spriteKey(u), bxo=boxDi(key,u.structure,!u.player&&!u.structure), S1=UNIT_S*(SC[key]||1);
+    const key=spriteKey(u), b0=boxDi(key,u.structure,!u.player&&!u.structure), S1=UNIT_S*(SC[key]||1)*(u.elite?1.1:1), bxo=u.elite?{h:b0.h+9,w:b0.w+8}:b0;
     return Math.min(1,(h*0.50)/(bxo.h*S1*(tw/64)),(w*0.90)/(bxo.w*S1*(tw/64)));   // lascia spazio sopra la testa per i pip dei PV e la sigla
   }
   function galCella(cv,u,tw,opz){
@@ -14463,6 +14582,20 @@ renderCodex();
     const m=new Uint8Array(N*N), e=g.getImageData(0,0,N,N).data; for(let i=0;i<N*N;i++)m[i]=e[i*4+3]>90?1:0;
     return {m,w:bw,h:bh};
   }
+  /* Il colore medio di una creatura disegnata (senza inchiostro): serve a misurare quanto si stacca dal pavimento. */
+  function galColori(key){
+    const u=galUnita(key,'idle'); const L=240, off=document.createElement('canvas'); off.width=off.height=L;
+    const sv={ctx,TW,TH,ink:inchiostro,mat:materiale};
+    try{
+      ctx=off.getContext('2d'); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,L,L); inchiostro=false; TW=48; TH=24;
+      ctx.save(); ctx.translate(L/2,L*0.8); ctx.scale(2.2,2.2);
+      if(!u.player){ materiale='carne'; (K_ART[key]||kVorn)(0,0); materiale='acciaio'; }
+      ctx.restore();
+    } finally { ctx=sv.ctx; TW=sv.TW; TH=sv.TH; inchiostro=sv.ink; materiale=sv.mat; }
+    const d=off.getContext('2d').getImageData(0,0,L,L).data; let r=0,g=0,b=0,n=0;
+    for(let i=0;i<L*L;i++){ const a=d[i*4+3]; if(a>60){ r+=d[i*4]; g+=d[i*4+1]; b+=d[i*4+2]; n++; } }
+    return n?{r:r/n,g:g/n,b:b/n,n}:null;
+  }
   function galSomiglianze(chiavi){
     const N=40, M={}; chiavi.forEach(k=>{ try{ M[k]=galMaschera(k,N); }catch(e){ M[k]=null; } });
     const out=[];
@@ -14487,6 +14620,7 @@ renderCodex();
     root.innerHTML=`<div class="gal-h" style="margin-top:0">CONFRONTO A DUE</div><div id="galConf" class="gal-conf"></div><div class="gal-bar">
       <span class="gl">PAVIMENTO ${bt('tema','','cassandra','CASSANDRA')}${bt('tema','','orvat','ORVAT')}${bt('tema','','tarsis','TARSIS')}</span>
       <span class="gl">POSA ${bt('posa','','idle','FERMO')}${bt('posa','','colpo','COLPO')}${bt('posa','','ferito','FERITO')}${bt('posa','','crollo','CROLLO')}</span>
+      <span class="gl">RANGO ${bt('rango','','base','BASE')}${bt('rango','','elite','ÉLITE')}</span>
       <span class="gl">SCALA ${bt('zoom','',1,'CAMPO')}${bt('zoom','',1.6,'×1,6')}${bt('zoom','',2.2,'×2,2')}</span>
       <span class="gl">MOVIMENTO ${bt('anima','',false,'FERMO')}${bt('anima','',true,'ANIMA')}</span></div>`+
       sez("TELAI","Le nove sagome dei mech (il LNC-05 ha due assetti). Il bordo di luce e l'ombra sono quelli del campo.",T.mech)+
@@ -14568,7 +14702,7 @@ renderCodex();
   }
   function fermaGalleria(){ GAL.anima=false; if(GAL.raf!==null&&typeof cancelAnimationFrame==='function')cancelAnimationFrame(GAL.raf); GAL.raf=null; }
   window.renderGalleria=renderGalleria; window.fermaGalleria=fermaGalleria;
-  window.__galleria={celle:()=>GAL.celle.length,conteggi:()=>({mech:Object.keys(MECH_ART).length,kau:Object.keys(K_ART).length}),galSomiglianze,galTipi,galMaschera,stato:GAL};
+  window.__galleria={colori:galColori,celle:()=>GAL.celle.length,conteggi:()=>({mech:Object.keys(MECH_ART).length,kau:Object.keys(K_ART).length}),galSomiglianze,galTipi,galMaschera,stato:GAL};
   window.addEventListener('load',()=>{ if(location.hash==='#galleria'){ try{ go('galleria'); }catch(e){} } });
 
   window.addEventListener('resize',()=>{ const m=document.getElementById('menu'); if(m&&m.classList.contains('active')){ try{ drawHeroArt(); }catch(e){} } });
