@@ -16,13 +16,18 @@ const SHOT = process.argv[2] === 'shots';
     RITMO = 0;
     for (const id of sc) {
       if (id === 'hangar') { activeMission = null; renderHangar(); } else if (id === 'opzioni') renderOpzioni(); else if (id === 'codice') renderCodex(); else if (id === 'protocolli') renderProtocols(); else if (id === 'ricerca') renderResearch(); else if (id === 'comando') renderComando();
-      go(id); await new Promise(r => setTimeout(r, 120));
+      go(id);
       const el = document.getElementById(id);
-      out[id] = [...el.querySelectorAll('button,[role=button],input,select')].filter(e => e.offsetParent !== null).filter(e => {
+      // I nomi li assegna un MutationObserver, quindi arrivano dopo il disegno: con la macchina sotto carico (batteria lanciata in parallelo)
+      // 120 ms non bastavano e il controllo falliva a caso. Si ripete fino a 2 s: se a 2 s manca ancora un nome, e' un difetto vero.
+      const mancanti = () => [...el.querySelectorAll('button,[role=button],input,select')].filter(e => e.offsetParent !== null).filter(e => {
         const n = (e.getAttribute('aria-label') || e.textContent || e.getAttribute('title') || '').replace(/\s+/g, ' ').trim();
         const lab = e.id && document.querySelector(`label[for="${e.id}"]`);
         return !(lab || /[A-Za-zÀ-ÿ]{3}/.test(n));
       }).map(e => (e.id || e.className || e.tagName) + ':' + (e.textContent || '').trim().slice(0, 8));
+      await new Promise(r => setTimeout(r, 120)); let m = mancanti();
+      for (let i = 0; m.length && i < 16; i++) { await new Promise(r => setTimeout(r, 125)); m = mancanti(); }
+      out[id] = m;
     }
     activeMission = nodeOf('m1'); startBattle(activeMission); await new Promise(r => setTimeout(r, 500));
     out.battle = [...document.getElementById('battle').querySelectorAll('button,[role=button],input')].filter(e => e.offsetParent !== null).filter(e => !/[A-Za-zÀ-ÿ]{3}/.test((e.getAttribute('aria-label') || e.textContent || '').trim())).map(e => (e.id || e.className) + ':' + (e.textContent || '').trim().slice(0, 6));

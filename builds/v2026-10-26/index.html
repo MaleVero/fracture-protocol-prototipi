@@ -286,6 +286,28 @@
   #missionIntro.sector-orvat .mi-n{color:#ff9a3c} #missionIntro.sector-tarsis .mi-n{color:var(--anomal-teal)} #missionIntro.boss .mi-n{color:var(--danger)}
   @keyframes miIn{0%{opacity:0;transform:translateX(-40px)}14%{opacity:1;transform:none}78%{opacity:1;transform:none}100%{opacity:0;transform:translateX(18px)}}
   @media (prefers-reduced-motion:reduce){#missionIntro{animation:miFade 2.2s linear both}@keyframes miFade{0%,80%{opacity:1}100%{opacity:0}}}
+  /* GALLERIA: confronto di telai, creature e strutture. Strumento di lavoro, dentro il gioco perche' usa lo stesso motore del campo. */
+  .gal-bar{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 10px;font-size:calc(10px * var(--ts,1));letter-spacing:.08em;color:var(--bone-dim)}
+  .gal-bar .gl{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+  .gal-bar button{background:transparent;border:1px solid var(--gunmetal-hi);color:var(--bone-dim);font:inherit;padding:6px 9px;min-height:36px;cursor:pointer}
+  .gal-bar button.on{border-color:var(--amber);color:var(--amber)}
+  .gal-h{margin:16px 0 7px;font-size:calc(10.5px * var(--ts,1));letter-spacing:.2em;color:var(--amber)}
+  .gal-note{font-size:calc(10px * var(--ts,1));line-height:1.55;color:var(--bone-dim);margin:0 0 8px}
+  .gal-conf{margin:0 0 6px}
+  .gal-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .gal-pair canvas{display:block;width:100%;aspect-ratio:1/1;background:#06080c;border:1px solid var(--gunmetal-hi)}
+  .gal-card{cursor:pointer} .gal-card.sel{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)} .gal-card:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+  .gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .gal-card{border:1px solid var(--gunmetal-hi);background:rgba(0,0,0,.25);padding:0 0 6px}
+  .gal-card canvas{display:block;width:100%;aspect-ratio:1/1.02;background:#06080c}
+  .gal-card .gn{padding:5px 7px 0;font-size:calc(11px * var(--ts,1));letter-spacing:.1em;color:var(--bone)}
+  .gal-card .gn b{color:var(--amber);font-weight:700}
+  .gal-card .gm{padding:1px 7px 0;font-size:calc(9px * var(--ts,1));line-height:1.5;color:var(--bone-dim)}
+  .gal-scroll{overflow-x:auto;border:1px solid var(--gunmetal-hi);background:#06080c;-webkit-overflow-scrolling:touch}
+  .gal-scroll canvas{display:block}
+  .gal-sim{width:100%;border-collapse:collapse;font-size:calc(10px * var(--ts,1))}
+  .gal-sim td{padding:4px 6px;border-bottom:1px solid var(--gunmetal-hi);color:var(--bone)}
+  .gal-sim td.v{text-align:right;color:var(--amber)} .gal-sim tr.alto td.v{color:var(--danger)}
   .np-pres{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin:6px 0 4px}
   .np-pres .np-k{display:inline-flex;flex-direction:column;align-items:center;min-width:36px}
   .np-pres .np-k .ico{width:34px;height:26px;margin:0}
@@ -1410,7 +1432,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.14.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.15.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -1481,6 +1503,13 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
 </section>
 
 <!-- OPZIONI -->
+<!-- GALLERIA — la pagina di confronto di telai, creature e strutture -->
+<section class="screen" id="galleria">
+  <div class="topbar"><button class="backbtn" data-back>‹</button>
+    <div class="tt">GALLERIA ARTE<small>CONFRONTO · TELAI · CREATURE</small></div></div>
+  <div class="scroll" id="galleriaScroll"></div>
+</section>
+
 <section class="screen" id="opzioni">
   <div class="topbar"><button class="backbtn" data-back>‹</button>
     <div class="tt">OPZIONI<small>IMPOSTAZIONI &amp; CAMPAGNE</small></div></div>
@@ -4833,7 +4862,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.14.0";
+const BUILD_VER="0.15.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -5205,6 +5234,10 @@ function renderOpzioni(){
       </div>
       <input type="file" id="bkFile" accept="application/json,.json" style="display:none" aria-label="File di copia da ripristinare">
     </div>
+    <div class="panel"><h3>GALLERIA ARTE</h3>
+      <div class="muted" style="margin-bottom:9px;line-height:1.7;">Telai, creature e strutture in grande, con lo stesso motore del campo: pose, pavimenti dei tre settori, confronto di altezze e di sagome, e le coppie che si somigliano di più. Serve a controllare l'arte, non a giocare.</div>
+      <button class="slotbtn" id="apriGalleria">APRI LA GALLERIA</button>
+    </div>
     <div class="panel"><h3>PROVA E SEGNALAZIONI</h3>
       <div class="muted" style="margin-bottom:9px;line-height:1.7;">Questo gioco è in prova. <b>Non manda niente in rete</b>: tiene sul tuo dispositivo un diario delle missioni (e il tuo giudizio «facile / giusta / dura», se lo dai a fine missione). Se vuoi dirci com'è andata, componi un rapporto, leggilo qui sotto e mandalo tu a chi ti ha dato il link.<br>Diario: <b>${leggiDiario().length}</b> mission${leggiDiario().length===1?"e":"i"} registrat${leggiDiario().length===1?"a":"e"} · build ${BUILD_VER}.</div>
       <div class="slotgrid">
@@ -5216,6 +5249,7 @@ function renderOpzioni(){
         <pre class="rapporto" id="rpAnteprima" tabindex="0" aria-label="Anteprima del rapporto"></pre></details>
     </div>`;
   { const an=$("rpAnteprima"); if(an)an.textContent=creaRapporto(); }
+  { const g=$("apriGalleria"); if(g)g.addEventListener("click",()=>{backTo="opzioni";go("galleria");}); }
   { const c=$("rpCopia"); if(c)c.addEventListener("click",copiaRapporto);
     const d=$("rpScarica"); if(d)d.addEventListener("click",scaricaRapporto); }
 
@@ -13956,6 +13990,7 @@ renderCodex();
       const el=$id(id); if(el){ const sc=el.querySelector('.scroll'); if(sc)sc.scrollTop=0; }
     }
     sfx('ui');
+    if(id==='galleria'&&typeof renderGalleria==='function'){ renderGalleria(); } else if(typeof fermaGalleria==='function') fermaGalleria();
     if(id==='menu'&&typeof drawHeroArt==='function'){ drawHeroArt(); requestAnimationFrame(drawHeroArt); }   // la seconda passata: al primo giro la schermata puo' non avere ancora misura
     if(id==='battle'){ layoutOK=false; measure(true); ensureLoop(); } else stopLoop();
     /* ⚠ La tavola ha un loop suo, e va spento uscendo: `stopLoop()` ferma il
@@ -14039,6 +14074,193 @@ renderCodex();
     } finally { ctx=prevCtx; TW=pTW; TH=pTH; }
   };
   window.addEventListener('load',()=>{ try{ drawHeroArt(); }catch(e){} });
+  /* ═══════════════════ GALLERIA ARTE — il confronto ═══════════════════
+     Per guardare le creature una accanto all'altra serve il motore vero: la
+     sagoma del campo passa da `drawUnit` (ombra, alone, rifinitura, pose), e una
+     gallery che le ridisegnasse a parte mostrerebbe un'altra cosa. Qui si PRESTA il
+     campo: `ctx`, `TW`, l'origine e `B` vengono sostituiti per la durata di una
+     cella e rimessi in un `finally` — se restassero deviati, il frame dopo
+     disegnerebbe la battaglia dentro la scheda (stessa regola di tavole e icone).
+     ⚠ `B` si salva e si ripristina intero: la galleria si apre dalle Opzioni, e una
+     battaglia in memoria non deve perdere niente. */
+  const GAL={tema:'cassandra',posa:'idle',zoom:1.6,anima:false,raf:null,celle:[],t0:0,sel:[]};
+  function galTipi(){
+    const mech=Object.keys(MECH_ART).filter(k=>k!=='lancerjet').concat(['lancerjet']);
+    const kau=Object.keys(K_ART);
+    return {mech,kauBase:kau.filter(k=>{const t=KDEF[k]&&KDEF[k].tier;return t!==3&&t!=='ÉLITE'&&t!=='ADATTIVO';}),
+            kauAlto:kau.filter(k=>{const t=KDEF[k]&&KDEF[k].tier;return t===3||t==='ÉLITE'||t==='ADATTIVO';}),
+            str:['relay','bunker','civile']};
+  }
+  function galUnita(key,posa){
+    const str=['relay','bunker','civile'].includes(key), mech=!!MECH_ART[key]&&!K_ART[key]&&!str;
+    const base=key==='lancerjet'?'lancer':key;
+    const ch=mech?chassisById(base):null, kd=(!mech&&!str)?KDEF[key]:null;
+    const u={id:mech?base:key,type:key,name:ch?ch.name:(kd?kd.nm:key),glyph:ch?ch.glyph:(kd?kd.glyph:key.toUpperCase().slice(0,3)),
+      player:mech,structure:str,civil:key==='civile',hp:ch?ch.maxHp:(kd?kd.maxHp:2),maxHp:ch?ch.maxHp:(kd?kd.maxHp:2),
+      x:0,y:0,_vx:0,_vy:0,_scale:1,_face:1,_bob:0.6,_flash:0,_hurt:0,_lunge:0,_lgx:0,_lgy:0,_hx:0,_hy:0,frozen:0,guard:0};
+    if(key==='lancerjet')u.assetto='caccia';
+    if(posa==='colpo'){ u._lunge=0.5; u._lgx=1; u._lgy=0; }
+    else if(posa==='ferito'){ u._hurt=0.85; u._hx=-1; u._hy=0; u._flash=0.35; }
+    else if(posa==='crollo'){ u._morte=0.55; u.hp=0; u._lgx=1; }
+    return u;
+  }
+  function galFit(u,w,h,tw){
+    const key=spriteKey(u), bxo=boxDi(key,u.structure,!u.player&&!u.structure), S1=UNIT_S*(SC[key]||1);
+    return Math.min(1,(h*0.50)/(bxo.h*S1*(tw/64)),(w*0.90)/(bxo.w*S1*(tw/64)));   // lascia spazio sopra la testa per i pip dei PV e la sigla
+  }
+  function galCella(cv,u,tw,opz){
+    opz=opz||{};
+    const r=cv.getBoundingClientRect(), w=Math.max(60,opz.w||r.width||150), h=Math.max(60,opz.h||r.height||150), dpr=Math.min(2,window.devicePixelRatio||1);
+    /* Se alla scala scelta la sagoma non sta nella cella (il Varco Madre) la si riduce QUI e lo si dice sulla scheda: meglio una sagoma intera in scala 0,7 che tagliata. */
+    if(opz.tw!==undefined){ tw=opz.tw; cv.dataset.fit=opz.fit||"1"; }
+    else { const f=galFit(u,w,h,tw); cv.dataset.fit=f<0.995?f.toFixed(2):"1"; if(f<0.995)tw=tw*f; }
+    if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){ cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); }
+    const sv={ctx,TW,TH,originX,originY,panX,panY,B,am:(typeof activeMission!=='undefined'?activeMission:null),luci:luci.slice(),ink:inchiostro,mat:materiale,lu:luceUnita};
+    try{
+      ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+      TW=tw; TH=tw/2; originX=w/2; originY=h*(opz.y||0.74); panX=0; panY=0; luci.length=0; luceUnita=null;
+      B={units:[u],selected:null,inspected:null,water:new Set(),terrain:new Map(),corrupt:new Set(),phase:'player',round:1,rift:null,mission:{}};
+      activeMission={sector:GAL.tema};
+      ctx.fillStyle='#06080c'; ctx.fillRect(0,0,w,h);
+      if(!opz.senzaPavimento){
+        for(let gy=-2;gy<=2;gy++)for(let gx=-2;gx<=2;gx++){ if(Math.abs(gx)+Math.abs(gy)>3)continue; tileFace(gx,gy); }
+      }
+      drawUnit(u);
+      if(opz.dopo)opz.dopo(w,h);
+    } finally {
+      ctx=sv.ctx; TW=sv.TW; TH=sv.TH; originX=sv.originX; originY=sv.originY; panX=sv.panX; panY=sv.panY; B=sv.B; activeMission=sv.am;
+      luci.length=0; sv.luci.forEach(l=>luci.push(l)); inchiostro=sv.ink; materiale=sv.mat; luceUnita=sv.lu;
+    }
+  }
+  /* La maschera di una sagoma: render fuori schermo a due volte la scala di progetto, soglia sull'alfa. */
+  function galMaschera(key,N){
+    const u=galUnita(key,'idle'); const L=240, off=document.createElement('canvas'); off.width=off.height=L;
+    const sv={ctx,TW,TH,ink:inchiostro,mat:materiale};
+    try{
+      ctx=off.getContext('2d'); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,L,L); inchiostro=false; TW=48; TH=24;
+      ctx.save(); ctx.translate(L/2,L*0.8); ctx.scale(2.2,2.2);
+      if(u.structure){ (key==='civile'?stCivile:key==='relay'?stRelay:stBunker)(0); }
+      else if(!u.player){ materiale='carne'; (K_ART[key]||kVorn)(0,0); materiale='acciaio'; }
+      else (MECH_ART[key]||mechJaeger)(0,ACCENT[key]||AMBER,null);
+      ctx.restore();
+    } finally { ctx=sv.ctx; TW=sv.TW; TH=sv.TH; inchiostro=sv.ink; materiale=sv.mat; }
+    const d=off.getContext('2d').getImageData(0,0,L,L).data; let x0=L,y0=L,x1=-1,y1=-1;
+    for(let y=0;y<L;y++)for(let x=0;x<L;x++){ if(d[(y*L+x)*4+3]>18){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; } }
+    if(x1<0)return null;
+    const bw=x1-x0+1, bh=y1-y0+1, sc=(N-4)/Math.max(bw,bh), nc=document.createElement('canvas'); nc.width=nc.height=N;
+    const g=nc.getContext('2d'); g.imageSmoothingEnabled=true;
+    g.drawImage(off,x0,y0,bw,bh,(N-bw*sc)/2,N-2-bh*sc,bw*sc,bh*sc);
+    const m=new Uint8Array(N*N), e=g.getImageData(0,0,N,N).data; for(let i=0;i<N*N;i++)m[i]=e[i*4+3]>90?1:0;
+    return {m,w:bw,h:bh};
+  }
+  function galSomiglianze(chiavi){
+    const N=40, M={}; chiavi.forEach(k=>{ try{ M[k]=galMaschera(k,N); }catch(e){ M[k]=null; } });
+    const out=[];
+    for(let i=0;i<chiavi.length;i++)for(let j=i+1;j<chiavi.length;j++){
+      const a=M[chiavi[i]], b=M[chiavi[j]]; if(!a||!b)continue; let in_=0,un=0;
+      for(let k=0;k<N*N;k++){ const x=a.m[k],y=b.m[k]; if(x&&y)in_++; if(x||y)un++; }
+      const iou=un?in_/un:0, ra=Math.min(a.h,b.h)/Math.max(a.h,b.h), rl=Math.min(a.w,b.w)/Math.max(a.w,b.w);
+      /* confondibilita': la forma conta se anche la grandezza e' simile. Un civile (9×18) e uno spettro (21×40) hanno la stessa forma in scala diversa e a schermo non si scambiano. */
+      out.push({a:chiavi[i],b:chiavi[j],iou,alt:ra,larg:rl,rischio:iou*Math.sqrt(ra*rl)});
+    }
+    out.sort((p,q)=>q.rischio-p.rischio); return out;
+  }
+  const galNome=k=>{ const c=chassisById(k==='lancerjet'?'lancer':k); const kd=KDEF[k]; return k==='lancerjet'?'LNC-05 · CACCIA':c?c.name:(kd?kd.nm:({relay:'RELAY',bunker:'BUNKER',civile:'CIVILE'}[k]||k)); };
+  function renderGalleria(){
+    const root=document.getElementById('galleriaScroll'); if(!root)return;
+    const T=galTipi(), tutti=T.mech.concat(T.kauBase,T.kauAlto,T.str);
+    const sez=(tit,note,chiavi)=>`<div class="gal-h">${tit}</div>${note?`<p class="gal-note">${note}</p>`:""}<div class="gal-grid">`+chiavi.map(k=>{
+      const u=galUnita(k,'idle'), kd=KDEF[k], ch=chassisById(k==='lancerjet'?'lancer':k);
+      const meta=ch?`${ch.role||""} · HP ${ch.maxHp} · MOV ${ch.move} · DMG ${ch.dmg} · RNG ${ch.rmin}–${ch.rmax}`:kd?`${kd.atype} · HP ${kd.maxHp} · MOV ${kd.move} · DMG ${kd.dmg}${kd.tier?` · ${tierLabel(kd.tier)}`:""}`:"struttura";
+      return `<div class="gal-card" data-k="${k}"><canvas data-gk="${k}" aria-label="${galNome(k)}"></canvas><div class="gn">${u.player?"":`<b>${u.glyph}</b> `}${galNome(k)}</div><div class="gm">${meta}</div><div class="gm" data-gb="${k}"></div></div>`;}).join("")+`</div>`;
+    const bt=(grp,k,v,nm)=>`<button data-g="${grp}" data-v="${v}" class="${String(GAL[grp])===String(v)?"on":""}">${nm}</button>`;
+    root.innerHTML=`<div class="gal-h" style="margin-top:0">CONFRONTO A DUE</div><div id="galConf" class="gal-conf"></div><div class="gal-bar">
+      <span class="gl">PAVIMENTO ${bt('tema','','cassandra','CASSANDRA')}${bt('tema','','orvat','ORVAT')}${bt('tema','','tarsis','TARSIS')}</span>
+      <span class="gl">POSA ${bt('posa','','idle','FERMO')}${bt('posa','','colpo','COLPO')}${bt('posa','','ferito','FERITO')}${bt('posa','','crollo','CROLLO')}</span>
+      <span class="gl">SCALA ${bt('zoom','',1,'CAMPO')}${bt('zoom','',1.6,'×1,6')}${bt('zoom','',2.2,'×2,2')}</span>
+      <span class="gl">MOVIMENTO ${bt('anima','',false,'FERMO')}${bt('anima','',true,'ANIMA')}</span></div>`+
+      sez("TELAI","Le nove sagome dei mech (il LNC-05 ha due assetti). Il bordo di luce e l'ombra sono quelli del campo.",T.mech)+
+      sez("CREATURE — BASE","Il bestiario ordinario. Il viola scuro su un pavimento a valore medio e' il registro: se una sagoma si perde qui, si perde anche in battaglia.",T.kauBase)+
+      sez("CREATURE — ÉLITE E SPECIALI","Rango alto, la nemesi e il Varco Madre.",T.kauAlto)+
+      sez("STRUTTURE","Relay, bunker, civili: cio' che si protegge.",T.str)+
+      `<div class="gal-h">ALTEZZE A CONFRONTO</div><p class="gal-note">Tutte le sagome sulla stessa linea, alla scala del campo. La gerarchia dichiarata e': guardiano &gt; mech &gt; élite &gt; base. Scorri in orizzontale.</p><div class="gal-scroll"><canvas id="galAltezze"></canvas></div>`+
+      `<div class="gal-h">SAGOME A GRANDEZZA DI PEDINA</div><p class="gal-note">Solo la forma, piena, alla dimensione di una pedina sul telefono: e' cosi' che si riconoscono davvero.</p><div class="gal-scroll"><canvas id="galSagome"></canvas></div>`+
+      `<div class="gal-h">SOMIGLIANZE</div><p class="gal-note">Le coppie piu' confondibili: somiglianza di forma (0–1, sovrapposizione delle sagome a pari altezza) pesata per la differenza di grandezza reale. Sopra 0,55 vale la pena controllare che non si scambino sul campo.</p><div id="galSim"></div>`;
+    root.querySelectorAll('.gal-bar button').forEach(b=>b.addEventListener('click',()=>{
+      const g=b.dataset.g; let v=b.dataset.v; if(g==='zoom')v=parseFloat(v); else if(g==='anima')v=(v==='true'); GAL[g]=v;
+      if(g==='anima'){ if(v)avviaGalleria(); else { fermaGalleria(); } }
+      root.querySelectorAll(`.gal-bar button[data-g="${g}"]`).forEach(x=>x.classList.toggle('on',x===b));
+      disegnaGalleria();
+    }));
+    GAL.celle=[...root.querySelectorAll('canvas[data-gk]')];
+    root.querySelectorAll('.gal-card').forEach(c=>{ c.tabIndex=0; c.setAttribute('role','button'); c.setAttribute('aria-pressed','false');
+      const act=()=>{ const k=c.dataset.k, i=GAL.sel.indexOf(k); if(i>=0)GAL.sel.splice(i,1); else { GAL.sel.push(k); if(GAL.sel.length>2)GAL.sel.shift(); }
+        root.querySelectorAll('.gal-card').forEach(x=>{ const on=GAL.sel.includes(x.dataset.k); x.classList.toggle('sel',on); x.setAttribute('aria-pressed',on?'true':'false'); }); disegnaConfronto(); };
+      c.addEventListener('click',act); c.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); act(); } }); });
+    disegnaGalleria(); disegnaConfronto(); if(GAL.anima)avviaGalleria();
+    // le parti pesanti, dopo il primo disegno
+    setTimeout(()=>{ try{ disegnaAltezze(tutti); disegnaSagome(tutti); const sim=galSomiglianze(tutti).slice(0,10);
+      document.getElementById('galSim').innerHTML=`<table class="gal-sim">`+`<tr><td>coppia</td><td>forma</td><td>altezza</td><td class="v">rischio</td></tr>`+sim.map(p=>`<tr class="${p.rischio>=0.55?"alto":""}"><td>${galNome(p.a)} ~ ${galNome(p.b)}</td><td>${p.iou.toFixed(2)}</td><td>${p.alt.toFixed(2)}</td><td class="v">${p.rischio.toFixed(2)}</td></tr>`).join("")+`</table>`;
+      const tuttiSim=galSomiglianze(tutti); window.__GAL={sim, tutti, tuttiSim}; disegnaConfronto(); }catch(e){ const el=document.getElementById('galSim'); if(el)el.textContent='Calcolo non riuscito: '+e.message; } },30);
+  }
+  function disegnaGalleria(){
+    const tw=64*GAL.zoom, t=GAL.anima?timeMS:0;
+    timeMS=GAL.anima?timeMS:1200;
+    GAL.celle.forEach(cv=>{ const k=cv.dataset.gk; const u=galUnita(k,GAL.posa); galCella(cv,u,tw);
+      const nt=cv.parentNode.querySelector('[data-gb]'); if(nt)nt.textContent=cv.dataset.fit&&cv.dataset.fit!=="1"?`ridotto a ×${cv.dataset.fit} per starci`:""; });
+  }
+  function disegnaConfronto(){
+    const el=document.getElementById('galConf'); if(!el)return;
+    if(GAL.sel.length<2){ el.innerHTML=`<p class="gal-note">Tocca due schede qui sotto per metterle una accanto all'altra, alla stessa scala. ${GAL.sel.length?`Scelta: <b>${galNome(GAL.sel[0])}</b>.`:""}</p>`; return; }
+    const [ka,kb]=GAL.sel, ua=galUnita(ka,GAL.posa), ub=galUnita(kb,GAL.posa);
+    el.innerHTML=`<div class="gal-pair"><canvas id="galA" aria-label="${galNome(ka)}"></canvas><canvas id="galB" aria-label="${galNome(kb)}"></canvas></div><div id="galConfT"></div>`;
+    const ca=document.getElementById('galA'), cb=document.getElementById('galB'), r=ca.getBoundingClientRect(), tw=64*Math.max(GAL.zoom,1.6)*1.1;
+    const f=Math.min(1,galFit(ua,r.width,r.height,tw),galFit(ub,r.width,r.height,tw)), fs=f<0.995?f.toFixed(2):"1";
+    galCella(ca,ua,tw*f,{tw:tw*f,fit:fs}); galCella(cb,ub,tw*f,{tw:tw*f,fit:fs});
+    const dati=k=>{ const ch=chassisById(k==='lancerjet'?'lancer':k), kd=KDEF[k], key=k, u=galUnita(k,'idle'), bx=boxDi(key,u.structure,!u.player&&!u.structure);
+      return {nm:galNome(k),hp:ch?ch.maxHp:kd?kd.maxHp:'—',mov:ch?ch.move:kd?kd.move:'—',dmg:ch?ch.dmg:kd?kd.dmg:'—',rng:ch?`${ch.rmin}–${ch.rmax}`:kd?`${kd.rmin}–${kd.rmax}`:'—',w:Math.round(bx.w),h:Math.round(bx.h)}; };
+    const A=dati(ka), Bd=dati(kb), rap=(x,y)=>(Math.max(x,y)/Math.min(x,y)).toFixed(2).replace('.',','), riga=(l,a,b)=>`<tr><td>${l}</td><td>${a}</td><td>${b}</td></tr>`;
+    const sim=(window.__GAL&&window.__GAL.tuttiSim)?window.__GAL.tuttiSim.find(p=>(p.a===ka&&p.b===kb)||(p.a===kb&&p.b===ka)):null;
+    document.getElementById('galConfT').innerHTML=`<table class="gal-sim"><tr><td></td><td>${A.nm}</td><td>${Bd.nm}</td></tr>${riga('HP',A.hp,Bd.hp)}${riga('MOV',A.mov,Bd.mov)}${riga('DMG',A.dmg,Bd.dmg)}${riga('RNG',A.rng,Bd.rng)}${riga('ingombro (px)',A.w+'×'+A.h,Bd.w+'×'+Bd.h)}<tr><td>altezza: rapporto</td><td colspan="2">${rap(A.h,Bd.h)}×${fs!=="1"?` · entrambi ridotti a ×${fs}`:""}</td></tr>${sim?`<tr class="${sim.rischio>=0.55?"alto":""}"><td>confondibilita'</td><td colspan="2">forma ${sim.iou.toFixed(2)} · rischio ${sim.rischio.toFixed(2)}</td></tr>`:""}</table>`;
+  }
+  function disegnaAltezze(tutti){
+    const cv=document.getElementById('galAltezze'); if(!cv)return; const W=tutti.length*88+20, H=200;
+    cv.style.width=W+'px'; cv.style.height=H+'px'; const dpr=Math.min(2,window.devicePixelRatio||1); cv.width=W*dpr; cv.height=H*dpr;
+    const sv={ctx,TW,TH,originX,originY,panX,panY,am:(typeof activeMission!=='undefined'?activeMission:null),ink:inchiostro,mat:materiale,lu:luceUnita,B,luci:luci.slice()};
+    try{
+      ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#06080c'; ctx.fillRect(0,0,W,H); TW=64; TH=32; luci.length=0;
+      B={units:[],selected:null,inspected:null,water:new Set(),terrain:new Map(),corrupt:new Set(),phase:'player',round:1,rift:null,mission:{}};
+      const base=H-44; ctx.strokeStyle='rgba(255,176,0,.25)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,base+5); ctx.lineTo(W,base+5); ctx.stroke();
+      // riferimento: una tile (64×32) e l'altezza di un mech medio
+      tutti.forEach((k,i)=>{
+        const u=galUnita(k,'idle'); originX=10+i*88+44; originY=base-4; panX=0; panY=0; activeMission=null;
+        B.units=[u]; drawUnit(u);
+        const bx=boxDi(k==='lancerjet'?'lancerjet':k,u.structure,!u.player&&!u.structure);
+        ctx.fillStyle='#8a93a8'; ctx.font='9px ui-monospace,monospace'; ctx.textAlign='center';
+        ctx.fillText(u.glyph,originX,H-26); ctx.fillStyle='#5a6270'; ctx.fillText(Math.round(bx.w)+'×'+Math.round(bx.h),originX,H-14);
+      });
+    } finally { ctx=sv.ctx; TW=sv.TW; TH=sv.TH; originX=sv.originX; originY=sv.originY; panX=sv.panX; panY=sv.panY; activeMission=sv.am; inchiostro=sv.ink; materiale=sv.mat; luceUnita=sv.lu; B=sv.B; luci.length=0; sv.luci.forEach(l=>luci.push(l)); }
+  }
+  function disegnaSagome(tutti){
+    const cv=document.getElementById('galSagome'); if(!cv)return; const N=56, W=tutti.length*(N+10)+10, H=N+30, dpr=Math.min(2,window.devicePixelRatio||1);
+    cv.style.width=W+'px'; cv.style.height=H+'px'; cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.fillStyle='#06080c'; g.fillRect(0,0,W,H);
+    tutti.forEach((k,i)=>{ const m=galMaschera(k,N); if(!m)return; const im=g.createImageData(N,N); const kau=!MECH_ART[k]&&K_ART[k], col=MECH_ART[k]?[206,213,225]:kau?[154,107,196]:[140,150,170];
+      for(let q=0;q<N*N;q++){ if(m.m[q]){ im.data[q*4]=col[0]; im.data[q*4+1]=col[1]; im.data[q*4+2]=col[2]; im.data[q*4+3]=255; } }
+      const t=document.createElement('canvas'); t.width=t.height=N; t.getContext('2d').putImageData(im,0,0); g.drawImage(t,10+i*(N+10),4);
+      g.fillStyle='#5a6270'; g.font='9px ui-monospace,monospace'; g.textAlign='center'; g.fillText((galUnita(k,'idle')).glyph,10+i*(N+10)+N/2,H-8); });
+  }
+  function avviaGalleria(){
+    if(GAL.raf!==null)return; GAL.anima=true; let ultimo=0;
+    const passo=ts=>{ if(!GAL.anima||!document.getElementById('galleria').classList.contains('active')){ GAL.raf=null; return; }
+      if(ts-ultimo>=80){ ultimo=ts; timeMS=ts; GAL.celle.forEach(cv=>{ const r=cv.getBoundingClientRect(); if(r.bottom<0||r.top>innerHeight)return; galCella(cv,galUnita(cv.dataset.gk,GAL.posa),64*GAL.zoom); }); }
+      GAL.raf=requestAnimationFrame(passo); };
+    GAL.raf=requestAnimationFrame(passo);
+  }
+  function fermaGalleria(){ GAL.anima=false; if(GAL.raf!==null&&typeof cancelAnimationFrame==='function')cancelAnimationFrame(GAL.raf); GAL.raf=null; }
+  window.renderGalleria=renderGalleria; window.fermaGalleria=fermaGalleria;
+  window.__galleria={celle:()=>GAL.celle.length,conteggi:()=>({mech:Object.keys(MECH_ART).length,kau:Object.keys(K_ART).length}),galSomiglianze,galTipi,galMaschera,stato:GAL};
+  window.addEventListener('load',()=>{ if(location.hash==='#galleria'){ try{ go('galleria'); }catch(e){} } });
+
   window.addEventListener('resize',()=>{ const m=document.getElementById('menu'); if(m&&m.classList.contains('active')){ try{ drawHeroArt(); }catch(e){} } });
   /* La vignetta della schermata d'esito: stessa macchina delle tavole, una tela
      sua, disegnata UNA volta (p=1) quando l'esito si apre. Dice com'e' andata

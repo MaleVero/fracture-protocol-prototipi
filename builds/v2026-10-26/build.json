@@ -1,7 +1,7 @@
 {
-  "versione": "0.14.0",
+  "versione": "0.15.0",
   "data": "2026-10-26",
-  "titolo": "Sagome, targhe e un volto per ogni schermata",
+  "titolo": "La galleria dell'arte",
   "cambia": [
     "Settore Tarsis: sei missioni sull'acqua e il guardiano finale, dove PALINSESTO finisce",
     "Nuovo nemico, il NERIS: attraversa l'acqua senza affondare, quindi non basta buttarlo in un lago",
@@ -23,7 +23,8 @@
     "Il codice mostra la sagoma delle creature non ancora registrate, e il totale delle schede è giusto (era fermo a 9)",
     "Il briefing di ogni missione mostra le creature possibili: a colori quelle che conosci, nere le altre",
     "Ogni missione parte con una targa sul campo; il menu ha lo sfondo del settore, l'hangar mette il telaio sotto una luce da lavoro e la mappa si macchia di viola con la corruzione",
-    "Icona del gioco per il browser e per la schermata iniziale del telefono; hangar: il pulsante Officina non copre più il testo"
+    "Icona del gioco per il browser e per la schermata iniziale del telefono; hangar: il pulsante Officina non copre più il testo",
+    "Galleria arte (Opzioni): telai, creature e strutture in grande con il motore del campo, pose e pavimenti dei tre settori, confronto a due, altezze e sagome a confronto e le coppie più confondibili"
   ],
   "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
 }
