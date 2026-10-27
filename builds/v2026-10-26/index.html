@@ -1326,6 +1326,30 @@ button{font-size:var(--t-base);letter-spacing:var(--k-base)}
   letter-spacing:var(--k-base);
   clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
 }
+
+/* ── PANNELLO DI LAZY J in battaglia: una plancia compatta.
+   Tre tasti in una riga (la descrizione non sta piu' dentro ogni tasto: sta nella riga sotto la barra), la barra con le
+   tre soglie di banda e l'anteprima del costo dell'intervento scelto. ID davanti a tutto: sopra gli strati precedenti. */
+#lazyj .ljp{border:1px solid #2a2038;background:linear-gradient(180deg,rgba(154,107,196,.07),rgba(0,0,0,.2));padding:8px}
+#lazyj .ljtop{margin-bottom:7px;gap:9px;align-items:stretch}
+#lazyj .ljbanda{font-size:9px;letter-spacing:.14em;padding:1px 6px;border:1px solid currentColor}
+#lazyj .ljp[data-b="latente"] .ljbanda{color:#8a93a8} #lazyj .ljp[data-b="innesto"] .ljbanda{color:var(--anomal-teal)}
+#lazyj .ljp[data-b="simbiosi"] .ljbanda{color:#b98adf} #lazyj .ljp[data-b="convergenza"] .ljbanda{color:#e07cf0}
+#lazyj .ljval{font-size:15px;color:var(--bone)} #lazyj .ljval small{font-size:9px;color:var(--bone-dim)}
+#lazyj .ljbar{position:relative;height:7px;margin:3px 0 6px;overflow:visible;background:#1a1524;border-radius:0}
+#lazyj .ljbar i{background:linear-gradient(90deg,var(--anomal-teal),#9A6BC4)}
+#lazyj .ljbar s{position:absolute;top:-2px;width:1px;height:11px;background:var(--bone-dim);opacity:.7}
+#lazyj .ljbar u{position:absolute;top:0;height:100%;text-decoration:none;background:repeating-linear-gradient(45deg,rgba(255,176,0,.85) 0 3px,rgba(255,176,0,.25) 3px 6px)}
+#lazyj .ljline{font-size:10px;line-height:1.45;color:var(--bone-dim);font-style:italic;display:block;min-height:2.9em;max-height:4.4em;overflow:hidden}
+#lazyj .ljline b{color:var(--bone);font-style:normal} #lazyj .ljline em{display:block;color:#FFB000;font-style:normal}
+#lazyj .ljline.armed{color:var(--bone);font-style:normal;max-height:none}
+#lazyj .ljbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+#lazyj .ljbtn{flex:none;min-height:44px;min-width:0;padding:6px 6px;gap:3px;justify-content:center}
+#lazyj .ljbtn b{font-size:9.5px;letter-spacing:.06em;line-height:1.25}
+#lazyj .ljbtn .ljcost{font-size:9px;letter-spacing:.02em;color:#6f7390;line-height:1.25}
+#lazyj .ljbtn:not(.off) .ljcost{color:#b98adf}
+#lazyj .ljbtn.armed{border-color:#FFB000;background:#1d1608;box-shadow:inset 0 0 0 1px rgba(255,176,0,.35)}
+#lazyj .ljbtn.armed b{color:#FFB000}
 </style>
 <style>/* ============================================================
    FRACTURE PROTOCOL — strato isometrico v2
@@ -1567,7 +1591,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.20.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.21.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -5031,7 +5055,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.20.0";
+const BUILD_VER="0.21.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -7534,6 +7558,7 @@ function renderLazyJ(){
   const el=$("lazyj"); if(!el)return;
   if(B.phase!=="player"||B.over){ el.innerHTML=""; return; }
   const b=bandaRisonanza(), pieno=Math.max(0,Math.min(100,risonanza));
+  const armato=(B.abilityMode&&B.abilityMode.lazy)?B.abilityMode.lazy:null;
   const bottoni=INTERVENTI.map(i=>{
     const pronto=interventoPronto(i);
     /* ⚠ Un intervento non disponibile NON si nasconde: si mostra spento con la
@@ -7541,25 +7566,32 @@ function renderLazyJ(){
        leva e non un contatore — vede cosa comprerebbe alzandola. */
     const perche = bandaIdx()<i.banda ? `richiede ${BANDE[i.banda].nome}`
                  : (risonanza+i.costo>100 ? "risonanza al massimo" : `+${i.costo} risonanza`);
-    return `<button class="ljbtn${pronto?"":" off"}" data-int="${i.key}" ${pronto?"":"disabled"}>
-      <b>${i.nome}</b><span class="ljds">${i.ds}</span><span class="ljcost">${perche}</span></button>`;
+    /* La descrizione non sta piu' dentro ogni tasto (tre colonne non la reggono): compare nella riga sotto la barra
+       quando il tasto e' armato, e resta nel nome accessibile e nel titolo. */
+    return `<button class="ljbtn${pronto?"":" off"}${armato&&armato.key===i.key?" armed":""}" data-int="${i.key}" ${pronto?"":"disabled"} aria-pressed="${armato&&armato.key===i.key?"true":"false"}" title="${i.ds}" aria-label="${i.nome}: ${i.ds} ${perche}.">
+      <b>${i.nome}</b><span class="ljcost">${perche}</span></button>`;
   }).join("");
+  const ticks=BANDE.slice(1).map(x=>`<s style="left:${x.min}%"></s>`).join("");
+  const prev=armato?`<u class="ljprev" style="left:${pieno}%;width:${Math.max(0,Math.min(100-pieno,armato.costo))}%"></u>`:"";
+  const riga=armato?`<b>${armato.nome}</b> — ${armato.ds} <em>Scegli una casella · tocca di nuovo il tasto per annullare.</em>`:b.ds;
   /* ⚠ La figura sta accanto alla barra, non altrove: e la barra a cambiarlo,
      e le due cose vanno lette in un colpo solo. Un ritratto in una schermata
      separata sarebbe un'illustrazione; qui e la conseguenza. */
-  el.innerHTML=`<div class="ljtop">
+  el.innerHTML=`<div class="ljp" data-b="${b.id}"><div class="ljtop">
       ${window.lazyTag?lazyTag(pieno/100):""}
       <div class="ljinfo">
         <div class="ljhdr">◈ LAZY J <span class="ljbanda">${b.nome}</span>
-          <span class="ljval">${pieno}</span></div>
-        <div class="ljbar"><i style="width:${pieno}%"></i></div>
-        <div class="ljds banda">${b.ds}</div>
+          <span class="ljval">${pieno}<small>/100</small></span></div>
+        <div class="ljbar" role="img" aria-label="Risonanza ${pieno} su 100, banda ${b.nome}${armato?`; l'intervento scelto costa ${armato.costo}`:""}"><i style="width:${pieno}%"></i>${prev}${ticks}</div>
+        <div class="ljline${armato?" armed":""}">${riga}</div>
       </div>
     </div>
-    <div class="ljbtns">${bottoni}</div>`;
+    <div class="ljbtns">${bottoni}</div></div>`;
   if(window.paintLazy) paintLazy(el);
   qsa("#lazyj .ljbtn").forEach(btn=>btn.addEventListener("click",()=>{
     const i=interventoDi(btn.dataset.int); if(!i||!interventoPronto(i))return;
+    // lo stesso tasto toccato due volte disarma: come "tocca te stesso" per le abilita' dei telai
+    if(B.abilityMode&&B.abilityMode.lazy&&B.abilityMode.lazy.key===i.key){B.abilityMode=null;blog("◈ "+i.nome+": annullato.");tornaAlCampo();bRender();return;}
     /* Tutti e tre chiedono un bersaglio: si entra nella stessa modalita di mira
        delle abilita, cosi il giocatore non impara due gesti per la stessa cosa. */
     B.abilityMode={unit:null, lazy:i, ability:{name:i.nome,range:null,target:true}};
