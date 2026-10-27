@@ -8,7 +8,7 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 ## Rapporti
 `RAPPORTO-FASE0.md` audit · `FASE1` layout e accessibilità su schermi piccoli · `FASE2` bilanciamento ·
 `FASE3` Tarsis e NERIS · `FASE4` checkpoint, copia di sicurezza, tastiera · `FASE5` rilascio e **limite della nemesi** ·
-`BLOCCHI-1-2` abilità e Lazy J nell'agente, calibrazione di PALINSESTO · `BLOCCO-4` prova con altre persone · `BLOCCO-3` RISACCA, NERIS ridisegnato, tavole di Tarsis · `GRAFICA` identità di settore, effetti, tavole, esito · `SFOGO` la risonanza che scende, misurata su campagne intere · `GRAFICA-2` codice, briefing, menu, hangar, mappa, targa, icona · `GALLERIA` pagina di confronto di telai e creature. · `GRAFICA-3` Comando e Opzioni rifiniti · `GRAFICA-4` Codice, Officina e Ricerca rifiniti · `GRAFICA-5` fine missione · `GRAFICA-6` menu e Hangar
+`BLOCCHI-1-2` abilità e Lazy J nell'agente, calibrazione di PALINSESTO · `BLOCCO-4` prova con altre persone · `BLOCCO-3` RISACCA, NERIS ridisegnato, tavole di Tarsis · `GRAFICA` identità di settore, effetti, tavole, esito · `SFOGO` la risonanza che scende, misurata su campagne intere · `GRAFICA-2` codice, briefing, menu, hangar, mappa, targa, icona · `GALLERIA` pagina di confronto di telai e creature. · `GRAFICA-3` Comando e Opzioni rifiniti · `GRAFICA-4` Codice, Officina e Ricerca rifiniti · `GRAFICA-5` fine missione · `GRAFICA-6` menu e Hangar · `GRAFICA-7` mappa e campo
 
 ## Verifiche (devono finire con «tutti i controlli passati» / «ok»)
 | Script | Cosa controlla |
@@ -31,6 +31,7 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 | `schede.js` | Codice, Officina e Ricerca: avanzamento del bestiario e rango, accenti per tipo di modulo, «mancano N» esatto, catena dei rami, sagome degli innesti, a 320, 390 e 1000 px |
 | `esito.js` | schermata di fine missione: settore in testa, barre della corruzione col colore del cambiamento, una riga per ogni costo, somma delle ricompense = totale, saldo e campioni veri, valutazione in una riga, a 320, 390 e 1000 px |
 | `menuhangar.js` | menu e Hangar: riga di sistema, badge e note delle voci dallo stato, ricostruzione al ritorno, quadro della squadra, statistiche a barre in scala, intestazione di baia, a 320, 390 e 1000 px |
+| `mappa.js` | mappa e campo: legenda del fronte a barre (valori veri, perduto, fuori controllo), regole a un tocco, barra dei round in battaglia, a 320, 390 e 1000 px |
 | `grafica.js` | testata dell'hangar, culla, codice con sagome, sfondo del menu, mappa, presenze nel briefing, targa di missione, icone: 3 formati |
 | `shot-schermate.js [WxH] [id...]`, `icona.js` | anteprime di tutte le schermate; rigenera l'icona (PNG inline) |
 | `sfogo-test.js` | sfogo della risonanza: -6 se Lazy J non interviene (vinta/persa/sganciata), non sotto zero, dopo la nemesi, sopravvive al ricaricamento |

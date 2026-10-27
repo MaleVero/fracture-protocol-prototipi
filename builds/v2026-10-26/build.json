@@ -1,7 +1,7 @@
 {
-  "versione": "0.19.0",
+  "versione": "0.20.0",
   "data": "2026-10-26",
-  "titolo": "Menu e Hangar rifiniti",
+  "titolo": "La mappa e il campo rifiniti",
   "cambia": [
     "Settore Tarsis: sei missioni sull'acqua e il guardiano finale, dove PALINSESTO finisce",
     "Nuovo nemico, il NERIS: attraversa l'acqua senza affondare, quindi non basta buttarlo in un lago",
@@ -29,7 +29,8 @@
     "Opzioni rifinite: interruttori veri (leggibili da lettore di schermo), cursori con la traccia riempita e anteprima del testo, avanzamento dello slot di salvataggio e piede con build e collegamento alla pagina di prova",
     "Codice, Officina e Ricerca rifatti come Comando: il Codice mostra quante schede hai registrato e il rango di ognuna; l'Officina ha frammenti, sigilli e gangli in testa, un accento per tipo di modulo e dice quanto manca per comprare; la Ricerca ha la catena dei rami e la sagoma di ogni innesto",
     "Fine missione rifatta: ricompensa e corruzione in pannelli con righe allineate, due barre che mostrano quanto il nodo e il settore sono peggiorati o migliorati, un chip per ogni nodo fuori controllo, i campioni recuperati, il settore e la missione in testa; la valutazione sta in una riga sola e il tasto per tornare alla mappa è il più evidente",
-    "Menu e Hangar rifatti: ogni voce del menu dice lo stato di adesso (telai, frammenti e sigilli, campioni, banda di Lazy J) e il badge delle missioni conta quelle davvero disponibili (prima era scritto «3 ATTIVE» a mano); l'Hangar ha il quadro della squadra (potenza, slot pieni, scudi, sigilli), le statistiche dei telai come barre in scala, l'etichetta degli slot che non invade più la sagoma e il pulsante Officina a tutta larghezza"
+    "Menu e Hangar rifatti: ogni voce del menu dice lo stato di adesso (telai, frammenti e sigilli, campioni, banda di Lazy J) e il badge delle missioni conta quelle davvero disponibili (prima era scritto «3 ATTIVE» a mano); l'Hangar ha il quadro della squadra (potenza, slot pieni, scudi, sigilli), le statistiche dei telai come barre in scala, l'etichetta degli slot che non invade più la sagoma e il pulsante Officina a tutta larghezza",
+    "Mappa e campo rifiniti: sotto la mappa il fronte è una barra per settore (più il globale, la previsione di caduta e i nodi fuori controllo come chip) e le regole della corruzione stanno a un tocco; in battaglia una barra mostra a che round sei e diventa arancione agli ultimi, e la fase ha la sua guida colorata"
   ],
   "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
 }

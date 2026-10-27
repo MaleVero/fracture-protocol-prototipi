@@ -434,6 +434,8 @@
   .broundbox{text-align:right;font-size:calc(10px * var(--ts,1));color:var(--bone-dim);line-height:1.5;}
   .broundbox b{color:var(--bone);}
   .broundbox .riftstat, .broundbox .civicstat, .broundbox .relicstat{display:block;}
+  .broundbox .roundbar{display:block;height:3px;margin-top:4px;background:rgba(255,255,255,.07);min-width:90px} .broundbox .roundbar i{display:block;height:100%;background:var(--anomal-teal);transition:width .4s} .broundbox .roundbar.urgent i{background:var(--hazard)}
+  .phasebar{border-left:3px solid currentColor;padding-left:8px !important;margin-bottom:4px}
   /* siti di recupero: obiettivo nostro, quindi ambra — mai i colori del dimensionale */
   .broundbox .relicstat b{color:var(--amber);}
   .broundbox .riftstat b{color:var(--anomal-teal);}
@@ -679,6 +681,16 @@
   .corrlegend b{color:var(--bone);letter-spacing:.12em;}
   .corrlegend .up{color:var(--hazard);}
   .corrlegend .down{color:var(--ok);}
+  .cl-sec{font-size:calc(9px * var(--ts,1));letter-spacing:.18em;color:var(--bone-dim);margin-bottom:6px}
+  .cl-row{display:flex;align-items:center;gap:8px;font-size:calc(10px * var(--ts,1));letter-spacing:.08em;color:var(--bone);margin-bottom:6px}
+  .cl-row>span{flex:0 0 78px} .cl-row>b{flex:0 0 52px;text-align:right;font-weight:400;color:var(--bone)} .cl-row>b.up{color:var(--danger)}
+  .cl-bar{flex:1;height:7px;background:rgba(0,0,0,.45);border:1px solid var(--gunmetal-hi)} .cl-bar i{display:block;height:100%}
+  .cl-row.tot{margin-top:9px;padding-top:8px;border-top:1px solid var(--gunmetal-hi)} .cl-row.tot>span{color:var(--bone-dim)}
+  .cl-note{font-size:calc(9.5px * var(--ts,1));color:var(--bone-dim);line-height:1.6;letter-spacing:.04em} .cl-note.up{color:var(--hazard)} .cl-note b{color:var(--bone)}
+  .cl-chips{display:flex;flex-wrap:wrap;gap:5px} .cl-chip{border:1px solid var(--hazard);color:var(--hazard);font-size:calc(9px * var(--ts,1));letter-spacing:.06em;padding:3px 7px}
+  .cl-regole{margin-top:10px;border-top:1px solid var(--gunmetal-hi);padding-top:6px;line-height:1.8}
+  .cl-regole summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:calc(9px * var(--ts,1));letter-spacing:.14em;color:var(--anomal-teal);list-style:none}
+  .cl-regole summary::-webkit-details-marker{display:none} .cl-regole summary::before{content:"▸ ";margin-right:4px} .cl-regole[open] summary::before{content:"▾ "}
   /* stato del nodo sulla mappa: si deve capire dove intervenire senza aprire nulla */
   /* linguette dei settori: il fronte in una riga */
   .sectortabs{display:flex;gap:6px;margin:0 2px 8px;flex-wrap:wrap;}
@@ -1555,7 +1567,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.19.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.20.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -1648,7 +1660,8 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
     <div class="broundbox">ROUND <b id="roundNum">1</b>/<b id="maxRoundNum">5</b>
       <span class="riftstat" id="riftStat">RIFT: <b id="riftHp">—</b></span>
       <span class="relicstat" id="relicStat"><i id="relicLbl">CAMPIONI</i> <b id="relicVal">0/0</b></span>
-      <span class="civicstat" id="civicStat">COLLAT. <b id="civicVal">+0%</b></span></div>
+      <span class="civicstat" id="civicStat">COLLAT. <b id="civicVal">+0%</b></span>
+      <span class="roundbar" id="roundBar" aria-hidden="true"><i></i></span></div>
   </div>
   <div class="objbar" id="objBar">OBIETTIVO</div>
   <div class="phasebar" id="phasebar">…</div>
@@ -2465,7 +2478,19 @@ function renderCorruptionUI(){
     const cont=Object.values(CONTAINMENT);
     const marci=MISSIONS.filter(m=>(m.corr||0)>=SPREAD_THRESHOLD);
     const fc=collapseForecast();
-    cl.innerHTML=`<b>OGNI NODO HA LA SUA — l'indice è la media</b><br>`+
+    /* Il fronte si legge come barre, una per settore: la regola completa resta a un tocco di distanza, ma non
+       e' piu' un muro di testo sotto la mappa. I numeri continuano a venire dalle costanti. */
+    const col=v=>v>=80?"var(--danger)":v>=55?"var(--hazard)":v>=28?"var(--amber)":"var(--ok)";
+    const riga=(nm,v,persa,cls)=>`<div class="cl-row ${cls||""}"><span>${nm}</span><div class="cl-bar" role="img" aria-label="${nm}: ${persa?"perduto":v+" per cento"}"><i style="width:${persa?100:v}%;background:${persa?"var(--danger)":col(v)}"></i></div><b${persa?' class="up"':""}>${persa?"PERDUTO":v+"%"}</b></div>`;
+    const globale=Math.round(globalCorruption);
+    cl.innerHTML=`<div class="cl-sec">FRONTE</div>`+
+      SECTORS.filter(s=>!s.locked).map(s=>riga(s.nm.replace("SETTORE ",""),Math.round(sectorCorrOf(s.id)),sectorLost(s.id))).join("")+
+      riga("GLOBALE",globale,false,"tot")+
+      `<div class="cl-note">a 100 la campagna finisce</div>`+
+      `<div class="cl-note ${fc<=3?"up":""}">di questo passo il settore cade fra <b>${fc}</b> missioni</div>`+
+      (marci.length?`<div class="cl-sec" style="margin-top:8px">FUORI CONTROLLO</div><div class="cl-chips">${marci.map(m=>`<span class="cl-chip">${m.name} ${Math.round(m.corr)}%</span>`).join("")}</div>`:"")+
+      `<details class="cl-regole"><summary>COME CRESCE E COME SI CONTIENE</summary>`+
+      `<b>OGNI NODO HA LA SUA — l'indice è la media</b><br>`+
       `su un nodo: contenerlo <span class="down">−${Math.min(...cont)}…−${Math.max(...cont)}</span> · `+
       `rigiocarlo <span class="down">−${REPLAY_REDUCTION}</span> · `+
       `ritirata <span class="up">+${RETREAT_PENALTY}</span> · `+
@@ -2476,12 +2501,7 @@ function renderCorruptionUI(){
       `<b>FRA UNA MISSIONE E L'ALTRA</b><br>`+
       `un nodo non contenuto <span class="up">+${SPREAD_LOOSE}</span>, contenuto <span class="up">+${SPREAD_CONTAINED}</span>; `+
       `<span class="up">+${SPREAD_ADJ}</span> per ogni confinante sopra il ${SPREAD_THRESHOLD}% · `+
-      `dove hai appena combattuto non avanza<br>`+
-      (marci.length?`<span class="up">fuori controllo: ${marci.map(m=>m.name).join(" · ")}</span><br>`:"")+
-      `<span class="${fc<=3?"up":""}">di questo passo il settore cade fra <b>${fc}</b> missioni</span><br>`+
-      `<b>FRONTE</b> ${SECTORS.filter(s=>!s.locked).map(s=>
-        `${s.nm.replace("SETTORE ","")} ${sectorLost(s.id)?'<span class="up">perduto</span>':Math.round(sectorCorrOf(s.id))+"%"}`).join(" · ")}`+
-      ` — indice globale <b>${Math.round(globalCorruption)}%</b>, a 100 la campagna finisce`;
+      `dove hai appena combattuto non avanza</details>`;
   }
 }
 
@@ -5011,7 +5031,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.19.0";
+const BUILD_VER="0.20.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -7158,6 +7178,7 @@ function bRender(){
   layer.querySelectorAll(".unit").forEach(el=>{const u=B.units.find(x=>x.id==el.dataset.uid);if(!u||u.hp<=0)el.remove();});
   const rn=$("roundNum");rn.textContent=B.round;
   rn.className=(B.goal!=="survive"&&B.maxRound-B.round<=1)?"urgent":"";
+  { const rb=$("roundBar"); if(rb){ const i=rb.firstChild; i.style.width=Math.min(100,Math.round(B.round/B.maxRound*100))+"%"; rb.classList.toggle("urgent",rn.className==="urgent"); } }   // quanto manca alla fine, a colpo d'occhio
   if(B.rift){$("riftStat").style.display="";$("riftHp").textContent=B.rift.open?B.rift.hp+" INT.":"CHIUSO";$("riftStat").classList.toggle("closed",!B.rift.open);}
   else $("riftStat").style.display="none";
   // collaterale civile sempre a schermo, anche a zero: il costo va conosciuto
