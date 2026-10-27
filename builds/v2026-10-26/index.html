@@ -720,6 +720,25 @@
   .pbuy{background:transparent;border:1px solid var(--amber);color:var(--amber);font-family:inherit;font-size:calc(11px * var(--ts,1));letter-spacing:.06em;padding:9px 12px;cursor:pointer;white-space:nowrap;}
   .pbuy:disabled{border-color:var(--gunmetal-hi);color:var(--bone-dim);}
   .pbuy:active:not(:disabled){background:var(--amber);color:var(--void);}
+  /* Codice, Officina e Ricerca rifiniti: la stessa lingua di Comando (celle, barre, accenti per tipo). */
+  .rs-strip{margin-bottom:12px}
+  .manca{margin-top:4px;font-size:calc(8.5px * var(--ts,1));letter-spacing:.05em;color:var(--bone-dim);text-align:center;white-space:nowrap}
+  .protocard.t-arma{box-shadow:inset 3px 0 0 var(--amber)}
+  .protocard.t-difesa{box-shadow:inset 3px 0 0 var(--anomal-teal)}
+  .protocard.t-utility{box-shadow:inset 3px 0 0 var(--bone-dim)}
+  .protocard .pright{text-align:center}
+  .cdx-prog{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:calc(9px * var(--ts,1));letter-spacing:.1em;color:var(--bone-dim)}
+  .cdx-bar{flex:1;height:6px;background:rgba(0,0,0,.4);border:1px solid var(--gunmetal-hi)} .cdx-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--anomal-teal),var(--bruise-hi))}
+  .kentry.rk1{border-top:2px solid var(--anomal-teal)} .kentry.rk2{border-top:2px solid var(--amber)} .kentry.rk3{border-top:2px solid var(--bruise-hi)}
+  .resbranch{position:relative;margin-left:6px;padding-left:16px;border-left:2px solid var(--gunmetal-hi)}
+  .resbranch .resnode{position:relative}
+  .resbranch .resnode::before{content:"";position:absolute;left:-24px;top:13px;width:8px;height:8px;border-radius:50%;background:var(--gunmetal);border:2px solid var(--bone-dim)}
+  .resbranch .resnode.done::before{background:var(--ok);border-color:var(--ok)}
+  .resbranch .resnode:not(.done):not(.locked)::before{border-color:var(--anomal-teal)}
+  .resmanca{margin-top:5px;font-size:calc(9.5px * var(--ts,1));color:var(--bone-dim);letter-spacing:.05em}
+  .ktrow{display:flex;gap:10px;align-items:flex-start} .ktrow .ktbody{flex:1;min-width:0}
+  .ktrow .kg{flex:0 0 44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .ktrow .kg.sil canvas{filter:brightness(0) drop-shadow(0 0 1px rgba(150,170,190,.55)) drop-shadow(0 0 6px rgba(155,79,176,.3));opacity:.9}
   .powned{font-size:calc(10px * var(--ts,1));color:var(--anomal-teal);letter-spacing:.08em;}
   .pcost{font-size:calc(10px * var(--ts,1));color:var(--bone-dim);letter-spacing:.05em;text-align:right;display:inline-block;max-width:120px;line-height:1.4;}
   .pcost.soon{color:var(--bruise-hi);}
@@ -1496,7 +1515,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.16.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.17.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -1536,6 +1555,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
     <div class="right">SCHEDE<br><b id="codexCount">2</b>/<span id="codexTot">9</span></div></div>
   <div class="scroll">
     <div class="muted" style="margin-bottom:11px;line-height:1.7;">Le schede si svelano scansionando i Kaucha sul campo. Senza ricognizione, i dati restano parziali.</div>
+    <div class="cdx-prog" id="codexProg"></div>
     <div class="codexgrid" id="codexGrid"></div>
   </div>
 </section>
@@ -4927,7 +4947,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.16.0";
+const BUILD_VER="0.17.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -5036,12 +5056,15 @@ function renderCodex(){
   $("codexGrid").innerHTML=CODEX.map(e=>{const seen=codexSeen.has(e.type);const def=KDEF[e.type];const sil=!seen&&e.type!=="matria"&&e.type!=="palinsesto"&&e.type[0]!=="_";
     const tier=seen&&def?`<div class="ktier">${tierLabel(def.tier)}</div>`:"";
     const desc=(seen&&e.type==="palinsesto")?e.t+" Adattamenti attuali: "+nemesisAdaptText()+".":e.t;
-    return `<div class="kentry ${seen?"":"locked"}">
+    const rk=seen&&def?(typeof def.tier==="number"&&def.tier<=2?" rk"+def.tier:" rk3"):"";
+    return `<div class="kentry ${seen?"":"locked"}${rk}">
       <div class="kg${!seen&&sil?" sil":""}">${seen||sil?iconTag("kaucha",e.type,"big"):"▓"}</div><div class="kn">${seen?e.nm:"████"}</div>${tier}
       ${seen&&def?`<div class="powtag">POTENZA <b>${combatPower(def)}</b></div>`:""}
       <div class="kt">${seen?desc:"Dati insufficienti. Incontra l'anomalia sul campo per registrarla."}</div></div>`;}).join("");
   { const reali=CODEX.filter(e=>e.type[0]!=="_");   // come il menu: le schede «_» sono segnaposto, non si contano
-    $("codexCount").textContent=reali.filter(e=>codexSeen.has(e.type)).length; if($("codexTot"))$("codexTot").textContent=reali.length; }   // il totale era scritto a mano («/9») e il bestiario e' cresciuto
+    const viste=reali.filter(e=>codexSeen.has(e.type)).length;
+    $("codexCount").textContent=viste; if($("codexTot"))$("codexTot").textContent=reali.length;
+    $("codexProg").innerHTML=`<div class="cdx-bar" role="img" aria-label="${viste} schede su ${reali.length}"><i style="width:${Math.round(viste/reali.length*100)}%"></i></div><span>${viste} REGISTRATE · ${reali.length-viste} DA INCONTRARE</span>`; }   // il totale era scritto a mano («/9») e il bestiario e' cresciuto
   paintIcons($("codexGrid"));
 }
 
@@ -5086,7 +5109,7 @@ function renderNemesisDossier(){
 function renderResearch(){
   $("sampBio").textContent=samples.bio;
   $("sampTec").textContent=samples.tec;
-  const branch=b=>RESEARCH.filter(n=>n.br===b).map(n=>{
+  const branch=b=>`<div class="resbranch">`+RESEARCH.filter(n=>n.br===b).map(n=>{
     const done=researched.has(n.id),open=researchOpen(n),afford=researchAfford(n);
     const price=[n.cost.bio?n.cost.bio+" BIO":"",n.cost.tec?n.cost.tec+" TEC":""].filter(Boolean).join(" · ");
     return `<div class="resnode ${done?"done":open?"":"locked"}">
@@ -5094,8 +5117,8 @@ function renderResearch(){
       <div class="resds">${n.ds}</div>
       ${done?`<div class="resdone">✓ ACQUISITA</div>`
         :!open?`<div class="reslock">▸ richiede ${(RESEARCH.find(x=>x.id===n.needs)||{nm:"?"}).nm}</div>`
-        :`<button class="resbuy" data-res="${n.id}"${afford?"":" disabled"}>${afford?"STUDIA":"CAMPIONI INSUFFICIENTI"}</button>`}
-    </div>`;}).join("");
+        :`<button class="resbuy" data-res="${n.id}"${afford?"":" disabled"}>${afford?"STUDIA":"CAMPIONI INSUFFICIENTI"}</button>${afford?"":`<div class="resmanca">mancano ${[n.cost.bio&&Math.max(0,n.cost.bio-samples.bio)?Math.max(0,n.cost.bio-samples.bio)+" BIO":"",n.cost.tec&&Math.max(0,n.cost.tec-samples.tec)?Math.max(0,n.cost.tec-samples.tec)+" TEC":""].filter(Boolean).join(" · ")}</div>`}`}
+    </div>`;}).join("")+`</div>`;
   /* Innesti: si fabbricano con BIO, occupano uno slot come tutto il resto, e
      costano corruzione a ogni missione in cui li porti. Il prezzo va detto qui,
      dove decidi di costruirli, non scoperto nel resoconto. */
@@ -5103,22 +5126,24 @@ function renderResearch(){
     const posseduti=ownedModules.filter(o=>o.type===id).length;
     const sbloccato=ktechUnlocked(id), puoi=sbloccato&&samples.bio>=t.bio;
     const creatura=(KDEF[t.from]||{}).nm||t.from;
-    return `<div class="resnode ktech${sbloccato?"":" locked"}">
+    return `<div class="resnode ktech${sbloccato?"":" locked"}"><div class="ktrow"><div class="kg${sbloccato?"":" sil"}">${iconTag("kaucha",t.from,"big")}</div><div class="ktbody">
       <div class="resh"><span class="resnm">${sbloccato?t.nm:"████████"}</span><span class="rescost">${t.bio} BIO</span></div>
       <div class="resds">${sbloccato?t.ds:"Campione non disponibile. L'arma si ricava dal corpo — e il corpo va abbattuto."}</div>
       <div class="ktcost">${sbloccato
         ? `⚠ <b>+${t.corr}%</b> di corruzione sul nodo a ogni missione in cui lo schieri${posseduti?` · <b>${posseduti}</b> in armeria`:""}`
         : `▸ richiede l'abbattimento di <b>${creatura}</b>`}</div>
-      ${sbloccato?`<button class="resbuy" data-kt="${id}"${puoi?"":" disabled"}>${puoi?"INNESTA":"CAMPIONI INSUFFICIENTI"}</button>`:""}
-    </div>`;}).join("");
+      ${sbloccato?`<button class="resbuy" data-kt="${id}"${puoi?"":" disabled"}>${puoi?"INNESTA":"CAMPIONI INSUFFICIENTI"}</button>${puoi?"":`<div class="resmanca">mancano ${t.bio-samples.bio} BIO</div>`}`:""}
+    </div></div></div>`;}).join("");
 
   $("researchScroll").innerHTML=
+    `<div class="cm-griglia rs-strip"><div class="cm-cella"><span class="cm-i">✚</span><b>${samples.bio}</b><span>campioni BIO</span></div><div class="cm-cella"><span class="cm-i">⚙</span><b>${samples.tec}</b><span>campioni TEC</span></div><div class="cm-cella"><span class="cm-i">✓</span><b>${researched.size}<small>/${RESEARCH.length}</small></b><span>acquisite</span></div></div>`+
     `<div class="muted" style="margin-bottom:11px;line-height:1.7;">I campioni si raccolgono sul campo: <b>BIO</b> dai Kaucha abbattuti, <b>TEC</b> dai beni civili lasciati <b>intatti</b> a fine missione. Far detonare una cisterna è un vantaggio tattico che costa un campione — la scelta è tua.<br>La ricerca sopravvive alla caduta del settore: NUOVA CAMPAGNA non la cancella.</div>`+
     `<div class="panel"><h3>INNESTI KAUCHA</h3>`+
       `<div class="muted" style="margin-bottom:9px;line-height:1.6;">Pezzi staccati dalle creature che hai abbattuto e montati sui telai. Fanno cose che la tecnologia umana non sa fare — e ti sporcano il settore finché li porti addosso.</div>`+
       innesti+`</div>`+
     `<div class="panel"><h3>BIOTECNOLOGIA</h3>${branch("BIO")}</div>`+
     `<div class="panel"><h3>TECNOLOGIA</h3>${branch("TEC")}</div>`;
+  paintIcons($("researchScroll"));
   qsa("#researchScroll .resbuy[data-res]").forEach(b=>b.addEventListener("click",()=>{
     if(buyResearch(b.dataset.res)){toast("Ricerca completata: "+(RESEARCH.find(x=>x.id===b.dataset.res)||{nm:""}).nm);renderResearch();}
     else toast("Campioni insufficienti");
@@ -5150,9 +5175,9 @@ function renderProtocols(){
   const lockedChassis=CHASSIS.filter(c=>!c.unlocked);
   const chassisHtml=lockedChassis.length?`<div class="shopsec">TELAI — SBLOCCO PERMANENTE</div>`+lockedChassis.map(c=>{
     const canBuy=frammenti>=c.cost;
-    return `<div class="protocard"><div class="pleft"><div class="pname">${iconTag("mech",c.id)}${c.name} <span class="modtype">${c.slots} SLOT</span></div>
+    return `<div class="protocard t-utility"><div class="pleft"><div class="pname">${iconTag("mech",c.id)}${c.name} <span class="modtype">${c.slots} SLOT</span></div>
       <div class="pdesc">${c.role} · HP ${c.maxHp} · MOV ${c.move} · DMG ${c.dmg} · RNG ${c.rmin}–${c.rmax}</div></div>
-      <div class="pright"><button class="cbuy" ${canBuy?"":"disabled"} data-id="${c.id}">${c.cost} fr</button></div></div>`;
+      <div class="pright"><button class="cbuy" ${canBuy?"":"disabled"} data-id="${c.id}">${c.cost} fr</button>${canBuy?"":`<div class="manca">mancano ${c.cost-frammenti} fr</div>`}</div></div>`;
   }).join(""):"";
   /* Il potenziamento sta PRIMA dell'acquisto: quello che hai già vale più di
      quello che potresti comprare, ed è la lettura che il giocatore deve fare
@@ -5190,16 +5215,17 @@ function renderProtocols(){
           : '<span class="pmax">MASSIMO</span>'}</div></div>`;
     }).join(""):`<div class="shopsec">POTENZIAMENTO — SIGILLI <b class="sgcount">◈ ${sigilli}</b> · GANGLIO <b class="ggcount">☣ ${ganglio}</b></div><div class="muted">Nessun modulo in armeria da potenziare.</div>`;
 
-  $("protoScroll").innerHTML=`<div class="muted" style="margin-bottom:11px;line-height:1.7;">I <b style="color:var(--anomal-teal)">sigilli ◈</b> si estraggono chiudendo le fenditure e potenziano ciò che hai già. I <b style="color:var(--amber)">frammenti</b> comprano pezzi nuovi. <button class="linkbay blk" id="toHangar">▸ VAI ALL'HANGAR</button></div>`+
+  $("protoScroll").innerHTML=`<div class="cm-griglia rs-strip"><div class="cm-cella"><span class="cm-i">◆</span><b>${frammenti}</b><span>frammenti</span></div><div class="cm-cella"><span class="cm-i">◈</span><b>${sigilli}</b><span>sigilli</span></div><div class="cm-cella"><span class="cm-i">☣</span><b>${ganglio}</b><span>gangli</span></div></div>`+
+    `<div class="muted" style="margin-bottom:11px;line-height:1.7;">I <b style="color:var(--anomal-teal)">sigilli ◈</b> si estraggono chiudendo le fenditure e potenziano ciò che hai già. I <b style="color:var(--amber)">frammenti</b> comprano pezzi nuovi. <button class="linkbay blk" id="toHangar">▸ VAI ALL'HANGAR</button></div>`+
     potHtml+
     `<div class="shopsec">MODULI — ARMERIA</div>`+
     Object.entries(MODULES).map(([id,m])=>{
       const owned=ownedModules.filter(o=>o.type===id).length;
       const canBuy=frammenti>=m.cost;
-      return `<div class="protocard"><div class="pleft">
+      return `<div class="protocard t-${m.type.toLowerCase()}"><div class="pleft">
         <div class="pname">${iconTag("mod",id)}${m.name} <span class="modtype">${m.type}</span></div>
         <div class="pdesc">${m.desc}${owned?` · <span class="modown">in armeria ×${owned}</span>`:""}</div></div>
-        <div class="pright"><button class="pbuy" ${canBuy?"":"disabled"} data-id="${id}">${m.cost} fr</button></div></div>`;
+        <div class="pright"><button class="pbuy" ${canBuy?"":"disabled"} data-id="${id}">${m.cost} fr</button>${canBuy?"":`<div class="manca">mancano ${m.cost-frammenti} fr</div>`}</div></div>`;
     }).join("")+chassisHtml;
   qsa("#protoScroll .pbuy").forEach(b=>b.addEventListener("click",()=>buyModule(b.dataset.id)));
   qsa("#protoScroll .cbuy").forEach(b=>b.addEventListener("click",()=>buyChassis(b.dataset.id)));
