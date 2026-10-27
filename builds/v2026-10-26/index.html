@@ -43,7 +43,8 @@
   /* ===== MENU ===== */
   #menu{justify-content:flex-start;}
   .hero{padding:30px 2px 14px;}
-  .sysline{font-size:calc(10px * var(--ts,1));letter-spacing:.2em;color:var(--bone-dim);margin-bottom:14px;}
+  .sysline{font-size:calc(10px * var(--ts,1));letter-spacing:.2em;color:var(--bone-dim);margin-bottom:14px;white-space:nowrap}
+  @media (max-width:430px){.sysline .sys2{display:none}}
   .sysline .dot{color:var(--ok);}
   .title{font-size:calc(30px * var(--ts,1));line-height:.92;letter-spacing:.02em;font-weight:700;color:var(--bone);}
   .title .frac{color:var(--amber);}
@@ -76,6 +77,7 @@
   .mitem .body{flex:1;}
   .mitem .chev{color:var(--bone-dim);font-size:calc(16px * var(--ts,1));}
   .mitem .badge{position:absolute;top:9px;right:34px;font-size:calc(10px * var(--ts,1));letter-spacing:.1em;color:var(--void);background:var(--hazard);padding:1px 5px;}
+  .mitem .meta{position:absolute;top:9px;right:14px;font-size:calc(9.5px * var(--ts,1));letter-spacing:.08em;color:var(--anomal-teal);white-space:nowrap}
   .mitem .soon{position:absolute;top:9px;right:34px;font-size:calc(10px * var(--ts,1));letter-spacing:.1em;color:var(--bone-dim);border:1px solid var(--bone-dim);padding:1px 5px;}
   .mitem.locked .ico{border-color:var(--bone-dim);color:var(--bone-dim);}
   .mitem.locked .nm{color:var(--bone-dim);}
@@ -249,6 +251,15 @@
   .cbuy:disabled{border-color:var(--gunmetal-hi);color:var(--bone-dim);}
   .cbuy:active:not(:disabled){background:var(--anomal-teal);color:var(--void);}
   .effrow{font-size:calc(9.5px * var(--ts,1));color:var(--bone);letter-spacing:.03em;margin:6px 0 8px;}
+  /* Hangar rifinito: quadro di squadra, statistiche a barre, intestazione di baia che non si accavalla. */
+  .cm-griglia.hg-quadro{grid-template-columns:repeat(4,1fr);margin-bottom:12px}
+  .hg-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .hg-st{border:1px solid var(--gunmetal-hi);background:rgba(0,0,0,.22);padding:5px 6px 6px;display:flex;flex-direction:column;gap:2px}
+  .hg-st span{font-size:calc(8.5px * var(--ts,1));letter-spacing:.1em;color:var(--bone-dim)} .hg-st b{font-size:calc(14px * var(--ts,1));color:var(--bone);font-weight:400}
+  .hg-st i{display:block;height:3px;background:rgba(0,0,0,.5)} .hg-st u{display:block;height:100%;background:var(--amber)}
+  .hg-ex{margin-top:6px;font-size:calc(9.5px * var(--ts,1));color:var(--bone-dim);letter-spacing:.04em}
+  .bayhdr{flex-wrap:nowrap;margin-bottom:8px} .bayname{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0} .slottag{white-space:nowrap}
+  .missiontag .linkbay{flex:1 1 100%;min-height:44px}
   .slots{margin-top:9px;display:flex;flex-direction:column;gap:6px;}
   .slot{display:flex;align-items:center;gap:8px;border:1px solid var(--gunmetal-hi);padding:8px 10px;font-size:calc(10px * var(--ts,1));background:var(--void-2);}
   .slot.empty{border-style:dashed;color:var(--bone-dim);cursor:pointer;justify-content:flex-start;}
@@ -1534,7 +1545,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
   <div class="scroll">
     <div class="hero">
       <canvas id="heroArt" class="heroart" aria-hidden="true"></canvas>
-      <div class="sysline"><span class="dot">●</span> SISTEMA OPERATIVO · LINK COMANDO STABILE · TURNO 0447</div>
+      <div class="sysline"><span class="dot">●</span> SISTEMA OPERATIVO<span class="sys2"> · LINK COMANDO STABILE</span> · TURNO 0447</div>
       <div class="title"><span class="frac">FRACTURE</span><br>PR<span class="glitch">O</span>TOCOL</div>
       <div class="subtitle">CONSOLE DI CONTENIMENTO DIMENSIONALE</div>
     </div>
@@ -1544,7 +1555,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.18.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.19.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -1704,7 +1715,8 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
 "use strict";
 const $=id=>document.getElementById(id);
 const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
-function go(id){qsa(".screen").forEach(s=>s.classList.toggle("active",s.id===id));const sc=$(id).querySelector(".scroll");if(sc)sc.scrollTop=0;saveState();}
+function go(id){if(id==="menu"){try{buildMenu();}catch(e){}}   // il menu mostra lo stato di adesso, non quello di quando e' stato costruito
+  qsa(".screen").forEach(s=>s.classList.toggle("active",s.id===id));const sc=$(id).querySelector(".scroll");if(sc)sc.scrollTop=0;saveState();}
 /* Il ritorno indietro porta al menu, tranne quando una schermata è stata
    aperta da un'altra che non va persa — l'archivio letto dal resoconto di fine
    missione deve tornare al resoconto, non abbandonarlo. */
@@ -3094,7 +3106,7 @@ let selMissionId=null, activeMission=null;
 
 /* ================= MENU ================= */
 const MENU=[
-  {id:"missioni",ico:"◬",nm:"MISSIONI",ds:"Mappa strategica · obiettivi e ricompense",badge:"3 ATTIVE"},
+  {id:"missioni",ico:"◬",nm:"MISSIONI",ds:"Mappa strategica · obiettivi e ricompense"},
   {id:"hangar",ico:"⬡",nm:"HANGAR",ds:"Assegna piloti · gestisci i telai"},
   {id:"codice",ico:"❖",nm:"CODICE KAUCHA",ds:"Intel sulle anomalie"},
   {id:"protocolli",ico:"⊞",nm:"OFFICINA",ds:"Compra moduli · arma e potenzia i telai"},
@@ -3106,6 +3118,16 @@ const MENU=[
    e le schermate sono solo classi. Se c'è, il menu offre di rientrarci — e lo
    dice per primo, perché è la cosa che il giocatore stava facendo. */
 const battagliaAperta=()=>!!(B&&B.units&&B.units.length&&!B.over);
+/* Ciò che ogni voce sa dire adesso: il badge delle missioni era scritto a mano («3 ATTIVE») e restava
+   uguale a campagna finita. Ora viene dallo stato, e il menu si ricostruisce a ogni ritorno. */
+function menuLive(id){
+  if(id==="missioni"){const n=MISSIONS.filter(x=>!x.locked&&!cleared.has(x.id)).length; return n?{badge:n+(n===1?" DISPONIBILE":" DISPONIBILI")}:{};}
+  if(id==="hangar")return{meta:CHASSIS.filter(c=>c.unlocked).length+" TELAI"};
+  if(id==="protocolli")return{meta:frammenti+" fr"+(sigilli?" · ◈ "+sigilli:"")};
+  if(id==="ricerca")return{meta:"BIO "+samples.bio+" · TEC "+samples.tec};
+  if(id==="comando")return{meta:"LAZY J · "+bandaRisonanza().nome};
+  return {};
+}
 function buildMenu(){
   /* Dopo un ricaricamento `B` e' vuoto ma il checkpoint no: si offre di riprendere
      da lì, e si dice che si riparte dall'inizio del turno. */
@@ -3117,11 +3139,11 @@ function buildMenu(){
        ds:cp.m.name+" · round "+cp.B.round+"/"+cp.B.maxRound+" · dall'inizio del turno",badge:"SALVATA"}]
     :[]).concat(MENU.map(m=>m.id==="codice"
         ?Object.assign({},m,{ds:m.ds+" · "+CODEX.filter(e=>e.type[0]!=="_"&&codexSeen.has(e.type)).length+"/"+CODEX.filter(e=>e.type[0]!=="_").length+" svelate"})
-        :m));
+        :m)).map(m=>Object.assign({},m,menuLive(m.id)));
   $("menulist").innerHTML=voci.map((m,i)=>`<button class="mitem${m.id==="battle"||m.id==="ripristina"?" resume":""}" data-go="${m.id}">
     <span class="idx">0${i+1}</span><span class="ico">${m.ico}</span>
     <span class="body"><span class="nm">${m.nm}</span><span class="ds">${m.ds}</span></span>
-    ${m.badge?`<span class="badge">${m.badge}</span>`:""}${m.soon?`<span class="soon">PRESTO</span>`:""}
+    ${m.badge?`<span class="badge">${m.badge}</span>`:""}${m.meta?`<span class="meta">${m.meta}</span>`:""}${m.soon?`<span class="soon">PRESTO</span>`:""}
     <span class="chev">›</span></button>`).join("");
   qsa("#menulist .mitem").forEach(b=>b.addEventListener("click",()=>{
     const id=b.dataset.go;
@@ -3530,7 +3552,18 @@ function renderHangar(){
       <span class="sqtrio">${sq.mechs.map(m=>(chassisById(m)||{}).glyph||m).join(" · ")}</span>
       ${pronta?"":`<span class="sqcosto">manca ${costo} fr</span>`}</button>`;
   }).join("")+`</div>`;
-  $("hangarScroll").innerHTML=tag+rigaSquadre+squad.map((cid,i)=>{
+  /* Il quadro della squadra in una riga: quattro numeri veri, cosi' si vede a colpo d'occhio se manca qualcosa
+     (slot vuoti, scudi non agganciati) prima di scendere a leggere tre baie. */
+  const slotTot=squad.reduce((n,cid)=>n+chassisById(cid).slots,0), slotPieni=squad.reduce((n,cid)=>n+(loadout[cid]||[]).filter(x=>x!=null&&ownedModules.some(o=>o.iid===x)).length,0);
+  const scudiN=squad.filter(cid=>scudoDi[cid]).length;
+  const quadro=`<div class="cm-griglia hg-quadro"><div class="cm-cella"><span class="cm-i">✦</span><b>${squadPower()}</b><span>potenza</span></div>`+
+    `<div class="cm-cella"><span class="cm-i">▣</span><b>${slotPieni}<small>/${slotTot}</small></b><span>slot pieni</span></div>`+
+    `<div class="cm-cella"><span class="cm-i">⛨</span><b>${scudiN}<small>/${squad.length}</small></b><span>scudi</span></div>`+
+    `<div class="cm-cella"><span class="cm-i">◈</span><b>${sigilli}</b><span>sigilli</span></div></div>`;
+  /* Statistiche come barre: la scala e' quella dei telai che esistono, cosi' si confrontano a vista. */
+  const MX={hp:Math.max(...CHASSIS.map(x=>x.maxHp)),mov:Math.max(...CHASSIS.map(x=>x.move)),dmg:Math.max(...CHASSIS.map(x=>x.dmg)),rng:Math.max(...CHASSIS.map(x=>x.rmax))};
+  const cella=(lab,v,mx,txt)=>`<div class="hg-st"><span>${lab}</span><b>${txt===undefined?v:txt}</b><i><u style="width:${Math.max(6,Math.min(100,Math.round(v/mx*100)))}%"></u></i></div>`;
+  $("hangarScroll").innerHTML=tag+quadro+rigaSquadre+squad.map((cid,i)=>{
     const c=chassisById(cid);
     const eff=effectiveMech(c,i);
     const pilot=PILOTS[pilotIdx[i]];
@@ -3600,7 +3633,8 @@ function renderHangar(){
                 :`<button class="firmaup${sigilli>=cf?"":" off"}" ${sigilli>=cf?"":"disabled"} data-firma="${cid}">◈ ${cf}</button>`}
             </div>`;})()}</div>
         <div class="baydata">
-          <div class="effrow">HP ${eff.maxHp} · MOV ${eff.move} · DMG ${eff.dmg} · RNG ${eff.rmin}–${eff.rmax}${eff.scudo?` · ⛨ ${eff.scudo}×${eff.scudoInt}`:""}${eff.knockback>1?` · spinta ${eff.knockback}`:""} · <span class="powtag">POTENZA <b>${combatPower(eff)}</b></span></div>
+          <div class="effrow"><div class="hg-stats">${cella("HP",eff.maxHp,MX.hp)}${cella("MOV",eff.move,MX.mov)}${cella("DMG",eff.dmg,MX.dmg)}${cella("RNG",eff.rmax,MX.rng,eff.rmin+"–"+eff.rmax)}</div>
+            <div class="hg-ex">${eff.scudo?`⛨ ${eff.scudo}×${eff.scudoInt} · `:""}${eff.knockback>1?`spinta ${eff.knockback} · `:""}<span class="powtag">POTENZA <b>${combatPower(eff)}</b></span></div></div>
           <!-- ⚠ Le frecce e basta: nome, bonus e tratti li scrive il fascicolo
                qui sotto. Prima erano scritti in tutte e due, e due scritte per
                lo stesso dato sono due punti in cui il dato può divergere —
@@ -4977,7 +5011,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.18.0";
+const BUILD_VER="0.19.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
