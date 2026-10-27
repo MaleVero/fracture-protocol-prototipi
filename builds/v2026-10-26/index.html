@@ -10,8 +10,8 @@
   :root{
     --void:#07090B;--void-2:#0B0E12;--gunmetal:#161B20;--gunmetal-hi:#222A31;
     --amber:#FFB000;--amber-dim:rgba(255,176,0,.28);--hazard:#FF5A00;--hazard-dim:rgba(255,90,0,.30);
-    --bruise:#6B2D7A;--bruise-hi:#9B4FB0;--anomal-teal:#2FA8A0;
-    --bone:#C8CCC9;--bone-dim:#6E7679;--danger:#E03A3A;--ok:#5FB87A;
+    --bruise:#6B2D7A;--bruise-hi:#B26CC7;--anomal-teal:#2FA8A0;
+    --bone:#C8CCC9;--bone-dim:#8A9396;--danger:#E03A3A;--ok:#5FB87A;
     --water:#10222E;--water-hi:#1C3D52;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -1116,7 +1116,7 @@ canvas.mechbig{width:128px;height:150px;display:block;
 .sqbtn:hover{border-color:#484a63}
 .sqbtn b{font-size:12px;letter-spacing:.08em;color:#FFB000}
 .sqbtn .sqprem{font-size:11px;color:#8a93a8;line-height:1.35}
-.sqbtn .sqtrio{font-size:10px;letter-spacing:.1em;color:#484a63}
+.sqbtn .sqtrio{font-size:10px;letter-spacing:.1em;color:#8b90ad}
 .sqbtn .sqcosto{font-size:10px;color:#ff5a4d}
 /* attiva = quella schierata adesso */
 .sqbtn.on{border-color:#FFB000;background:#171208}
@@ -1153,7 +1153,7 @@ canvas.mechbig{width:128px;height:150px;display:block;
   color:#cfd6e2;font:inherit;cursor:pointer}
 .ljbtn:hover:not(:disabled){border-color:#9A6BC4}
 .ljbtn b{font-size:11px;letter-spacing:.08em;color:#b98adf}
-.ljcost{font-size:10px;color:#484a63}
+.ljcost{font-size:10px;color:#8f94b3}
 /* Non disponibile: si MOSTRA spento con la banda che serve, così il giocatore
    vede cosa comprerebbe alzando la barra. */
 .ljbtn.off{opacity:.5;cursor:default}
@@ -1346,7 +1346,7 @@ button{font-size:var(--t-base);letter-spacing:var(--k-base)}
 #lazyj .ljbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
 #lazyj .ljbtn{flex:none;min-height:44px;min-width:0;padding:6px 6px;gap:3px;justify-content:center}
 #lazyj .ljbtn b{font-size:9.5px;letter-spacing:.06em;line-height:1.25}
-#lazyj .ljbtn .ljcost{font-size:9px;letter-spacing:.02em;color:#6f7390;line-height:1.25}
+#lazyj .ljbtn .ljcost{font-size:9px;letter-spacing:.02em;color:#8f94b3;line-height:1.25}
 #lazyj .ljbtn:not(.off) .ljcost{color:#b98adf}
 #lazyj .ljbtn.armed{border-color:#FFB000;background:#1d1608;box-shadow:inset 0 0 0 1px rgba(255,176,0,.35)}
 #lazyj .ljbtn.armed b{color:#FFB000}
@@ -1566,6 +1566,40 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
   #bcontrols button#endTurnBtn{flex:1 1 100%;min-height:44px;padding-top:8px;padding-bottom:8px;}
   #bcontrols button.secondary{flex:1 1 0;min-width:0;}
 }
+
+/* ── RIFINITURA FINALE: bersagli di tocco. Un controllo automatico su tutte le schermate ha trovato pulsanti sotto i 44 px
+   (frecce dell'hangar a 24, acquisti a 33, STUDIA a 25, interruttori e pulsanti delle Opzioni a 29-30, il collegamento «Come
+   provarlo» a 11): sul telefono non si centrano. Tutti a 44, senza cambiare lo stile. In coda, dopo ogni altro strato. */
+.backbtn{min-width:44px;min-height:44px}
+.sectab{min-height:44px}
+.carr,.parr{min-width:44px;min-height:44px}
+#npGo{min-height:44px}
+.firmaup,.scudobtn,.cup,.cfus,.cbuy,.pbuy,.resbuy,.linkbay,.deploy,.slotbtn,.optsw,.gal-bar button{min-height:44px}
+.pbuy,.cbuy{min-width:72px}
+.firmaup{display:block;width:100%}
+a.slotbtn{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.optsw{display:flex;align-items:center;justify-content:center}
+.optvol input[type=range]{height:44px}
+#opzioni details summary{min-height:44px;display:flex;align-items:center}
+.opt-info a{display:inline-block;padding:15px 10px}
+.np-pres .np-k i{font-size:calc(9px * var(--ts,1))}
+/* Telefoni: la riga con il cursore va a capo (testo sopra, cursore a tutta larghezza), invece di strizzare la descrizione in una colonna di una parola. */
+@media (max-width:430px){.optrow.optstack{flex-wrap:wrap}.optrow.optstack .optvol{flex:1 1 100%}}
+.sqbtn{min-width:136px;flex:1 1 136px}
+#outcome button{min-height:44px}
+/* Testo al 160%: il titolo del menu e le griglie non devono uscire dallo schermo. Le colonne si possono restringere
+   (minmax(0,…)) e le parole lunghe vanno a capo; i riquadri con i prezzi vanno a capo invece di sporgere. */
+#menu .title{font-size:min(calc(52px * var(--ts,1)),16.5vw)}
+.codexgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.kentry,.cm-sec{min-width:0;overflow-wrap:anywhere}
+.cm-sezioni{grid-template-columns:repeat(3,minmax(0,1fr))}
+.cm-griglia{grid-template-columns:repeat(3,minmax(0,1fr))}
+.cm-sec .cm-nm,.cm-sec .cm-sub{overflow-wrap:anywhere;letter-spacing:.06em}
+.protocard{flex-wrap:wrap}
+.protocard .pleft{min-width:0;flex:1 1 150px}
+.manca{white-space:normal}
+.lj-ints{grid-template-columns:repeat(3,minmax(0,1fr))}
+.lj-int{min-width:0;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -1591,7 +1625,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.21.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.22.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -5055,7 +5089,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.21.0";
+const BUILD_VER="0.22.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -5419,12 +5453,12 @@ function renderOpzioni(){
   }
   $("optScroll").innerHTML=`
     <div class="panel"><h3><span class="opt-i" aria-hidden="true">♪</span>AUDIO</h3>
-      <div class="optrow"><div class="optl"><b>VOLUME</b><span>Tutto il suono è sintetizzato: nessun file, nessun download.</span></div>
+      <div class="optrow optstack"><div class="optl"><b>VOLUME</b><span>Tutto il suono è sintetizzato: nessun file, nessun download.</span></div>
         <div class="optvol"><input type="range" min="0" max="100" step="5" id="optVol" value="${OPZ.volume}" style="--f:${OPZ.volume}%"><b id="optVolVal">${OPZ.volume}</b></div></div>
       ${sw("audio","SUONO","Spegne tutto senza perdere il livello del volume.")}
     </div>
     <div class="panel"><h3><span class="opt-i" aria-hidden="true">Aa</span>LEGGIBILITÀ</h3>
-      <div class="optrow"><div class="optl"><b>DIMENSIONE DEL TESTO</b><span>Vale per tutta l'interfaccia, e cresce di più sui testi descrittivi — bio dei piloti, tratti, descrizioni dei moduli, codex.</span></div>
+      <div class="optrow optstack"><div class="optl"><b>DIMENSIONE DEL TESTO</b><span>Vale per tutta l'interfaccia, e cresce di più sui testi descrittivi — bio dei piloti, tratti, descrizioni dei moduli, codex.</span></div>
         <div class="optvol"><input type="range" min="85" max="160" step="5" id="optTesto" value="${OPZ.testo}" style="--f:${Math.round((OPZ.testo-85)/75*100)}%"><b id="optTestoVal">${OPZ.testo}%</b></div></div>
       <div class="opt-anteprima" aria-hidden="true"><span>Aa</span> Corriere di superficie prima della Prima Spaccatura. Dice di conoscere le crepe meglio di chi le ha mappate.</div>
     </div>
