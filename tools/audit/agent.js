@@ -308,7 +308,8 @@
     }
     // la barra di risonanza e' UNA per tutta la campagna (cap 100, -6 a missione se non la tocchi): `risIniziale` fissa quanto
     // margine resta per gli interventi in questa missione (100 - risIniziale). Default 0 = tutto disponibile (ottimistico).
-    risonanza = opts.risIniziale != null ? opts.risIniziale : 0; risonanzaUsata = false; A.stats = {};
+    if (!opts.keepRis) risonanza = opts.risIniziale != null ? opts.risIniziale : 0;   // keepRis: la barra persiste fra le missioni (misure di campagna, sfogo.js)
+    risonanzaUsata = false; A.stats = {};
     if (opts.noise0) A.W.noise = 0;
     if (opts.resume) {
       // riprende da un checkpoint salvato dal gioco (stringa JSON): niente startBattle

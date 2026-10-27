@@ -71,10 +71,5 @@ schermo **taglia la cima senza possibilità di scorrere**; ora si centra col mar
   Lazy J in quattro casi). `ui.js` e `a11y.js` segnano la tavola dell'hangar come già vista, o coprirebbe la schermata
   da misurare.
 
-## ⚠ Trovato, NON corretto: lo SFOGO della risonanza non viene mai applicato
-`sfogaRisonanza()` (riga ~2095) è definita ma **non è chiamata da nessuna parte**: chiudere una missione senza usare
-Lazy J non fa scendere la risonanza di 6 come dice il commento di progetto («la rinuncia diventa una mossa»). Oggi la
-barra è un cricchetto a senso unico, esattamente il difetto che lo SFOGO doveva evitare. Non l'ho corretto perché cambia
-il bilanciamento (le misure di `RAPPORTO-BLOCCHI-1-2.md` assumono la barra che non scende), e ho tolto la frase dalla
-tavola `lazyj` perché sarebbe stata falsa. Va deciso: chiamarla in `finish()` (e rimisurare) oppure togliere il
-commento.
+## Trovato durante il lavoro grafico: lo SFOGO non veniva applicato — corretto in 0.13.0
+Vedi `RAPPORTO-SFOGO.md`: la funzione non veniva mai chiamata; ora lo è, misurata su campagne intere.

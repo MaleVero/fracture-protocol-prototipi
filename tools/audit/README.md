@@ -8,7 +8,7 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 ## Rapporti
 `RAPPORTO-FASE0.md` audit · `FASE1` layout e accessibilità su schermi piccoli · `FASE2` bilanciamento ·
 `FASE3` Tarsis e NERIS · `FASE4` checkpoint, copia di sicurezza, tastiera · `FASE5` rilascio e **limite della nemesi** ·
-`BLOCCHI-1-2` abilità e Lazy J nell'agente, calibrazione di PALINSESTO · `BLOCCO-4` prova con altre persone · `BLOCCO-3` RISACCA, NERIS ridisegnato, tavole di Tarsis · `GRAFICA` identità di settore, effetti, tavole, esito.
+`BLOCCHI-1-2` abilità e Lazy J nell'agente, calibrazione di PALINSESTO · `BLOCCO-4` prova con altre persone · `BLOCCO-3` RISACCA, NERIS ridisegnato, tavole di Tarsis · `GRAFICA` identità di settore, effetti, tavole, esito · `SFOGO` la risonanza che scende, misurata su campagne intere.
 
 ## Verifiche (devono finire con «tutti i controlli passati» / «ok»)
 | Script | Cosa controlla |
@@ -26,6 +26,8 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 | `rilascio.js` | l'indice e `build.json` coincidono, ogni link si apre, nessuna rete; `provare.html` raggiungibile, leggibile a 320 px, coerente col gioco |
 | `campagna.js` | campagna intera col flusso vero (diagnostica: l'esito dipende dall'agente) |
 | `nemesi.js` | PALINSESTO fuori dalle condizioni di vittoria, tetto dei nemici, guardiano invariato |
+| `sfogo-test.js` | sfogo della risonanza: -6 se Lazy J non interviene (vinta/persa/sganciata), non sotto zero, dopo la nemesi, sopravvive al ricaricamento |
+| `sfogo.js` | campagne intere con la barra che persiste (misura, non un controllo): sfogo spento/acceso, profili di Lazy J |
 | `effetti.js [shots]` | scenografia dei tre settori (pavimento di gioco invariato), effetti di colpo, spinta, tuffo, voragine |
 | `shot-settori.js`, `shot-mappa.js` | anteprime del campo e della mappa nei tre settori (diagnostica visiva, `DSF=2 CLIP=1` per ingrandire) |
 | `blocco3.js [shots]` | RISACCA (registro, spinta in acqua, giroscopi), tavole di Tarsis e del finale, 320 px |

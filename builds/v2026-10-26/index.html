@@ -1372,7 +1372,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.12.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.13.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -2085,6 +2085,10 @@ function convergenza(){ return bandaIdx(); }
 function alzaRisonanza(n){
   risonanza=Math.max(0,Math.min(100,risonanza+n));
   risonanzaUsata=true;
+  /* Il «l'ha usata in questa missione» sta anche nello stato della battaglia, che il
+     checkpoint salva: un ricaricamento a meta' missione non deve far scattare lo sfogo
+     a chi gli interventi li ha gia' fatti. */
+  if(typeof B!=="undefined"&&B&&B.mission)B.mission.lj=(B.mission.lj||0)+1;
   saveState();
   return risonanza;
 }
@@ -2093,11 +2097,19 @@ function alzaRisonanza(n){
    la meccanica non esiste. Chiudere una missione senza toccarlo la fa
    scendere: la rinuncia diventa una mossa, non un rimpianto. */
 const SFOGO=6;
+/* Si chiama UNA volta, dalla chiusura di ogni missione (vittoria, sconfitta o
+   sganciamento). Restituisce di quanto e' scesa la barra (0 se ha agito o era gia'
+   a zero). ⚠ Era definita e mai chiamata: la barra saliva soltanto, cioe' il
+   difetto per cui lo sfogo esiste. Il segno di «ha agito» e' `B.mission.lj`, non il
+   flag globale: il flag non sopravvive a un ricaricamento e non e' della missione. */
 function sfogaRisonanza(){
-  if(risonanzaUsata){ risonanzaUsata=false; return risonanza; }
+  const usata=risonanzaUsata||!!(B&&B.mission&&B.mission.lj>0);
+  risonanzaUsata=false;
+  if(usata)return 0;
+  const prima=risonanza;
   risonanza=Math.max(0,risonanza-SFOGO);
   saveState();
-  return risonanza;
+  return prima-risonanza;
 }
 
 /* I tre interventi. ⚠ Invariante 6 — chi dichiara implementa: `ds` e `applica`
@@ -3644,7 +3656,7 @@ const COMIC={
       {scena:"studio",chi:[],strisce:[{scena:"schieramento",chi:["jaeger","behemoth","nullangel"]},{scena:"studio",chi:["lazyj:0"]}],chi_dice:"COMANDO CASSANDRA",
        testo:"Ha tre interventi, e nessuno è un'arma. SCOSSA NERA spinge un Kaucha in qualunque casella, senza fargli danno. GUSCIO fa incassare a lui il colpo destinato a un mech. STRAPPO cava a un Kaucha l'adattamento che lo rendeva imbattibile.\n\nSono cose che la griglia non può fare. Si sbloccano mano a mano che la risonanza sale."},
       {scena:"varco",chi:["lazyj:0"],chi_dice:"ANALISI TATTICA",
-       testo:()=>"Ogni intervento alza la RISONANZA: adesso "+Math.round(risonanza)+" su 100. Il valore vale 440 THz, la frequenza dei Kaucha di rango nobile.\n\nPiù sale, più lui è forte, e più l'alveare lo nota. È la stessa barra: potenza ed esposizione. La muovete solo voi."},
+       testo:()=>"Ogni intervento alza la RISONANZA: adesso "+Math.round(risonanza)+" su 100. Il valore vale 440 THz, la frequenza dei Kaucha di rango nobile.\n\nPiù sale, più lui è forte, e più l'alveare lo nota. È la stessa barra: potenza ed esposizione. La muovete solo voi: chiudere una missione senza usarlo la fa scendere."},
     ]},
   lazyj_simbiosi:{
     titolo:"LAZY J · SIMBIOSI",
@@ -4763,7 +4775,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.12.0";
+const BUILD_VER="0.13.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -8217,6 +8229,10 @@ function finish(victory,reason,retreat){
   else if(nemTaken.length){/* ha già guadagnato: i tuoi relitti */}
   else if(victory&&m.spec&&nemesis.level<5){evolveNemesis();nemEvolved=true;}
 
+  /* LO SFOGO. Dopo l'evoluzione della nemesi, che legge la banda com'era DURANTE la
+     missione: chi ha giocato a banda alta paga la nemesi a banda alta, e solo dopo
+     la barra si scarica. */
+  const sfogo=sfogaRisonanza();
   let endHtml="";
   /* La catena dei guardiani: abbatterne uno bonifica il settore e apre il
      successivo. Solo l'ultimo chiude la campagna. Un settore che cade non
@@ -8246,7 +8262,8 @@ function finish(victory,reason,retreat){
   // ciò che sta per diventare va detto PRIMA, non scoperto sul campo
   const stu=nemesisStudying();
   if(stu&&!nemesis.dead)nemHtml+=`<div class="nemline dim">◔ Sta osservando <b>${stu.why}</b>. Prossimo adattamento: <b>${stu.name}</b> — ${stu.desc}.</div>`;
-  $("ovCorruption").innerHTML=corrHtml+endHtml+nemHtml;
+  const sfogoHtml=sfogo>0?`<div class="nemline dim">◈ Lazy J non è intervenuto: la risonanza scende di <b>${Math.round(sfogo)}</b> (ora ${Math.round(risonanza)}).</div>`:"";
+  $("ovCorruption").innerHTML=corrHtml+endHtml+nemHtml+sfogoHtml;
   $("ovBtn").textContent=campaignOver?"NUOVA CAMPAGNA":"RITORNA ALLA MAPPA";
   // il codex si legge PRIMA di chiudere: le schede scansionate nell'ultima
   // missione erano irraggiungibili, e con il reload andavano perdute

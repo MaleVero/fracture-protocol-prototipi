@@ -1,7 +1,7 @@
 {
-  "versione": "0.12.0",
+  "versione": "0.13.0",
   "data": "2026-10-26",
-  "titolo": "Le tavole di Lazy J e dell'hangar",
+  "titolo": "Lo sfogo della risonanza",
   "cambia": [
     "Settore Tarsis: sei missioni sull'acqua e il guardiano finale, dove PALINSESTO finisce",
     "Nuovo nemico, il NERIS: attraversa l'acqua senza affondare, quindi non basta buttarlo in un lago",
@@ -18,7 +18,8 @@
     "Ogni settore ha il suo aspetto: scenografia, pavimento, polvere, vignetta e carta della mappa propri (le regole e i segnali di gioco non cambiano)",
     "Le conseguenze si vedono: il taglio di un colpo, la scia di una spinta, il tuffo di chi annega, la voragine che si chiude su chi cade",
     "Tavole più cinematografiche: camera lenta, targa del settore, strisce doppie e dissolvenza della didascalia; la schermata d'esito ha la sua vignetta",
-    "Nuove tavole a fumetti: la baia dell'hangar (alla prima apertura) e Lazy J in tre momenti, la prima volta che interviene, a SIMBIOSI e a CONVERGENZA; la sua figura cambia con la banda"
+    "Nuove tavole a fumetti: la baia dell'hangar (alla prima apertura) e Lazy J in tre momenti, la prima volta che interviene, a SIMBIOSI e a CONVERGENZA; la sua figura cambia con la banda",
+    "Lo sfogo di Lazy J funziona davvero: chiudere una missione senza farlo intervenire fa scendere la risonanza di 6 (prima la barra saliva soltanto), e il resoconto lo dice"
   ],
   "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
 }
