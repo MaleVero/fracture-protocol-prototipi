@@ -32,7 +32,7 @@ const AGENT = fs.readFileSync(require('path').join(__dirname, 'agent.js'), 'utf8
   // 2. rapporto
   await p.evaluate(() => { window.dispatchEvent(new ErrorEvent('error', { message: 'prova errore finto' })); });
   const rap = await p.evaluate(() => creaRapporto());
-  check('il rapporto contiene build, dispositivo, campagna, diario e giudizio', /build: 0\.17\.0/.test(rap) && /dispositivo: /.test(rap) && /campagna: slot 1/.test(rap) && /DIARIO/.test(rap) && /m1 AVAMPOSTO KILO · vittoria/.test(rap) && /giudizio: GIUSTA/.test(rap));
+  check('il rapporto contiene build, dispositivo, campagna, diario e giudizio', /build: 0\.18\.0/.test(rap) && /dispositivo: /.test(rap) && /campagna: slot 1/.test(rap) && /DIARIO/.test(rap) && /m1 AVAMPOSTO KILO · vittoria/.test(rap) && /giudizio: GIUSTA/.test(rap));
   check('include gli errori recenti', /ERRORI RECENTI: .*prova errore finto/.test(rap));
   check('non contiene indirizzi email ne\' dati personali', !/[\w.+-]+@[\w-]+\.[\w.]+/.test(rap) && !/are\.spider|gmail/i.test(rap), rap.length + ' caratteri');
   check('lascia lo spazio per le note della persona', /COSA È SUCCESSO/.test(rap));
@@ -52,7 +52,7 @@ const AGENT = fs.readFileSync(require('path').join(__dirname, 'agent.js'), 'utf8
   const an = await p.evaluate(() => ({ t: document.getElementById('rpAnteprima').textContent.length, vis: document.getElementById('rpAnteprima').offsetParent !== null }));
   check('l\'anteprima mostra cosa verrebbe condiviso', an.vis && an.t > 200, an);
   const href = await p.getAttribute('#rpGithub', 'href'); const u = new URL(href);
-  check('il link di segnalazione apre una issue precompilata (< 7000 caratteri)', u.origin + u.pathname === 'https://github.com/MaleVero/fracture-protocol-prototipi/issues/new' && /^\[prova 0\.17\.0\]/.test(u.searchParams.get('title')) && /Ultime missioni/.test(u.searchParams.get('body')) && href.length < 7000, { len: href.length, titolo: u.searchParams.get('title') });
+  check('il link di segnalazione apre una issue precompilata (< 7000 caratteri)', u.origin + u.pathname === 'https://github.com/MaleVero/fracture-protocol-prototipi/issues/new' && /^\[prova 0\.18\.0\]/.test(u.searchParams.get('title')) && /Ultime missioni/.test(u.searchParams.get('body')) && href.length < 7000, { len: href.length, titolo: u.searchParams.get('title') });
   check('il link si apre in una scheda nuova senza collegare la pagina (noopener)', await p.getAttribute('#rpGithub', 'target') === '_blank' && /noopener/.test(await p.getAttribute('#rpGithub', 'rel')));
   if (SHOT) await p.screenshot({ path: C.OUT + '/prova-opzioni.png', fullPage: false });
 

@@ -631,7 +631,36 @@
   #outcome p{font-size:calc(11px * var(--ts,1));color:var(--bone-dim);line-height:1.7;}
   .procnote{font-size:calc(10px * var(--ts,1));letter-spacing:.08em;color:var(--anomal-teal);border-left:2px solid var(--anomal-teal);padding:6px 10px;margin:10px 0;background:rgba(58,160,160,.07);}
   #outcome .rewardline{font-size:calc(11px * var(--ts,1));color:var(--anomal-teal);letter-spacing:.08em;border:1px solid var(--gunmetal-hi);padding:10px 14px;}
-  #ovCorruption{font-size:calc(11px * var(--ts,1));}
+  #ovCorruption{font-size:calc(11px * var(--ts,1));width:100%;display:flex;flex-direction:column;gap:10px}
+  /* Il resoconto: pannelli con righe allineate (etichetta a sinistra, valore a destra), barre per la corruzione. */
+  .ov-kick{font-size:calc(9.5px * var(--ts,1));letter-spacing:.2em;color:var(--bone-dim);margin-bottom:-6px}
+  #outcome .rewardline{width:100%;padding:0;border:0;letter-spacing:0}
+  .ov-panel{width:100%;border:1px solid var(--gunmetal-hi);background:rgba(0,0,0,.22);padding:10px 12px;text-align:left;animation:ovIn .45s ease-out both}
+  .ov-panel:nth-child(2){animation-delay:.08s}.ov-panel:nth-child(3){animation-delay:.16s}.ov-panel:nth-child(4){animation-delay:.24s}
+  @keyframes ovIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .ov-ph{font-size:calc(9px * var(--ts,1));letter-spacing:.18em;color:var(--bone-dim);margin-bottom:7px}
+  .ov-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:calc(10.5px * var(--ts,1));letter-spacing:.04em;color:var(--bone);line-height:1.7}
+  .ov-row.miss{color:var(--bone-dim)} .ov-row .reward{color:var(--anomal-teal);white-space:nowrap}
+  .ov-row .ov-w{color:var(--hazard);white-space:nowrap}
+  .ov-tot{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;padding-top:7px;border-top:1px solid var(--gunmetal-hi);font-size:calc(10px * var(--ts,1));letter-spacing:.14em;color:var(--bone-dim)}
+  .ov-tot b{font-size:calc(19px * var(--ts,1));color:var(--anomal-teal);letter-spacing:.04em} .ov-tot small{display:block;margin-top:2px;font-size:calc(9px * var(--ts,1));letter-spacing:.08em;text-align:right}
+  .ov-note{margin-top:6px;font-size:calc(10px * var(--ts,1));color:var(--bone-dim);line-height:1.6} .ov-note.up{color:var(--anomal-teal)}
+  .ov-gauge{margin-bottom:9px}
+  .ov-gl{display:flex;justify-content:space-between;gap:8px;font-size:calc(9.5px * var(--ts,1));letter-spacing:.08em;color:var(--bone-dim);margin-bottom:4px} .ov-gl b{color:var(--bone);font-weight:400;white-space:nowrap}
+  .ov-gbar{position:relative;height:8px;background:rgba(0,0,0,.45);border:1px solid var(--gunmetal-hi);overflow:hidden}
+  .ov-gbar i{position:absolute;top:0;bottom:0;left:0;display:block}
+  .ov-gbar .b{background:linear-gradient(90deg,var(--bruise),var(--bruise-hi))}
+  .ov-gbar .d.up{background:var(--danger)} .ov-gbar .d.dn{background:var(--ok)}
+  .ov-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px}
+  .ov-chip{border:1px solid var(--hazard);color:var(--hazard);font-size:calc(9px * var(--ts,1));letter-spacing:.06em;padding:3px 7px}
+  .ov-samp{display:flex;gap:8px;margin-top:4px}
+  .ov-samp>div{flex:1;border:1px solid var(--gunmetal-hi);padding:6px 4px;text-align:center;display:flex;flex-direction:column;gap:1px}
+  .ov-samp b{font-size:calc(15px * var(--ts,1));color:var(--anomal-teal)} .ov-samp span{font-size:calc(8.5px * var(--ts,1));color:var(--bone-dim);letter-spacing:.06em}
+  #outcome .nemline,#outcome .campend{margin-top:0;width:100%;text-align:left}
+  #outcome .campend{text-align:center;font-weight:700}
+  #outcome .ovval button{min-width:0}
+  #outcome #ovBtn{background:var(--amber);color:var(--void);font-weight:700}
+  #outcome #ovBtn:active{filter:brightness(.85)}
   /* legenda della corruzione: numeri generati dalle costanti, non didascalia */
   /* position:relative come tlabel/tval/tbar: senza, il blob decorativo di
      .threat::before — dimensionato per una scatola bassa — lava il testo */
@@ -1515,7 +1544,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
       <div class="tbar"><i id="threatBar" style="width:38%"></i></div>
     </div>
     <div class="menulist" id="menulist"></div>
-    <div class="footer"><span>BUILD 0.17.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
+    <div class="footer"><span>BUILD 0.18.0 · PROTOTIPO</span><span>VESHO-VESHO!</span></div>
   </div>
 </section>
 
@@ -1651,6 +1680,7 @@ a.slotbtn{display:block;text-align:center;text-decoration:none;box-sizing:border
 <section class="screen" id="outcome">
   <div class="obox">
     <canvas id="ovCanvas" class="ovart" aria-hidden="true"></canvas>
+    <div class="ov-kick" id="ovKick"></div>
     <h2 id="ovTitle"></h2>
     <p id="ovText"></p>
     <div class="rewardline" id="ovReward"></div>
@@ -4947,7 +4977,7 @@ function richiediArchivioPersistente(){
    RAPPORTO di testo che la persona vede, copia o scarica e manda lei a chi vuole. Il diario
    sta sotto SAVE_KEY, quindi entra anche nella copia di sicurezza. Niente nome, niente
    indirizzo: dispositivo (user agent, schermo), impostazioni e stato di campagna. */
-const BUILD_VER="0.17.0";
+const BUILD_VER="0.18.0";
 const DIARIO_KEY=SAVE_KEY+"/diario", DIARIO_MAX=80;
 const URL_SEGNALAZIONI="https://github.com/MaleVero/fracture-protocol-prototipi/issues/new";
 const erroriRecenti=[];
@@ -8354,6 +8384,7 @@ function finish(victory,reason,retreat){
   if(bandaIdx()>=3&&!seenComic.has("lazyj_convergenza"))comicCoda.push("lazyj_convergenza");
   interventoFatto=false;
 
+  $("ovKick").textContent=sectorDef(m.sector||currentSector).nm+" · "+m.name;
   $("ovTitle").textContent=victory?"ZONA CONTENUTA":retreat?"RITIRATA TATTICA":"PROTOCOLLO FALLITO";
   $("ovTitle").className=victory?"":retreat?"retreat":"defeat";
   const texts={relay:"Il RELAY è stato distrutto. Settore perduto.",wipe:"Tutti i mech distrutti. La Spaccatura reclama il quadrante.",
@@ -8382,16 +8413,16 @@ function finish(victory,reason,retreat){
   if(victory){
     const rw=MISSION_REWARDS[m.id]||{base:0,bonus:[]};
     let total=rw.base;
-    const rows=[`<div>BASE: <span class="reward">+${rw.base}</span></div>`];
+    const rows=[`<div class="ov-row"><span>BASE</span><span class="reward">+${rw.base}</span></div>`];
     rw.bonus.forEach(b=>{const ok=bonusAchieved(b);if(ok)total+=b.reward;
-      rows.push(`<div class="${ok?'':'miss'}">${ok?'✓':'✗'} ${b.label}: ${ok?`<span class="reward">+${b.reward}</span>`:'+0'}</div>`);});
+      rows.push(`<div class="ov-row${ok?'':' miss'}"><span>${ok?'✓':'✗'} ${b.label}</span>${ok?`<span class="reward">+${b.reward}</span>`:'<span>+0</span>'}</div>`);});
     if(hasTech("tec1"))total=Math.round(total*1.25);   // recupero strutturato
     frammenti+=total;
     const lvUps=awardPilotXp(1);
-    const xpLine=`<div style="margin-top:6px;color:var(--bone-dim);">PILOTI: XP assegnata${lvUps.length?` · <span class="reward">PROMOZIONE</span>`:""}</div>`+
-      lvUps.map(t=>`<div style="color:var(--anomal-teal);">▲ ${t}</div>`).join("");
+    const xpLine=`<div class="ov-note">PILOTI: XP assegnata${lvUps.length?` · <span class="reward">PROMOZIONE</span>`:""}</div>`+
+      lvUps.map(t=>`<div class="ov-note up">▲ ${t}</div>`).join("");
     $("ovReward").style.display="";
-    $("ovReward").innerHTML=`<div class="rwbreak">${rows.join("")}</div><div class="rwtotal">TOTALE <span class="reward">+${total} fr</span> · SALDO ${frammenti}</div><div class="rwbreak">${xpLine}</div>`;
+    $("ovReward").innerHTML=`<div class="ov-panel"><div class="ov-ph">RICOMPENSA</div>${rows.join("")}<div class="ov-tot"><span>TOTALE</span><span><b>+${total} fr</b><small>SALDO ${frammenti}</small></span></div>${xpLine}</div>`;
     /* I sigilli arrivano dal chiudere, non dall'uccidere: è la stessa cosa
        che il gioco chiede di fare, premiata invece che solo permessa. */
     let sg=0;
@@ -8410,9 +8441,9 @@ function finish(victory,reason,retreat){
   } else if(retreat){
     const lvUps=awardPilotXp(RETREAT_XP);
     $("ovReward").style.display="";
-    $("ovReward").innerHTML=`<div class="rwbreak"><div class="miss">✗ OBIETTIVO NON RAGGIUNTO: +0 fr</div>`+
-      `<div style="margin-top:6px;color:var(--bone-dim);">Squadra recuperata · PILOTI: XP parziale</div>`+
-      lvUps.map(t=>`<div style="color:var(--anomal-teal);">▲ ${t}</div>`).join("")+`</div>`;
+    $("ovReward").innerHTML=`<div class="ov-panel"><div class="ov-ph">RICOMPENSA</div><div class="ov-row miss"><span>✗ OBIETTIVO NON RAGGIUNTO</span><span>+0 fr</span></div>`+
+      `<div class="ov-note">Squadra recuperata · PILOTI: XP parziale</div>`+
+      lvUps.map(t=>`<div class="ov-note up">▲ ${t}</div>`).join("")+`</div>`;
     bumpNode(m,RETREAT_PENALTY);
   } else {
     $("ovReward").style.display="none";
@@ -8448,21 +8479,26 @@ function finish(victory,reason,retreat){
   spreadCorruption(m.id);
   const corrAfter=Math.round(sectorCorruption);
   const arr=(a,b)=>b<a?'<span style="color:var(--ok)">▼</span>':b>a?'<span style="color:var(--danger)">▲</span>':'•';
-  let corrHtml=`<div class="corrline">NODO ${m.name}: ${nodeBefore}% → <b>${nodeAfter}%</b> ${arr(nodeBefore,nodeAfter)}</div>`+
-    `<div class="corrline">INDICE DI SETTORE: ${corrBefore}% → <b>${corrAfter}%</b> ${arr(corrBefore,corrAfter)}</div>`;
+  /* Due barre, non due frasi: la parte che resta e' viola, quella che e' appena cambiata e' rossa se
+     peggiora e verde se migliora. Si legge a colpo d'occhio se la missione ha fatto bene al settore. */
+  const gauge=(lab,a,b)=>`<div class="ov-gauge"><div class="ov-gl"><span>${lab}</span><b>${a}% → ${b}% ${arr(a,b)}</b></div>`+
+    `<div class="ov-gbar" role="img" aria-label="${lab}: da ${a} a ${b} per cento"><i class="b" style="width:${Math.min(a,b)}%"></i>`+
+    (a===b?"":`<i class="d ${b>a?"up":"dn"}" style="left:${Math.min(a,b)}%;width:${Math.abs(b-a)}%"></i>`)+`</div></div>`;
+  const riga=(lab,val,cls)=>`<div class="ov-row"><span>${lab}</span><b class="${cls||"ov-w"}">${val}</b></div>`;
+  let corrHtml=gauge("NODO "+m.name,nodeBefore,nodeAfter)+gauge("INDICE DI SETTORE",corrBefore,corrAfter);
   // il resto della mappa è avanzato mentre eri sul campo: dirlo, non nasconderlo
   const marci=MISSIONS.filter(x=>x.id!==m.id&&(x.corr||0)>=SPREAD_THRESHOLD);
-  if(marci.length)corrHtml+=`<div class="corrline civic">NODI FUORI CONTROLLO: ${marci.map(x=>x.name+" "+Math.round(x.corr)+"%").join(" · ")}</div>`;
-  if(civicPts>0)corrHtml+=`<div class="corrline civic">COLLATERALE CIVILE: ${civicPts} ${civicCorr>=CIVIC_CAP?"(al tetto) ":""}→ <b>+${fmtCorr(civicCorr)}%</b></div>`;
+  if(civicPts>0)corrHtml+=riga("COLLATERALE CIVILE · "+civicPts+(civicCorr>=CIVIC_CAP?" (al tetto)":""),"+"+fmtCorr(civicCorr)+"%");
   /* ⚠ Riga SEPARATA da quella del collaterale, non sommata: sono due colpe
      diverse. Una dice «hai sbagliato mira», l'altra «non sei arrivato in
      tempo», e il giocatore deve poterle distinguere per correggere quella
      giusta. */
-  if(perdPts>0)corrHtml+=`<div class="corrline civic">PERDITE AI KAUCHA: ${perdPts} ${perdCorr>=CIVIC_CAP?"(al tetto) ":""}→ <b>+${fmtCorr(perdCorr)}%</b></div>`;
-  if(otCorr)corrHtml+=`<div class="corrline civic">ROUND SUPPLEMENTARI: ${B.mission.overtime} → <b>+${otCorr}%</b></div>`;
-  if(ktCorr)corrHtml+=`<div class="corrline civic">INNESTI KAUCHA SCHIERATI → <b>+${ktCorr}%</b></div>`;
-  if(got.bio||got.tec)corrHtml+=`<div class="corrline samp">CAMPIONI RECUPERATI: `+
-    `<b>${got.bio} BIO</b> · <b>${got.tec} TEC</b> — totale ${samples.bio}/${samples.tec}</div>`;
+  if(perdPts>0)corrHtml+=riga("PERDITE AI KAUCHA · "+perdPts+(perdCorr>=CIVIC_CAP?" (al tetto)":""),"+"+fmtCorr(perdCorr)+"%");
+  if(otCorr)corrHtml+=riga("ROUND SUPPLEMENTARI · "+B.mission.overtime,"+"+otCorr+"%");
+  if(ktCorr)corrHtml+=riga("INNESTI KAUCHA SCHIERATI","+"+ktCorr+"%");
+  if(marci.length)corrHtml+=`<div class="ov-ph" style="margin:8px 0 0">NODI FUORI CONTROLLO</div><div class="ov-chips">${marci.map(x=>`<span class="ov-chip">${x.name} ${Math.round(x.corr)}%</span>`).join("")}</div>`;
+  corrHtml=`<div class="ov-panel"><div class="ov-ph">CORRUZIONE</div>${corrHtml}</div>`;
+  if(got.bio||got.tec)corrHtml+=`<div class="ov-panel"><div class="ov-ph">CAMPIONI RECUPERATI</div><div class="ov-samp"><div><b>+${got.bio}</b><span>BIO · totale ${samples.bio}</span></div><div><b>+${got.tec}</b><span>TEC · totale ${samples.tec}</span></div></div></div>`;
 
   /* Gate del guardiano, per settore: si espone quando tutti i nodi di campo
      di QUEL settore sono contenuti. E abbattuto un guardiano si apre il
