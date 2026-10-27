@@ -13,7 +13,7 @@ didascalie** (niente volti); **un'identità per ogni settore**, restando nello s
 - *Cassandra*: **identica a prima** (stessa tabella di scenografia: stesse posizioni, stesso seme).
 - La tavolozza di gioco non si tocca: ambra = tuo, rosso = minaccia, viola = corruzione. Il fuoco di Orvat è un arancio
   in cima alle ciminiere, non l'incendio del suolo; il teal di Tarsis è quello dell'acqua di gioco.
-  `effetti.js` misura la luminanza media della casella al centro: 166 / 162 / 163 nei tre settori.
+  `effetti.js` misura la luminanza media del pavimento su 16 caselle: **152 / 144 / 150** (Cassandra / Orvat / Tarsis). Orvat è ~8 punti più scuro (–5%): il velo caldo e la fuliggine. ⚠ La prima misura (166 / 162 / 163, una sola casella, effetti di morte non ancora spenti) era meno affidabile: una casella può portare una decalcomania e gli scuotimenti spostavano il campione; il test ora media su 16 caselle dopo aver svuotato gli effetti.
 
 **Mappa** — `creaCartaSettore()`: fondale SVG deterministico a bassissimo contrasto dietro nodi e archi (Cassandra:
 isolati e crepa del varco; Orvat: condotte, ciminiere, forno a cerchi; Tarsis: curve di livello attorno ai bacini e la

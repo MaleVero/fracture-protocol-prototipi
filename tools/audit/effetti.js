@@ -35,9 +35,12 @@ const SHOT = process.argv[2] === 'shots';
       RITMO = 0; activeMission = nodeOf(mid); startBattle(activeMission); await new Promise(r => setTimeout(r, 500));
       const t = document.getElementById('txOk'); if (t) t.click();
       B.units = B.units.filter(u => u.player && !u.structure); B.terrain.clear(); B.water.clear(); B.corrupt && B.corrupt.clear();
-      B.rift = null; __ISO.paintOnce(100);
-      const cv = document.querySelector('#board canvas'), r = cv.getBoundingClientRect(), g = cv.getContext('2d'), c = __ISO.iso(3, 3), d = devicePixelRatio || 1;
-      let L = 0, n = 0; for (const [ox, oy] of [[-12, 0], [-6, -3], [0, -4], [6, -3], [12, 0], [-6, 3], [0, 4], [6, 3], [0, 0]]) { const px = g.getImageData(Math.round((c.x + ox) * d), Math.round((c.y + oy) * d), 1, 1).data; L += 0.2126 * px[0] + 0.7152 * px[1] + 0.0722 * px[2]; n++; }
+      B.rift = null; mechs().forEach((u, i) => { u.x = 7; u.y = i; u._vx = 7; u._vy = i; });   // fuori dal punto misurato: la sagoma di un mech non e' il pavimento
+      __ISO.detect(); for (let i = 0; i < 80; i++) __ISO.paintOnce(50 + i * 40);   // spazza gli effetti di morte dei Kaucha tolti per allestire (e lo scuotimento): senza, il campione dipende dal caso
+      __ISO.paintOnce(9000);
+      const cv = document.querySelector('#board canvas'), g = cv.getContext('2d'), d = devicePixelRatio || 1;
+      // media su 16 caselle (3x3 punti ciascuna): una singola casella puo' portare una decalcomania (grigliato, macchia, pozza) e falserebbe il confronto
+      let L = 0, n = 0; for (let gx = 2; gx <= 5; gx++) for (let gy = 2; gy <= 5; gy++) { const c = __ISO.iso(gx, gy); for (const [ox, oy] of [[-10, 0], [-5, -3], [0, -4], [5, -3], [10, 0], [-5, 3], [0, 4], [5, 3], [0, 0]]) { const px = g.getImageData(Math.round((c.x + ox) * d), Math.round((c.y + oy) * d), 1, 1).data; L += 0.2126 * px[0] + 0.7152 * px[1] + 0.0722 * px[2]; n++; } }
       out[id] = { lum: Math.round(L / n) };
     }
     return out;

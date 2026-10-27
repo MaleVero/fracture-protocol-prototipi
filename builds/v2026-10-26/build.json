@@ -1,7 +1,7 @@
 {
-  "versione": "0.13.0",
+  "versione": "0.14.0",
   "data": "2026-10-26",
-  "titolo": "Lo sfogo della risonanza",
+  "titolo": "Sagome, targhe e un volto per ogni schermata",
   "cambia": [
     "Settore Tarsis: sei missioni sull'acqua e il guardiano finale, dove PALINSESTO finisce",
     "Nuovo nemico, il NERIS: attraversa l'acqua senza affondare, quindi non basta buttarlo in un lago",
@@ -19,7 +19,11 @@
     "Le conseguenze si vedono: il taglio di un colpo, la scia di una spinta, il tuffo di chi annega, la voragine che si chiude su chi cade",
     "Tavole più cinematografiche: camera lenta, targa del settore, strisce doppie e dissolvenza della didascalia; la schermata d'esito ha la sua vignetta",
     "Nuove tavole a fumetti: la baia dell'hangar (alla prima apertura) e Lazy J in tre momenti, la prima volta che interviene, a SIMBIOSI e a CONVERGENZA; la sua figura cambia con la banda",
-    "Lo sfogo di Lazy J funziona davvero: chiudere una missione senza farlo intervenire fa scendere la risonanza di 6 (prima la barra saliva soltanto), e il resoconto lo dice"
+    "Lo sfogo di Lazy J funziona davvero: chiudere una missione senza farlo intervenire fa scendere la risonanza di 6 (prima la barra saliva soltanto), e il resoconto lo dice",
+    "Il codice mostra la sagoma delle creature non ancora registrate, e il totale delle schede è giusto (era fermo a 9)",
+    "Il briefing di ogni missione mostra le creature possibili: a colori quelle che conosci, nere le altre",
+    "Ogni missione parte con una targa sul campo; il menu ha lo sfondo del settore, l'hangar mette il telaio sotto una luce da lavoro e la mappa si macchia di viola con la corruzione",
+    "Icona del gioco per il browser e per la schermata iniziale del telefono; hangar: il pulsante Officina non copre più il testo"
   ],
   "note": "Un file HTML autonomo, senza dipendenze. Si apre con un tap."
 }
