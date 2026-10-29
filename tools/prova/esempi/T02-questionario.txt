@@ -1,0 +1,32 @@
+=== QUESTIONARIO FRACTURE PROTOCOL v1 ===
+build: 0.23.0
+data: 2026-11-03T20:00
+q.codice: T02
+q.eta: 18-24
+q.tattici: 2
+q.giochi: 3
+q.dispositivo: telefono
+q.minuti: 30
+q.intento: b
+q.acqua: c
+q.risonanza: a
+q.anello: nonso
+q.corruzione: a
+q.obiettivi: 4
+q.difficolta: 4
+q.divertimento: 4
+q.voglia: 4
+q.campo: 3
+q.creature: 3
+q.interfaccia: 3
+q.fumetti: dipende
+q.suono: manca
+q.bello: Il Grumo che non si sposta: ho dovuto ripensare tutto.
+q.frustrante: Su telefono i pulsanti in basso sono piccoli.
+q.confuso: Non ho notato l'anello rosso.
+q.ricorda: XCOM
+q.cambiare: La musica.
+q.nps: 8
+q.wishlist: forse
+q.prezzo: 5-10
+=== FINE ===

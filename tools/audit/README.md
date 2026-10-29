@@ -8,7 +8,7 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 ## Rapporti
 `RAPPORTO-FASE0.md` audit · `FASE1` layout e accessibilità su schermi piccoli · `FASE2` bilanciamento ·
 `FASE3` Tarsis e NERIS · `FASE4` checkpoint, copia di sicurezza, tastiera · `FASE5` rilascio e **limite della nemesi** ·
-`BLOCCHI-1-2` abilità e Lazy J nell'agente, calibrazione di PALINSESTO · `BLOCCO-4` prova con altre persone · `BLOCCO-3` RISACCA, NERIS ridisegnato, tavole di Tarsis · `GRAFICA` identità di settore, effetti, tavole, esito · `SFOGO` la risonanza che scende, misurata su campagne intere · `GRAFICA-2` codice, briefing, menu, hangar, mappa, targa, icona · `GALLERIA` pagina di confronto di telai e creature. · `GRAFICA-3` Comando e Opzioni rifiniti · `GRAFICA-4` Codice, Officina e Ricerca rifiniti · `GRAFICA-5` fine missione · `GRAFICA-6` menu e Hangar · `GRAFICA-7` mappa e campo · `GRAFICA-8` pannello di Lazy J · `GRAFICA-9` rifinitura finale · `MODELLI` modelli dei Kaucha, élite per bandiera
+`BLOCCHI-1-2` abilità e Lazy J nell'agente, calibrazione di PALINSESTO · `BLOCCO-4` prova con altre persone · `BLOCCO-3` RISACCA, NERIS ridisegnato, tavole di Tarsis · `GRAFICA` identità di settore, effetti, tavole, esito · `SFOGO` la risonanza che scende, misurata su campagne intere · `GRAFICA-2` codice, briefing, menu, hangar, mappa, targa, icona · `GALLERIA` pagina di confronto di telai e creature. · `GRAFICA-3` Comando e Opzioni rifiniti · `GRAFICA-4` Codice, Officina e Ricerca rifiniti · `GRAFICA-5` fine missione · `GRAFICA-6` menu e Hangar · `GRAFICA-7` mappa e campo · `GRAFICA-8` pannello di Lazy J · `GRAFICA-9` rifinitura finale · `MODELLI` modelli dei Kaucha, élite per bandiera · `PROVA-KIT` materiale per la prova con persone
 
 ## Verifiche (devono finire con «tutti i controlli passati» / «ok»)
 | Script | Cosa controlla |
@@ -36,6 +36,7 @@ I file generati (screenshot, JSON) vanno in `out/`, ignorata da git.
 | `bersagli.js` | rifinitura finale: nessun controllo sotto 44 px e nessun testo sotto 8,5 px su tutte le schermate, con testo al 160% niente esce dallo schermo, a 320, 390 e 1000 px |
 | `contrasto.js` | rifinitura finale: tutto il testo visibile ha contrasto almeno 4,5:1 su tutte le schermate principali (390 e 1000 px) |
 | `modelli.js` | modelli dei Kaucha: ingombro, moto di riposo per specie (fermo con «riduci movimento»), élite per bandiera (segni di rango, statistiche, generatore, budget, pannello, salvataggio), contrasto creatura/pavimento |
+| `prova-kit.js` | materiale per la prova con persone: questionario compilato nel browser e riletto dall'aggregatore (stessi numeri), aggregatore contro calcolo indipendente, pacchetto aperto da file, documenti senza collegamenti rotti |
 | `grafica.js` | testata dell'hangar, culla, codice con sagome, sfondo del menu, mappa, presenze nel briefing, targa di missione, icone: 3 formati |
 | `shot-schermate.js [WxH] [id...]`, `icona.js` | anteprime di tutte le schermate; rigenera l'icona (PNG inline) |
 | `sfogo-test.js` | sfogo della risonanza: -6 se Lazy J non interviene (vinta/persa/sganciata), non sotto zero, dopo la nemesi, sopravvive al ricaricamento |

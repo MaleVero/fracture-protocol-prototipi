@@ -1,0 +1,32 @@
+=== QUESTIONARIO FRACTURE PROTOCOL v1 ===
+build: 0.23.0
+data: 2026-11-03T20:00
+q.codice: T01
+q.eta: 25-34
+q.tattici: 3
+q.giochi: 3
+q.dispositivo: computer
+q.minuti: 45
+q.intento: b
+q.acqua: c
+q.risonanza: b
+q.anello: d
+q.corruzione: a
+q.obiettivi: 5
+q.difficolta: 3
+q.divertimento: 5
+q.voglia: 5
+q.campo: 4
+q.creature: 4
+q.interfaccia: 3
+q.fumetti: leggo
+q.suono: manca
+q.bello: Spingere un Vorn in acqua e vederlo sparire.
+q.frustrante: Il relay distrutto al terzo round senza poter fare niente.
+q.confuso: La barra di Lazy J: ho capito solo alla quinta missione.
+q.ricorda: Into the Breach
+q.cambiare: Più info sul turno dei nemici.
+q.nps: 9
+q.wishlist: si
+q.prezzo: 10-15
+=== FINE ===

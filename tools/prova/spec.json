@@ -1,0 +1,86 @@
+{
+  "versione": 1,
+  "titolo": "Questionario di prova",
+  "intro": "Dieci minuti, dopo aver giocato. Non c'è una risposta giusta da dare: se una cosa non l'hai capita, scrivilo, è proprio ciò che mi serve. Non viene inviato niente: alla fine copi le risposte e le mandi tu a chi ti ha invitato.",
+  "sezioni": [
+    {
+      "id": "profilo",
+      "titolo": "Chi sei (senza nome)",
+      "domande": [
+        { "id": "codice", "tipo": "testo", "breve": true, "etichetta": "Il codice che ti ha dato chi ti ha invitato (es. T03). Se non ce l'hai, lascia vuoto.", "aiuto": "Serve solo a rimettere insieme questo questionario e il rapporto del gioco." },
+        { "id": "eta", "tipo": "scelta", "etichetta": "Fascia di età", "opzioni": [["u18", "meno di 18"], ["18-24", "18–24"], ["25-34", "25–34"], ["35-44", "35–44"], ["45+", "45 o più"], ["nd", "preferisco non dirlo"]] },
+        { "id": "tattici", "tipo": "scelta", "etichetta": "Quanto giochi a titoli tattici a turni (Into the Breach, XCOM, Fire Emblem, Advance Wars, Wargroove…)?", "opzioni": [["0", "mai o quasi"], ["1", "ogni tanto"], ["2", "spesso"], ["3", "è il mio genere preferito"]] },
+        { "id": "giochi", "tipo": "scelta", "etichetta": "E ai videogiochi in generale?", "opzioni": [["0", "quasi mai"], ["1", "qualche ora a settimana"], ["2", "molte ore a settimana"], ["3", "ogni giorno"]] },
+        { "id": "dispositivo", "tipo": "scelta", "etichetta": "Su cosa hai giocato?", "opzioni": [["telefono", "telefono"], ["tablet", "tablet"], ["computer", "computer"]] },
+        { "id": "minuti", "tipo": "numero", "etichetta": "Per quanti minuti circa hai giocato?", "min": 0, "max": 600, "unita": "minuti" }
+      ]
+    },
+    {
+      "id": "comp",
+      "titolo": "Cosa hai capito del gioco",
+      "intro": "Cinque domande per vedere cosa il gioco riesce a spiegare da solo. «Non lo so» è una risposta buona.",
+      "domande": [
+        { "id": "intento", "tipo": "scelta", "corretta": "b", "etichetta": "Sul campo vedi una casella bordata di rosso sotto uno dei tuoi mech. Cosa significa?", "opzioni": [["a", "È solo una casella pericolosa per il terreno"], ["b", "È dove un nemico colpirà alla fine del turno: se resto lì, prendo il colpo"], ["c", "È la casella dove posso attaccare io"], ["d", "È dove arriveranno rinforzi"], ["nonso", "Non lo so"]] },
+        { "id": "acqua", "tipo": "scelta", "corretta": "c", "etichetta": "Spingi un Vorn (la creatura a quattro zampe) in acqua o in una voragine. Cosa succede?", "opzioni": [["a", "Perde un punto vita"], ["b", "Salta il turno successivo"], ["c", "Viene eliminato"], ["d", "Non succede niente"], ["nonso", "Non lo so"]] },
+        { "id": "risonanza", "tipo": "scelta", "corretta": "b", "etichetta": "Cos'è la barra di Lazy J (la «risonanza»)?", "opzioni": [["a", "I suoi punti vita"], ["b", "Sale quando interviene e sblocca interventi più forti; se chiudo una missione senza farlo intervenire scende un poco"], ["c", "Il tempo che resta alla missione"], ["d", "L'esperienza dei piloti"], ["nonso", "Non lo so"]] },
+        { "id": "anello", "tipo": "scelta", "corretta": "d", "etichetta": "Una creatura ha un anello rosso a terra. Cosa significa?", "opzioni": [["a", "È la creatura che sto guardando"], ["b", "Ha già agito in questo turno"], ["c", "È in mezzo al fuoco"], ["d", "È un'élite: più grossa, più resistente, più pericolosa"], ["nonso", "Non l'ho notato / non lo so"]] },
+        { "id": "corruzione", "tipo": "scelta", "corretta": "a", "etichetta": "Sulla mappa lasci un nodo senza contenerlo. Cosa succede, fra una missione e l'altra?", "opzioni": [["a", "Peggiora e contagia i nodi vicini"], ["b", "Resta com'è"], ["c", "Si risolve da solo"], ["d", "Mi fa perdere subito la campagna"], ["nonso", "Non lo so"]] }
+      ]
+    },
+    {
+      "id": "es",
+      "titolo": "Com'è andata",
+      "intro": "Da 1 (per niente) a 5 (moltissimo), tranne dove è scritto diversamente.",
+      "domande": [
+        { "id": "obiettivi", "tipo": "scala", "min": 1, "max": 5, "etichetta": "Era chiaro cosa dovevi fare in ogni missione?", "estremi": ["per niente", "chiarissimo"] },
+        { "id": "difficolta", "tipo": "scala", "min": 1, "max": 5, "etichetta": "La difficoltà", "estremi": ["troppo facile", "troppo difficile"], "aiuto": "3 = giusta." },
+        { "id": "divertimento", "tipo": "scala", "min": 1, "max": 5, "etichetta": "Ti sei divertito?", "estremi": ["per niente", "moltissimo"] },
+        { "id": "voglia", "tipo": "scala", "min": 1, "max": 5, "etichetta": "Quanta voglia hai di giocare un'altra missione adesso?", "estremi": ["nessuna", "tantissima"] },
+        { "id": "campo", "tipo": "scala", "min": 1, "max": 5, "etichetta": "Sul campo di battaglia si legge bene cosa succede?", "estremi": ["per niente", "benissimo"] },
+        { "id": "creature", "tipo": "scala", "min": 1, "max": 5, "etichetta": "Le creature si riconoscono a colpo d'occhio?", "estremi": ["si confondono", "sempre"] },
+        { "id": "interfaccia", "tipo": "scala", "min": 1, "max": 5, "etichetta": "L'interfaccia (menu, mappa, hangar, pulsanti) è comoda?", "estremi": ["scomoda", "comodissima"] },
+        { "id": "fumetti", "tipo": "scelta", "etichetta": "Le tavole a fumetti fra una missione e l'altra", "opzioni": [["leggo", "le leggo volentieri"], ["dipende", "dipende, a volte le salto"], ["salto", "le salto"], ["nonviste", "non ne ho viste"]] },
+        { "id": "suono", "tipo": "scelta", "etichetta": "Il suono (effetti sintetizzati, niente musica)", "opzioni": [["ok", "mi va bene così"], ["manca", "mi manca la musica"], ["nonsentito", "non l'ho sentito / era spento"]] }
+      ]
+    },
+    {
+      "id": "aperte",
+      "titolo": "Con parole tue",
+      "intro": "Poche righe bastano. Meglio un caso preciso («nella seconda missione, quando…») che un giudizio generale.",
+      "domande": [
+        { "id": "bello", "tipo": "testo", "etichetta": "Il momento più bello o più soddisfacente" },
+        { "id": "frustrante", "tipo": "testo", "etichetta": "Il momento più frustrante" },
+        { "id": "confuso", "tipo": "testo", "etichetta": "Un punto in cui non hai capito cosa fare o cosa stava succedendo" },
+        { "id": "ricorda", "tipo": "testo", "etichetta": "A che gioco ti ha fatto pensare?", "breve": true },
+        { "id": "cambiare", "tipo": "testo", "etichetta": "Se potessi cambiare una cosa sola, quale?" }
+      ]
+    },
+    {
+      "id": "mercato",
+      "titolo": "Se fosse un gioco in vendita",
+      "intro": "Rispondi come se vedessi questo gioco su Steam, non come se fossi un amico di chi lo sta facendo.",
+      "domande": [
+        { "id": "nps", "tipo": "scala", "min": 0, "max": 10, "etichetta": "Quanto lo consiglieresti a un amico che ama questo genere?", "estremi": ["per niente", "assolutamente"] },
+        { "id": "wishlist", "tipo": "scelta", "etichetta": "Lo aggiungeresti alla lista dei desideri su Steam?", "opzioni": [["si", "sì"], ["forse", "forse, dipende da quel che vedo"], ["no", "no"]] },
+        { "id": "prezzo", "tipo": "scelta", "etichetta": "Quanto saresti disposto a pagarlo, a gioco finito?", "opzioni": [["meno5", "meno di 5 €"], ["5-10", "5–10 €"], ["10-15", "10–15 €"], ["15-20", "15–20 €"], ["oltre20", "più di 20 €"], ["nonacquisto", "non lo comprerei"]] }
+      ]
+    },
+    {
+      "id": "contatto",
+      "titolo": "Se vuoi essere richiamato",
+      "domande": [
+        { "id": "contatto", "tipo": "testo", "breve": true, "etichetta": "Come contattarti (facoltativo)", "aiuto": "Resta in questo testo: se non lo scrivi, nessuno saprà chi sei." }
+      ]
+    }
+  ],
+  "soglie": {
+    "comprensione": { "buono": 0.7, "debole": 0.5 },
+    "divertimento": { "buono": 4, "debole": 3 },
+    "voglia": { "buono": 4, "debole": 3 },
+    "difficolta": { "da": 2.5, "a": 3.5 },
+    "leggibilita": { "buono": 4, "debole": 3 },
+    "nps": { "buono": 30, "debole": 0 },
+    "wishlist": { "buono": 0.4, "debole": 0.2 },
+    "giudizi": { "giustaMin": 0.5, "durMax": 0.35, "facileMax": 0.25 }
+  }
+}
