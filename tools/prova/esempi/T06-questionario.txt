@@ -1,0 +1,31 @@
+=== QUESTIONARIO FRACTURE PROTOCOL v1 ===
+build: 0.23.0
+data: 2026-11-03T20:00
+q.codice: T06
+q.eta: 18-24
+q.tattici: 3
+q.giochi: 3
+q.dispositivo: computer
+q.minuti: 60
+q.intento: b
+q.acqua: c
+q.risonanza: b
+q.anello: d
+q.corruzione: a
+q.obiettivi: 5
+q.difficolta: 2
+q.divertimento: 4
+q.voglia: 4
+q.campo: 5
+q.creature: 4
+q.interfaccia: 4
+q.fumetti: salto
+q.suono: manca
+q.bello: La corruzione che cresce se ignori un nodo: tensione vera.
+q.frustrante: Troppo facile dopo le prime missioni.
+q.ricorda: Into the Breach
+q.cambiare: Più difficoltà.
+q.nps: 10
+q.wishlist: si
+q.prezzo: 10-15
+=== FINE ===

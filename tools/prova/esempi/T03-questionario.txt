@@ -1,0 +1,32 @@
+=== QUESTIONARIO FRACTURE PROTOCOL v1 ===
+build: 0.23.0
+data: 2026-11-03T20:00
+q.codice: T03
+q.eta: 35-44
+q.tattici: 0
+q.giochi: 1
+q.dispositivo: telefono
+q.minuti: 20
+q.intento: a
+q.acqua: c
+q.risonanza: nonso
+q.anello: nonso
+q.corruzione: nonso
+q.obiettivi: 2
+q.difficolta: 5
+q.divertimento: 2
+q.voglia: 2
+q.campo: 2
+q.creature: 3
+q.interfaccia: 2
+q.fumetti: salto
+q.suono: nonsentito
+q.bello: Le tavole a fumetti, belle.
+q.frustrante: Non capivo cosa fare nella prima missione.
+q.confuso: Tutto: cosa significano le caselle rosse?
+q.ricorda: niente
+q.cambiare: Spiegare meglio all'inizio.
+q.nps: 4
+q.wishlist: no
+q.prezzo: nonacquisto
+=== FINE ===

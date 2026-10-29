@@ -1,0 +1,4 @@
+DATI SINTETICI: persone, risposte e partite inventate per provare gli strumenti.
+Non sono risultati di una prova.
+
+Prova:  node tools/prova/aggrega.js tools/prova/esempi

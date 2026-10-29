@@ -1,0 +1,14 @@
+FRACTURE PROTOCOL — RAPPORTO DI PROVA
+build: 0.23.0 · 2026-11-03T20:00:00.000Z
+dispositivo: sintetico
+schermo: 1440×900 @2 · mouse/tastiera · lingua it-IT
+impostazioni: testo 100% · suono sì volume 85 · animazioni sì
+campagna: slot 1 · SETTORE CASSANDRA · nodi contenuti 2/23 · frammenti 300 · risonanza 20 · nemesi dormiente · escalation 1.5
+
+DIARIO (ultime 30 missioni):
+2026-11-03 17:00 · m1 AVAMPOSTO KILO · vittoria · round 3/6 · mech 3/3 · nemesi dormiente · escalation 0 · giudizio: FACILE
+2026-11-03 17:11 · m2 DIGA SVANIR · vittoria · round 4/5 · mech 3/3 · nemesi liv 0 · escalation 1.5 · giudizio: GIUSTA
+2026-11-03 17:25 · m3 FENDITURA NOX · vittoria · round 6/7 · mech 2/3 · nemesi liv 0 · escalation 3 · giudizio: GIUSTA
+
+COSA È SUCCESSO / COSA TI ASPETTAVI:
+

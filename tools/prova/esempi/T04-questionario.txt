@@ -1,0 +1,32 @@
+=== QUESTIONARIO FRACTURE PROTOCOL v1 ===
+build: 0.23.0
+data: 2026-11-03T20:00
+q.codice: T04
+q.eta: 25-34
+q.tattici: 2
+q.giochi: 2
+q.dispositivo: computer
+q.minuti: 40
+q.intento: b
+q.acqua: c
+q.risonanza: b
+q.anello: d
+q.corruzione: b
+q.obiettivi: 4
+q.difficolta: 3
+q.divertimento: 4
+q.voglia: 5
+q.campo: 4
+q.creature: 5
+q.interfaccia: 4
+q.fumetti: leggo
+q.suono: ok
+q.bello: Chiudere il rift all'ultimo round.
+q.frustrante: Perdere un mech per una spinta che non avevo previsto.
+q.confuso: Niente di grave.
+q.ricorda: Into the Breach
+q.cambiare: Più varietà di mappe.
+q.nps: 9
+q.wishlist: si
+q.prezzo: 15-20
+=== FINE ===

@@ -1,0 +1,32 @@
+=== QUESTIONARIO FRACTURE PROTOCOL v1 ===
+build: 0.23.0
+data: 2026-11-03T20:00
+q.codice: T05
+q.eta: 45+
+q.tattici: 1
+q.giochi: 1
+q.dispositivo: tablet
+q.minuti: 25
+q.intento: b
+q.acqua: b
+q.risonanza: nonso
+q.anello: nonso
+q.corruzione: a
+q.obiettivi: 3
+q.difficolta: 4
+q.divertimento: 3
+q.voglia: 3
+q.campo: 3
+q.creature: 2
+q.interfaccia: 3
+q.fumetti: dipende
+q.suono: ok
+q.bello: Quando ho capito le spinte.
+q.frustrante: Le creature viola si confondono.
+q.confuso: Vorn e Neris sembrano uguali.
+q.ricorda: Advance Wars
+q.cambiare: Colori più diversi per le creature.
+q.nps: 6
+q.wishlist: forse
+q.prezzo: 5-10
+=== FINE ===
